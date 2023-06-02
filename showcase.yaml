@@ -1,0 +1,6 @@
+type: "runtime"
+#startup: null
+use_mariadb: false
+entrypoint: "cargo run"
+http_proxy: 8080
+__image: ghcr.io/h1rono/bot-cnvtr:latest
