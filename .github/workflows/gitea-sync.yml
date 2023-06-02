@@ -1,0 +1,33 @@
+## gitea に同期する用の actions
+name: Sync with Gitea
+
+on:
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITEA_SSH_URL: "ssh://git@git.trap.jp:2200/H1rono_K/bot-cnvtr.git"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set config
+        run: |
+          echo "${{ secrets.GITEA_TOKEN }}" > ~/deploy_key.pem
+          chmod 600 ~/deploy_key.pem
+          git config --local user.email "github@actions"
+          git config --local user.name "github"
+      - name: Push changes
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/deploy_key.pem -o StrictHostKeyChecking=no -F /dev/null
+        run: |
+          git fetch --unshallow origin
+          git push -f ${{ env.GITEA_SSH_URL }} main:master
