@@ -1,6 +1,6 @@
 FROM rust:slim-bullseye
 
-WORKDIR /usr/src/todo-app-backend
+WORKDIR /app
 COPY . .
 
 RUN cargo build
