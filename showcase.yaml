@@ -1,6 +1,6 @@
 type: "runtime"
 #startup: null
 use_mariadb: false
-entrypoint: "/app/target/debug/bot-cnvtr"
+entrypoint: "/app/main"
 http_proxy: 8080
 __image: ghcr.io/h1rono/bot-cnvtr:latest
