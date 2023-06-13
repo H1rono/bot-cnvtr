@@ -58,5 +58,6 @@ jobs:
           GIT_SSH_COMMAND: ssh -i ~/deploy_key.pem -o StrictHostKeyChecking=no -F /dev/null
         run: |
           git remote add gitea ${{ env.GITEA_SSH_URL }}
+          git switch -c master
           git fetch gitea
-          git push -f gitea main:master
+          git push -f gitea master
