@@ -1,4 +1,4 @@
-use std::{env, net::SocketAddr};
+use std::net::SocketAddr;
 
 use axum::{
     body::Bytes,
@@ -12,8 +12,8 @@ use traq_bot_http::{Event, RequestParser};
 
 #[tokio::main]
 async fn main() {
-    let verification_token = env::var("VERIFICATION_TOKEN").unwrap();
-    let parser = RequestParser::new(&verification_token);
+    let config = bot_cnvtr::Config::from_env().unwrap();
+    let parser = RequestParser::new(&config.verification_token);
     let app = Router::new().route("/", post(handler)).with_state(parser);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
