@@ -8,5 +8,8 @@ publish = false
 
 [dependencies]
 axum = "0.6"
+dotenvy = "0.15"
+envy = "0.4"
+serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.29", features = ["full"] }
 traq-bot-http = "0.6"
