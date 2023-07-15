@@ -27,8 +27,17 @@ async fn handler(
     headers: HeaderMap,
     body: Bytes,
 ) -> StatusCode {
+    use Event::*;
     match parser.parse(headers, &body) {
-        Ok(Event::MessageCreated(payload)) => {
+        Ok(Joined(payload)) => {
+            println!("チャンネル {} に参加しました。", payload.channel.name);
+            StatusCode::NO_CONTENT
+        }
+        Ok(Left(payload)) => {
+            println!("チャンネル {} から退出しました。", payload.channel.name);
+            StatusCode::NO_CONTENT
+        }
+        Ok(MessageCreated(payload)) => {
             print!(
                 "{}さんがメッセージを投稿しました。\n内容: {}\n",
                 payload.message.user.display_name, payload.message.text
