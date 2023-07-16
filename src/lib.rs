@@ -5,3 +5,5 @@ pub mod router;
 
 pub mod model;
 pub use model::Database;
+
+pub mod bot;
