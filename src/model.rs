@@ -11,6 +11,7 @@ mod webhook;
 
 pub use group::Group;
 pub use group_member::GroupMember;
+pub use owner::Owner;
 pub use user::User;
 pub use webhook::Webhook;
 
