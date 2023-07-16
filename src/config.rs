@@ -44,12 +44,22 @@ impl DbConfig {
 pub struct Config(pub BotConfig, pub DbConfig);
 
 impl Config {
-    pub fn from_env() -> Result<Self, LoadError> {
-        dotenvy::from_filename_override(".env.dev")?;
-        dotenvy::from_filename_override(".env")?;
+    fn load_env() -> Result<Self, LoadError> {
         let bot_c = BotConfig::from_env()?;
         let db_c = DbConfig::from_env()?;
         Ok(Self(bot_c, db_c))
+    }
+
+    pub fn from_env() -> Result<Self, LoadError> {
+        Self::load_env()
+            .or_else(|_| {
+                dotenvy::from_filename_override(".env")?;
+                Self::load_env()
+            })
+            .or_else(|_| {
+                dotenvy::from_filename_override(".env.dev")?;
+                Self::load_env()
+            })
     }
 }
 
