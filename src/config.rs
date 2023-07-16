@@ -27,9 +27,9 @@ pub struct DbConfig {
 
 impl DbConfig {
     pub fn from_env() -> Result<Self, LoadError> {
-        envy::prefixed("NS_MARIADB")
+        envy::prefixed("NS_MARIADB_")
             .from_env()
-            .or_else(|_| envy::prefixed("MYSQL").from_env())
+            .or_else(|_| envy::prefixed("MYSQL_").from_env())
             .map_err(LoadError::Envy)
     }
 
