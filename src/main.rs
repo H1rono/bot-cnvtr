@@ -10,10 +10,12 @@ use axum::{
 
 use traq_bot_http::{Event, RequestParser};
 
+use bot_cnvtr::Config;
+
 #[tokio::main]
 async fn main() {
-    let config = bot_cnvtr::Config::from_env().unwrap();
-    let parser = RequestParser::new(&config.verification_token);
+    let Config(bot_config, _db_config) = Config::from_env().unwrap();
+    let parser = RequestParser::new(&bot_config.verification_token);
     let app = Router::new().route("/", post(handler)).with_state(parser);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
