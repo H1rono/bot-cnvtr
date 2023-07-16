@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     body::Bytes,
     extract::State,
@@ -10,17 +12,30 @@ use traq_bot_http::{Event, RequestParser};
 
 use super::Database;
 
-pub fn make_router(_db: Database, parser: RequestParser) -> Router {
-    Router::new().route("/", post(handler)).with_state(parser)
+#[allow(dead_code)]
+#[derive(Clone)]
+struct AppState {
+    pub db: Arc<Database>,
+    pub parser: RequestParser,
 }
 
-async fn handler(
-    State(parser): State<RequestParser>,
-    headers: HeaderMap,
-    body: Bytes,
-) -> StatusCode {
+impl AppState {
+    pub fn new(db: Database, parser: RequestParser) -> Self {
+        Self {
+            db: Arc::new(db),
+            parser,
+        }
+    }
+}
+
+pub fn make_router(db: Database, parser: RequestParser) -> Router {
+    let state = AppState::new(db, parser);
+    Router::new().route("/", post(handler)).with_state(state)
+}
+
+async fn handler(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> StatusCode {
     use Event::*;
-    match parser.parse(headers, &body) {
+    match st.parser.parse(headers, &body) {
         Ok(Joined(payload)) => {
             println!("チャンネル {} に参加しました。", payload.channel.name);
             StatusCode::NO_CONTENT
