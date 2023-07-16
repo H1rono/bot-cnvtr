@@ -10,6 +10,14 @@ pub struct Config {
     pub verification_token: String,
 }
 
+impl Config {
+    pub fn from_env() -> Result<Self, LoadError> {
+        dotenvy::from_filename(".env.dev")?;
+        dotenvy::from_filename_override(".env")?;
+        Ok(envy::from_env()?)
+    }
+}
+
 #[derive(Debug)]
 pub enum LoadError {
     DotEnvy(dotenvy::Error),
@@ -37,13 +45,5 @@ impl From<dotenvy::Error> for LoadError {
 impl From<envy::Error> for LoadError {
     fn from(value: envy::Error) -> Self {
         LoadError::Envy(value)
-    }
-}
-
-impl Config {
-    pub fn from_env() -> Result<Self, LoadError> {
-        dotenvy::from_filename(".env.dev")?;
-        dotenvy::from_filename_override(".env")?;
-        Ok(envy::from_env()?)
     }
 }
