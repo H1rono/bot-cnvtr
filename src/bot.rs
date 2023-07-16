@@ -1,6 +1,7 @@
 use traq::apis::configuration::Configuration;
+use traq_bot_http::Event;
 
-use super::config::BotConfig;
+use super::{config::BotConfig, Database};
 
 #[derive(Debug, Clone)]
 pub struct Bot {
@@ -39,6 +40,28 @@ impl Bot {
             id: bot_id,
             user_id: bot_user_id,
             client,
+        }
+    }
+
+    pub async fn handle_event(&self, _db: &Database, event: Event) -> Result<(), String> {
+        use Event::*;
+        match event {
+            Joined(payload) => {
+                println!("チャンネル {} に参加しました。", payload.channel.name);
+                Ok(())
+            }
+            Left(payload) => {
+                println!("チャンネル {} から退出しました。", payload.channel.name);
+                Ok(())
+            }
+            MessageCreated(payload) => {
+                print!(
+                    "{}さんがメッセージを投稿しました。\n内容: {}\n",
+                    payload.message.user.display_name, payload.message.text
+                );
+                Ok(())
+            }
+            _ => Ok(()),
         }
     }
 }
