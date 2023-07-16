@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::net::SocketAddr;
 
 use axum::{
@@ -13,15 +14,15 @@ use traq_bot_http::{Event, RequestParser};
 use bot_cnvtr::Config;
 
 #[tokio::main]
-async fn main() {
-    let Config(bot_config, _db_config) = Config::from_env().unwrap();
+async fn main() -> Result<(), Box<dyn Error>> {
+    let Config(bot_config, db_config) = Config::from_env()?;
     let parser = RequestParser::new(&bot_config.verification_token);
     let app = Router::new().route("/", post(handler)).with_state(parser);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
+        .await?;
+    Ok(())
 }
 
 async fn handler(
