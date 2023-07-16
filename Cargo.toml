@@ -15,6 +15,7 @@ tokio = { version = "1.29", features = ["full"] }
 traq-bot-http = "0.6"
 traq = "0.1"
 indoc = "2.0"
+thiserror = "1.0"
 
 [dependencies.sqlx]
 version = "0.6"

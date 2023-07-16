@@ -172,6 +172,7 @@ dependencies = [
  "indoc",
  "serde",
  "sqlx",
+ "thiserror",
  "tokio",
  "traq",
  "traq-bot-http",
