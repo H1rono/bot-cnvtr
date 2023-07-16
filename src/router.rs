@@ -1,16 +1,21 @@
 use std::sync::Arc;
 
+use thiserror::Error as ThisError;
+
 use axum::{
     body::Bytes,
     extract::State,
     http::{HeaderMap, StatusCode},
-    routing::post,
+    response::IntoResponse,
+    routing::{get, post},
     Router,
 };
 
 use traq_bot_http::RequestParser;
 
 use super::{Bot, Database};
+
+mod wh;
 
 #[allow(dead_code)]
 #[derive(Clone)]
@@ -32,7 +37,10 @@ impl AppState {
 
 pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
     let state = AppState::new(db, parser, bot);
-    Router::new().route("/", post(handler)).with_state(state)
+    Router::new()
+        .route("/", post(handler))
+        .route("/wh/:id", get(wh::get_wh))
+        .with_state(state)
 }
 
 async fn handler(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> StatusCode {
@@ -50,3 +58,25 @@ async fn handler(State(st): State<AppState>, headers: HeaderMap, body: Bytes) ->
         }
     }
 }
+
+#[derive(Debug, ThisError)]
+enum Error {
+    #[error("not found")]
+    NotFound,
+    #[error("sql error")]
+    SqlError(#[from] sqlx::Error),
+}
+
+impl IntoResponse for Error {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::NotFound => (StatusCode::NOT_FOUND, "Not Found").into_response(),
+            Self::SqlError(e) => {
+                eprintln!("sqlx error: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+        }
+    }
+}
+
+type Result<T, E = Error> = std::result::Result<T, E>;
