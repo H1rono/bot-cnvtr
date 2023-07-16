@@ -21,9 +21,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     db.migrate().await?;
     let app = Router::new().route("/", post(handler)).with_state(parser);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    let server = axum::Server::bind(&addr).serve(app.into_make_service());
+    println!("listening on {} ...", addr);
+    server.await?;
     Ok(())
 }
 
