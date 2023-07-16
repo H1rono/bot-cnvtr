@@ -3,6 +3,12 @@ use sqlx::MySqlPool;
 
 use super::config::DbConfig;
 
+mod group;
+mod group_member;
+mod owner;
+mod user;
+mod webhook;
+
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
 pub struct Database(MySqlPool);
