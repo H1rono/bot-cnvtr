@@ -6,7 +6,7 @@ RUN touch .env.dev
 RUN touch .env
 RUN cargo build
 
-FROM ubuntu:latest
+FROM debian:bullseye
 
 RUN apt -y update && apt -y install build-essential libssl-dev
 WORKDIR /app
