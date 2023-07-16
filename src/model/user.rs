@@ -14,8 +14,8 @@ impl Database {
         sqlx::query(r#"SELECT * FROM `users`"#)
             .fetch_all(&self.0)
             .await?
-            .into_iter()
-            .map(|u| User::from_row(&u))
+            .iter()
+            .map(User::from_row)
             .collect::<Result<_>>()
     }
 

@@ -15,8 +15,8 @@ impl Database {
         sqlx::query(r#"SELECT * FROM `webhooks"#)
             .fetch_all(&self.0)
             .await?
-            .into_iter()
-            .map(|w| Webhook::from_row(&w))
+            .iter()
+            .map(Webhook::from_row)
             .collect::<Result<_>>()
     }
 

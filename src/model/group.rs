@@ -14,8 +14,8 @@ impl Database {
         sqlx::query(r#"SELECT * FROM `groups`"#)
             .fetch_all(&self.0)
             .await?
-            .into_iter()
-            .map(|g| Group::from_row(&g))
+            .iter()
+            .map(Group::from_row)
             .collect::<Result<_>>()
     }
 
