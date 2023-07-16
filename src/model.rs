@@ -9,6 +9,8 @@ mod owner;
 mod user;
 mod webhook;
 
+pub use user::User;
+
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
 pub struct Database(MySqlPool);
