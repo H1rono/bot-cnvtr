@@ -1,3 +1,5 @@
+use std::{error, fmt::Display};
+
 use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
@@ -43,7 +45,7 @@ impl Bot {
         }
     }
 
-    pub async fn handle_event(&self, _db: &Database, event: Event) -> Result<(), String> {
+    pub async fn handle_event(&self, db: &Database, event: Event) -> Result<(), Error> {
         use Event::*;
         match event {
             Joined(payload) => {
@@ -62,6 +64,18 @@ impl Bot {
                 Ok(())
             }
             _ => Ok(()),
-        }
+        }?;
+        Ok(())
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Error;
+
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "bot::Error")
+    }
+}
+
+impl error::Error for Error {}
