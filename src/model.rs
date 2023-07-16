@@ -10,6 +10,7 @@ mod user;
 mod webhook;
 
 pub use user::User;
+pub use webhook::Webhook;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 

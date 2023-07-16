@@ -1,0 +1,53 @@
+use serde::{Deserialize, Serialize};
+use sqlx::{FromRow, Result};
+
+use super::Database;
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
+pub struct Webhook {
+    pub id: String,
+    pub channel_id: String,
+    pub owner_id: String,
+}
+
+impl Database {
+    pub async fn read_webhooks(&self) -> Result<Vec<Webhook>> {
+        sqlx::query(r#"SELECT * FROM `webhooks"#)
+            .fetch_all(&self.0)
+            .await?
+            .into_iter()
+            .map(|w| Webhook::from_row(&w))
+            .collect::<Result<_>>()
+    }
+
+    pub async fn create_webhook(&self, w: Webhook) -> Result<()> {
+        sqlx::query(r#"INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`) VALUES (?, ?, ?)"#)
+            .bind(w.id)
+            .bind(w.channel_id)
+            .bind(w.owner_id)
+            .execute(&self.0)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()> {
+        sqlx::query(
+            r#"UPDATE `users` SET `id` = ?, `channel_id` = ?, `owner_id` = ? WHERE `id` = ?"#,
+        )
+        .bind(w.id)
+        .bind(w.channel_id)
+        .bind(w.owner_id)
+        .bind(id)
+        .execute(&self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn delete_webhook(&self, id: &str) -> Result<()> {
+        sqlx::query(r#"DELETE FROM `webhooks` WHERE `id` = ?"#)
+            .bind(id)
+            .execute(&self.0)
+            .await?;
+        Ok(())
+    }
+}
