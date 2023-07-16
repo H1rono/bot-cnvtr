@@ -1,7 +1,7 @@
 use sqlx::migrate::Migrator;
 use sqlx::MySqlPool;
 
-use super::DbConfig;
+use super::config::DbConfig;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 

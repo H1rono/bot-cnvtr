@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 
-pub use config::{BotConfig, Config, DbConfig, LoadError};
+pub use config::Config;
 pub mod model;
