@@ -40,6 +40,9 @@ pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
     Router::new()
         .route("/", post(handler))
         .route("/wh/:id", get(wh::get_wh))
+        .route("/wh/:id/github", post(wh::wh_github))
+        .route("/wh/:id/gitea", post(wh::wh_gitea))
+        .route("/wh/:id/clickup", post(wh::wh_clickup))
         .with_state(state)
 }
 
