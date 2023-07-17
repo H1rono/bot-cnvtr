@@ -57,6 +57,7 @@ impl Bot {
             Joined(payload) => self.on_joined(payload, db).await,
             Left(payload) => self.on_left(payload, db).await,
             MessageCreated(payload) => self.on_message_created(payload, db).await,
+            DirectMessageCreated(payload) => self.on_direct_message_created(payload, db).await,
             _ => Ok(()),
         }?;
         Ok(())
