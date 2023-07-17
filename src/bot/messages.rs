@@ -46,7 +46,14 @@ impl Bot {
                 return Ok(());
             }
         };
-        let message = format!("```\n{:?}\n```", cli);
+        let message = format!(
+            indoc! {r#"
+            ```
+            {:?}
+            ```
+        "#},
+            cli
+        );
         self.send_message(&cid, &message, false).await?;
         Ok(())
     }

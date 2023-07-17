@@ -14,13 +14,15 @@ pub(super) async fn event(
     match st.parser.parse(headers, &body) {
         Ok(event) => match st.bot.handle_event(st.db.as_ref(), event).await {
             Ok(_) => StatusCode::NO_CONTENT,
-            Err(e) => {
-                eprintln!("ERROR: {e}");
+            Err(err) => {
+                eprintln!("ERROR: {err}");
+                eprintln!("{err:?}");
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         },
         Err(err) => {
             eprintln!("ERROR: {err}");
+            eprintln!("{err:?}");
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
