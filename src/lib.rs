@@ -9,4 +9,5 @@ pub use model::Database;
 pub mod bot;
 pub use bot::Bot;
 
-mod cli;
+pub mod cli;
+pub use cli::Cli;
