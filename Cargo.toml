@@ -11,6 +11,7 @@ axum = "0.6"
 dotenvy = "0.15"
 envy = "0.4"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 tokio = { version = "1.29", features = ["full"] }
 traq-bot-http = "0.6"
 traq = "0.1"
