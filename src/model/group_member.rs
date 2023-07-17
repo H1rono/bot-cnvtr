@@ -23,6 +23,21 @@ impl Database {
         .collect::<Result<_>>()
     }
 
+    pub async fn find_group_member(&self, gid: &str, uid: &str) -> Result<Option<GroupMember>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `group_members`
+            WHERE `group_id` = ?, `user_id` = ?
+            LIMIT 1
+        "#})
+        .bind(gid)
+        .bind(uid)
+        .fetch_optional(&self.0)
+        .await?
+        .map(|gm| GroupMember::from_row(&gm))
+        .transpose()
+    }
+
     pub async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT

@@ -24,6 +24,20 @@ impl Database {
         .collect::<Result<_>>()
     }
 
+    pub async fn find_webhook(&self, id: &str) -> Result<Option<Webhook>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `webhooks`
+            WHERE `id` = ?
+            LIMIT 1
+        "#})
+        .bind(id)
+        .fetch_optional(&self.0)
+        .await?
+        .map(|w| Webhook::from_row(&w))
+        .transpose()
+    }
+
     pub async fn create_webhook(&self, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`)

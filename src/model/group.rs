@@ -23,6 +23,20 @@ impl Database {
         .collect::<Result<_>>()
     }
 
+    pub async fn find_group(&self, id: &str) -> Result<Option<Group>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `groups`
+            WHERE `id` = ?
+            LIMIT 1
+        "#})
+        .bind(id)
+        .fetch_optional(&self.0)
+        .await?
+        .map(|g| Group::from_row(&g))
+        .transpose()
+    }
+
     pub async fn create_group(&self, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `groups` (`id`, `name`)

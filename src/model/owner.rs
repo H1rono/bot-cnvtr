@@ -24,6 +24,20 @@ impl Database {
         .collect::<Result<_>>()
     }
 
+    pub async fn find_owner(&self, id: &str) -> Result<Option<Owner>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `owners`
+            WHERE `id` = ?
+            LIMIT 1
+        "#})
+        .bind(id)
+        .fetch_optional(&self.0)
+        .await?
+        .map(|o| Owner::from_row(&o))
+        .transpose()
+    }
+
     pub async fn create_owner(&self, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `owners` (`id`, `name`, `group`)

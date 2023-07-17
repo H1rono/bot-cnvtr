@@ -23,6 +23,20 @@ impl Database {
         .collect::<Result<_>>()
     }
 
+    pub async fn find_user(&self, id: &str) -> Result<Option<User>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `users`
+            WHERE `id` = ?
+            LIMIT 1
+        "#})
+        .bind(id)
+        .fetch_optional(&self.0)
+        .await?
+        .map(|u| User::from_row(&u))
+        .transpose()
+    }
+
     pub async fn create_user(&self, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `users` (`id`, `name`)
