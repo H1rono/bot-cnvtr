@@ -64,10 +64,4 @@ impl Bot {
 #[derive(Debug, Clone, ThisError)]
 pub enum Error {}
 
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "bot::Error")
-    }
-}
-
-impl error::Error for Error {}
+pub type Result<T, E = Error> = std::result::Result<T, E>;
