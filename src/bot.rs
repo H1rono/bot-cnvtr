@@ -1,4 +1,4 @@
-use std::{error, fmt::Display};
+use thiserror::Error as ThisError;
 
 use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
@@ -61,8 +61,8 @@ impl Bot {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Error;
+#[derive(Debug, Clone, ThisError)]
+pub enum Error {}
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
