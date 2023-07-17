@@ -3,9 +3,7 @@ use std::sync::Arc;
 use thiserror::Error as ThisError;
 
 use axum::{
-    body::Bytes,
-    extract::State,
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
     Router,
@@ -15,6 +13,7 @@ use traq_bot_http::RequestParser;
 
 use super::{Bot, Database};
 
+mod bot;
 mod wh;
 
 #[allow(dead_code)]
@@ -38,28 +37,12 @@ impl AppState {
 pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
     let state = AppState::new(db, parser, bot);
     Router::new()
-        .route("/", post(handler))
+        .route("/", post(bot::event))
         .route("/wh/:id", get(wh::get_wh))
         .route("/wh/:id/github", post(wh::wh_github))
         .route("/wh/:id/gitea", post(wh::wh_gitea))
         .route("/wh/:id/clickup", post(wh::wh_clickup))
         .with_state(state)
-}
-
-async fn handler(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> StatusCode {
-    match st.parser.parse(headers, &body) {
-        Ok(event) => match st.bot.handle_event(st.db.as_ref(), event).await {
-            Ok(_) => StatusCode::NO_CONTENT,
-            Err(e) => {
-                eprintln!("ERROR: {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
-        },
-        Err(err) => {
-            eprintln!("ERROR: {err}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        }
-    }
 }
 
 #[derive(Debug, ThisError)]
