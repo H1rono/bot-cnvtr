@@ -6,6 +6,7 @@ use traq_bot_http::Event;
 
 use super::{config::BotConfig, Database};
 
+mod api;
 mod error;
 mod joined;
 mod left;
