@@ -29,7 +29,11 @@ impl Bot {
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let args = shlex::split(&payload.message.plain_text).unwrap_or(vec![]);
+        let mut msg = payload.message.plain_text.trim().to_string();
+        if !msg.starts_with('@') {
+            msg = format!("@BOT_cnvtr {msg}");
+        }
+        let args = shlex::split(&msg).unwrap_or(vec![]);
         let cid = payload.message.channel_id;
         let cli = match Cli::try_parse_from(args.into_iter()) {
             Ok(c) => c,
