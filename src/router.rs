@@ -37,7 +37,7 @@ impl AppState {
 pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
     let state = AppState::new(db, parser, bot);
     Router::new()
-        .route("/", post(bot::event))
+        .route("/bot", post(bot::event))
         .route("/wh/:id", get(wh::get_wh))
         .route("/wh/:id/github", post(wh::wh_github))
         .route("/wh/:id/gitea", post(wh::wh_gitea))
