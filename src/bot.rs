@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use thiserror::Error as ThisError;
 
 use traq::apis::configuration::Configuration;
@@ -5,6 +6,7 @@ use traq_bot_http::Event;
 
 use super::{config::BotConfig, Database};
 
+mod error;
 mod joined;
 mod left;
 mod message_created;
@@ -61,7 +63,16 @@ impl Bot {
     }
 }
 
-#[derive(Debug, Clone, ThisError)]
-pub enum Error {}
+#[derive(Debug, ThisError)]
+pub enum Error {
+    #[error("json parse failed")]
+    Serde(#[from] serde_json::Error),
+    #[error("io operation failed")]
+    Io(#[from] std::io::Error),
+    #[error("http reqest failed")]
+    Reqwest(#[from] reqwest::Error),
+    #[error("got response with error code")]
+    BadResponse { status: StatusCode, content: String },
+}
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
