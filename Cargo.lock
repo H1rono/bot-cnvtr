@@ -170,6 +170,7 @@ dependencies = [
  "dotenvy",
  "envy",
  "indoc",
+ "reqwest",
  "serde",
  "serde_json",
  "sqlx",
