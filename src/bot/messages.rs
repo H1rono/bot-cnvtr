@@ -1,6 +1,9 @@
+use clap::Parser;
+use indoc::indoc;
+
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use crate::Database;
+use crate::{Cli, Database};
 
 use super::{Bot, Error};
 
@@ -26,6 +29,25 @@ impl Bot {
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
+        let args = shlex::split(&payload.message.plain_text).unwrap_or(vec![]);
+        let cid = payload.message.channel_id;
+        let cli = match Cli::try_parse_from(args.into_iter()) {
+            Ok(c) => c,
+            Err(e) => {
+                let message = format!(
+                    indoc! {r#"
+                    ```
+                    {}
+                    ```
+                "#},
+                    e
+                );
+                self.send_message(&cid, &message, false).await?;
+                return Ok(());
+            }
+        };
+        let message = format!("```\n{:?}\n```", cli);
+        self.send_message(&cid, &message, false).await?;
         Ok(())
     }
 }
