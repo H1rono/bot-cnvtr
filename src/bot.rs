@@ -8,9 +8,8 @@ use super::{config::BotConfig, Database};
 
 mod api;
 mod error;
-mod joined;
-mod left;
-mod message_created;
+mod messages;
+mod system;
 
 #[derive(Debug, Clone)]
 pub struct Bot {
