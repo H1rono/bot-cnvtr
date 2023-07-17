@@ -1,5 +1,4 @@
 use clap::Parser;
-use indoc::indoc;
 
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
@@ -38,27 +37,12 @@ impl Bot {
         let cli = match Cli::try_parse_from(args.into_iter()) {
             Ok(c) => c,
             Err(e) => {
-                let message = format!(
-                    indoc! {r#"
-                    ```
-                    {}
-                    ```
-                "#},
-                    e
-                );
-                self.send_message(&cid, &message, false).await?;
+                self.send_code(&cid, "", &e.to_string()).await?;
                 return Ok(());
             }
         };
-        let message = format!(
-            indoc! {r#"
-            ```
-            {:?}
-            ```
-        "#},
-            cli
-        );
-        self.send_message(&cid, &message, false).await?;
+        let code = format!("{:?}", cli);
+        self.send_code(&cid, "", &code).await?;
         Ok(())
     }
 }

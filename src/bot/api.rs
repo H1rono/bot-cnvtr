@@ -1,3 +1,4 @@
+use indoc::indoc;
 use uuid::Uuid;
 
 use traq::apis::message_api::post_message;
@@ -19,5 +20,17 @@ impl Bot {
         let channel_id = format!("{}", channel_id);
         let res = post_message(&self.config, &channel_id, Some(req)).await?;
         Ok(res)
+    }
+
+    pub async fn send_code(&self, channel_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
+        let message = format!(
+            indoc! {r#"
+            ```{}
+            {}
+            ```
+        "#},
+            lang, code
+        );
+        self.send_message(channel_id, &message, false).await
     }
 }
