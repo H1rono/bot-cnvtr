@@ -8,7 +8,7 @@ RUN cargo build
 
 FROM debian:bullseye
 
-RUN apt -y update && apt -y install build-essential libssl-dev
+RUN apt-get -y update && apt-get -y install build-essential libssl-dev
 WORKDIR /app
 COPY --from=builder /app/target/debug/bot-cnvtr ./main
 COPY --from=builder /app/.env.dev ./.env.dev
