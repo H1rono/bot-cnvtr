@@ -12,6 +12,18 @@ pub struct Cli {
 pub enum Commands {
     Webhook {
         #[command(subcommand)]
-        wh: webhook::Webhook,
+        wh: webhook::Incomplete,
     },
+}
+
+pub trait Incomplete<Ctx> {
+    type Completed;
+
+    fn complete(&self, context: Ctx) -> Self::Completed;
+}
+
+pub trait Completed {
+    type Incompleted;
+
+    fn incomplete(&self) -> Self::Incompleted;
 }
