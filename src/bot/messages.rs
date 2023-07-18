@@ -38,7 +38,6 @@ impl Bot {
         }
         msg = msg.replace('#', r"\#");
         let args = shlex::split(&msg).unwrap_or(vec![]);
-        println!("{:?}", args);
         let cid = payload.message.channel_id;
         let cli = match Cli::try_parse_from(args.into_iter()) {
             Ok(c) => c,
@@ -47,7 +46,6 @@ impl Bot {
                 return Ok(());
             }
         };
-        println!("{:?}", cli);
         let cmd = cli.cmd.complete(payload.message);
         match cmd {
             CompletedCmds::Webhook(w) => self.handle_webhook_command(w).await,
