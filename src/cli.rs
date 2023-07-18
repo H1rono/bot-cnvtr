@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
 
-mod webhook;
+pub mod webhook;
 
 #[derive(Debug, Clone, Parser)]
 pub struct Cli {
     #[command(subcommand)]
-    cmd: Commands,
+    pub cmd: Commands,
 }
 
 #[derive(Debug, Clone, Subcommand)]
