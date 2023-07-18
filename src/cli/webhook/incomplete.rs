@@ -19,7 +19,7 @@ impl Incomplete<&Message> for Webhook {
         match self {
             Self::Create(create) => complete::Webhook::Create(create.complete(context)),
             Self::List(list) => complete::Webhook::List(list.complete(context)),
-            Self::Delete(delete) => complete::Webhook::Delete(delete.complete(())),
+            Self::Delete(delete) => complete::Webhook::Delete(delete.complete(context)),
         }
     }
 }
@@ -67,6 +67,7 @@ impl Incomplete<&Message> for WebhookCreate {
                 group: false,
             });
         complete::WebhookCreate {
+            user_id: context.user.id,
             channel_name: self.channel.clone(),
             channel_id,
             owner,
@@ -92,11 +93,12 @@ pub struct WebhookDelete {
     pub id: String,
 }
 
-impl Incomplete<()> for WebhookDelete {
+impl Incomplete<&Message> for WebhookDelete {
     type Completed = complete::WebhookDelete;
 
-    fn complete(&self, _: ()) -> Self::Completed {
+    fn complete(&self, context: &Message) -> Self::Completed {
         complete::WebhookDelete {
+            user_id: context.user.id,
             webhook_id: self.id.clone(),
         }
     }

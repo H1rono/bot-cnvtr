@@ -27,6 +27,7 @@ impl Completed for Webhook {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookCreate {
+    pub user_id: Uuid,
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
     pub owner: Owner,
@@ -78,6 +79,7 @@ impl Completed for WebhookList {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
+    pub user_id: Uuid,
     pub webhook_id: String,
 }
 
