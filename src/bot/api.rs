@@ -1,9 +1,10 @@
 use indoc::indoc;
 use uuid::Uuid;
 
+use traq::apis::group_api::get_user_group_members;
 use traq::apis::message_api::post_message;
 use traq::apis::user_api::post_direct_message;
-use traq::models::{Message, PostMessageRequest};
+use traq::models::{Message, PostMessageRequest, UserGroupMember};
 
 use super::{Bot, Result};
 
@@ -60,5 +61,11 @@ impl Bot {
             lang, code
         );
         self.send_direct_message(user_id, &message, false).await
+    }
+
+    pub async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {
+        let group_id = group_id.to_string();
+        let res = get_user_group_members(&self.config, &group_id).await?;
+        Ok(res)
     }
 }
