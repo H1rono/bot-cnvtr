@@ -15,7 +15,7 @@ impl Bot {
 
     async fn handle_webhook_create(&self, create: WebhookCreate, _db: &Database) -> Result<()> {
         let code = serde_json::to_string_pretty(&create)?;
-        self.send_code(&create.channel_id, "json", &code).await?;
+        self.send_code_dm(&create.user_id, "json", &code).await?;
         Ok(())
     }
 
