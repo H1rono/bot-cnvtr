@@ -10,6 +10,15 @@ use crate::{
 
 mod cmd_webhook;
 
+fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
+    let cmd = cmd.trim().to_string();
+    let cmd = (!cmd.starts_with('@'))
+        .then(|| format!("@BOT_cnvtr {}", cmd))
+        .unwrap_or(cmd);
+    let args = shlex::split(&cmd).unwrap_or(vec![]);
+    Cli::try_parse_from(args.into_iter())
+}
+
 impl Bot {
     pub async fn on_message_created(
         &self,
@@ -32,14 +41,9 @@ impl Bot {
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let mut msg = payload.message.plain_text.trim().to_string();
-        if !msg.starts_with('@') {
-            msg = format!("@BOT_cnvtr {msg}");
-        }
-        msg = msg.replace('#', r"\#");
-        let args = shlex::split(&msg).unwrap_or(vec![]);
+        let msg = &payload.message.plain_text;
         let cid = payload.message.channel_id;
-        let cli = match Cli::try_parse_from(args.into_iter()) {
+        let cli = match parse_command(msg) {
             Ok(c) => c,
             Err(e) => {
                 self.send_code(&cid, "", &e.to_string()).await?;
