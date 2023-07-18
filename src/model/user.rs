@@ -24,7 +24,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_user(&self, id: &str) -> Result<Option<User>> {
+    pub async fn find_user(&self, id: &Uuid) -> Result<Option<User>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `users`
@@ -50,7 +50,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_user(&self, id: &str, u: User) -> Result<()> {
+    pub async fn update_user(&self, id: &Uuid, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
             SET `id` = ?, `name` = ?
@@ -64,7 +64,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_user(&self, id: &str) -> Result<()> {
+    pub async fn delete_user(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `users`
             WHERE `id` = ?

@@ -24,7 +24,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_group_member(&self, gid: &str, uid: &str) -> Result<Option<GroupMember>> {
+    pub async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -52,7 +52,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_group_member(&self, gid: &str, uid: &str, gm: GroupMember) -> Result<()> {
+    pub async fn update_group_member(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `group_members`
             SET `group_id` = ?, `user_id` = ?

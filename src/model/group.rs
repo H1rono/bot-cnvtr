@@ -24,7 +24,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_group(&self, id: &str) -> Result<Option<Group>> {
+    pub async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `groups`
@@ -50,7 +50,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_group(&self, id: &str, g: Group) -> Result<()> {
+    pub async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `groups`
             SET `id` = ?, `name` = ?
@@ -64,7 +64,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_group(&self, id: &str) -> Result<()> {
+    pub async fn delete_group(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `groups`
             WHERE `id` = ?

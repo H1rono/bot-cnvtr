@@ -25,7 +25,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_owner(&self, id: &str) -> Result<Option<Owner>> {
+    pub async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -52,7 +52,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_owner(&self, id: &str, o: Owner) -> Result<()> {
+    pub async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `owners`
             SET `id` = ?, `name` = ?, `group` = ?
@@ -67,7 +67,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_owner(&self, id: &str) -> Result<()> {
+    pub async fn delete_owner(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `owners`
             WHERE `id` = ?
