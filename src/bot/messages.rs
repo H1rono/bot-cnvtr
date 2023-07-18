@@ -4,14 +4,14 @@ use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload
 
 use crate::{Cli, Database};
 
-use super::{Bot, Error};
+use super::{Bot, Result};
 
 impl Bot {
     pub async fn on_message_created(
         &self,
         payload: MessageCreatedPayload,
         _db: &Database,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
@@ -23,7 +23,7 @@ impl Bot {
         &self,
         payload: DirectMessageCreatedPayload,
         _db: &Database,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
