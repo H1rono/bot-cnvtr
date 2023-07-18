@@ -39,6 +39,34 @@ impl Database {
         .transpose()
     }
 
+    pub async fn filter_webhooks_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `webhooks`
+            WHERE `channel_id` = ?
+        "#})
+        .bind(channel_id)
+        .fetch_all(&self.0)
+        .await?
+        .iter()
+        .map(Webhook::from_row)
+        .collect()
+    }
+
+    pub async fn filter_webhooks_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `webhooks`
+            WHERE `owner_id` = ?
+        "#})
+        .bind(owner_id)
+        .fetch_all(&self.0)
+        .await?
+        .iter()
+        .map(Webhook::from_row)
+        .collect()
+    }
+
     pub async fn create_webhook(&self, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`)
