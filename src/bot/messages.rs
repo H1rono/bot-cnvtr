@@ -32,6 +32,7 @@ impl Bot {
         if !msg.starts_with('@') {
             msg = format!("@BOT_cnvtr {msg}");
         }
+        msg = msg.replace('#', r"\#");
         let args = shlex::split(&msg).unwrap_or(vec![]);
         let cid = payload.message.channel_id;
         let cli = match Cli::try_parse_from(args.into_iter()) {
