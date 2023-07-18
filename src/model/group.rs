@@ -1,12 +1,13 @@
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Result};
+use uuid::Uuid;
 
 use super::Database;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
 pub struct Group {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
 }
 

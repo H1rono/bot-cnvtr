@@ -1,14 +1,15 @@
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Result};
+use uuid::Uuid;
 
 use super::Database;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
 pub struct Webhook {
     pub id: String,
-    pub channel_id: String,
-    pub owner_id: String,
+    pub channel_id: Uuid,
+    pub owner_id: Uuid,
 }
 
 impl Database {
