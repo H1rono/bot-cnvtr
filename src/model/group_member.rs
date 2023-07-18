@@ -39,6 +39,34 @@ impl Database {
         .transpose()
     }
 
+    pub async fn filter_group_member_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `group_members`
+            WHERE `group_id` = ?
+        "#})
+        .bind(gid)
+        .fetch_all(&self.0)
+        .await?
+        .iter()
+        .map(GroupMember::from_row)
+        .collect()
+    }
+
+    pub async fn filter_group_member_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
+        sqlx::query(indoc! {r#"
+            SELECT *
+            FROM `group_members`
+            WHERE `user_id` = ?
+        "#})
+        .bind(uid)
+        .fetch_all(&self.0)
+        .await?
+        .iter()
+        .map(GroupMember::from_row)
+        .collect()
+    }
+
     pub async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT
