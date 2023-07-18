@@ -35,7 +35,7 @@ impl Bot {
     pub async fn on_direct_message_created(
         &self,
         payload: DirectMessageCreatedPayload,
-        _db: &Database,
+        db: &Database,
     ) -> Result<()> {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
@@ -52,7 +52,7 @@ impl Bot {
         };
         let cmd = cli.cmd.complete(payload.message);
         match cmd {
-            CompletedCmds::Webhook(w) => self.handle_webhook_command(w).await,
+            CompletedCmds::Webhook(w) => self.handle_webhook_command(w, db).await,
         }?;
         Ok(())
     }
