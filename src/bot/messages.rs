@@ -38,6 +38,7 @@ impl Bot {
         }
         msg = msg.replace('#', r"\#");
         let args = shlex::split(&msg).unwrap_or(vec![]);
+        println!("{:?}", args);
         let cid = payload.message.channel_id;
         let cli = match Cli::try_parse_from(args.into_iter()) {
             Ok(c) => c,
