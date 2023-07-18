@@ -1,4 +1,4 @@
-use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
+use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
 use crate::model::Owner;
@@ -22,19 +22,23 @@ pub struct WebhookList {
     pub user_id: Uuid,
 }
 
+impl From<Message> for WebhookList {
+    fn from(value: Message) -> Self {
+        Self {
+            user_id: value.user.id,
+        }
+    }
+}
+
 impl From<MessageCreatedPayload> for WebhookList {
     fn from(value: MessageCreatedPayload) -> Self {
-        Self {
-            user_id: value.message.user.id,
-        }
+        value.message.into()
     }
 }
 
 impl From<DirectMessageCreatedPayload> for WebhookList {
     fn from(value: DirectMessageCreatedPayload) -> Self {
-        Self {
-            user_id: value.message.user.id,
-        }
+        value.message.into()
     }
 }
 
