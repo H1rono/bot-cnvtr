@@ -10,6 +10,7 @@ pub struct Cli {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
+    #[command(about = "webhookを扱うコマンド")]
     Webhook {
         #[command(subcommand)]
         wh: webhook::Incomplete,
