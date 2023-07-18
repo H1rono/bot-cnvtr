@@ -71,6 +71,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("http reqest failed")]
     Reqwest(#[from] reqwest::Error),
+    #[error("sqlx error")]
+    Sqlx(#[from] sqlx::Error),
     #[error("got response with error code")]
     BadResponse { status: StatusCode, content: String },
 }
