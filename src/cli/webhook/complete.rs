@@ -11,6 +11,19 @@ pub enum Webhook {
     Delete(WebhookDelete),
 }
 
+impl Completed for Webhook {
+    type Incomplete = incomplete::Webhook;
+
+    fn incomplete(&self) -> Self::Incomplete {
+        type Target = incomplete::Webhook;
+        match self {
+            Self::Create(create) => Target::Create(create.incomplete()),
+            Self::Delete(delete) => Target::Delete(delete.incomplete()),
+            Self::List(list) => Target::List(list.incomplete()),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct WebhookCreate {
     pub channel_name: Option<String>,
