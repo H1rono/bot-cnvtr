@@ -24,4 +24,4 @@ shlex = "1.1"
 
 [dependencies.sqlx]
 version = "0.6"
-features = ["runtime-tokio-native-tls", "mysql", "migrate"]
+features = ["runtime-tokio-native-tls", "mysql", "migrate", "uuid"]
