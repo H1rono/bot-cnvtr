@@ -1,3 +1,6 @@
+use futures::StreamExt;
+use uuid::Uuid;
+
 use super::{Bot, Result};
 
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
@@ -19,8 +22,22 @@ impl Bot {
         Ok(())
     }
 
-    async fn handle_webhook_list(&self, _list: WebhookList, _db: &Database) -> Result<()> {
-        // TODO
+    async fn handle_webhook_list(&self, list: WebhookList, db: &Database) -> Result<()> {
+        let user_id = list.user_id;
+        let groups = db.filter_group_member_by_uid(&user_id).await?;
+        let mut owners: Vec<Uuid> = groups.into_iter().map(|gm| gm.group_id).collect();
+        owners.push(user_id);
+        let mut it = Box::pin(async_stream::stream! {
+            for owner_id in owners {
+                yield db.filter_webhooks_by_oid(owner_id).await;
+            }
+        });
+        let mut webhooks = vec![];
+        while let Some(webhook) = it.next().await {
+            webhooks.extend(webhook?.into_iter());
+        }
+        let code = serde_json::to_string_pretty(&webhooks)?;
+        self.send_code_dm(&user_id, "json", &code).await?;
         Ok(())
     }
 
