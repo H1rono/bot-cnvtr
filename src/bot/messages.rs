@@ -2,9 +2,13 @@ use clap::Parser;
 
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use crate::{Cli, Database};
-
 use super::{Bot, Result};
+use crate::{
+    cli::{CompletedCmds, Incomplete},
+    Cli, Database,
+};
+
+mod cmd_webhook;
 
 impl Bot {
     pub async fn on_message_created(
@@ -42,8 +46,10 @@ impl Bot {
                 return Ok(());
             }
         };
-        let code = format!("{:?}", cli);
-        self.send_code(&cid, "", &code).await?;
+        let cmd = cli.cmd.complete(payload.message);
+        match cmd {
+            CompletedCmds::Webhook(w) => self.handle_webhook_command(w).await,
+        }?;
         Ok(())
     }
 }
