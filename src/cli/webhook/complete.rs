@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
@@ -24,7 +25,7 @@ impl Completed for Webhook {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookCreate {
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
@@ -42,7 +43,7 @@ impl Completed for WebhookCreate {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookList {
     pub user_id: Uuid,
 }
@@ -75,7 +76,7 @@ impl Completed for WebhookList {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub webhook_id: String,
 }

@@ -1,4 +1,5 @@
 use clap::{Args, Subcommand};
+use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
 use super::complete;
@@ -23,7 +24,7 @@ impl Incomplete<Message> for Webhook {
     }
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookCreate {
     #[arg(
         short,
@@ -89,7 +90,7 @@ impl Incomplete<DirectMessageCreatedPayload> for WebhookCreate {
     }
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookList;
 
 impl<T> Incomplete<T> for WebhookList
@@ -103,7 +104,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub id: String,
 }
