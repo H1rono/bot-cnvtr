@@ -24,7 +24,7 @@ pub trait Incomplete<Ctx> {
 }
 
 pub trait Completed {
-    type Incompleted;
+    type Incomplete;
 
-    fn incomplete(&self) -> Self::Incompleted;
+    fn incomplete(&self) -> Self::Incomplete;
 }
