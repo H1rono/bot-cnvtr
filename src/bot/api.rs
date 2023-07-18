@@ -19,7 +19,7 @@ impl Bot {
             content: content.to_string(),
             embed: Some(embed),
         };
-        let channel_id = format!("{}", channel_id);
+        let channel_id = channel_id.to_string();
         let res = post_message(&self.config, &channel_id, Some(req)).await?;
         Ok(res)
     }
