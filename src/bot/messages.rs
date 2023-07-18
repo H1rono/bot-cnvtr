@@ -50,7 +50,7 @@ impl Bot {
                 return Ok(());
             }
         };
-        let cmd = cli.cmd.complete(payload.message);
+        let cmd = cli.cmd.complete(&payload.message);
         match cmd {
             CompletedCmds::Webhook(w) => self.handle_webhook_command(w, db).await,
         }?;

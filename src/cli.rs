@@ -18,29 +18,13 @@ pub enum Commands {
     },
 }
 
-impl Incomplete<Message> for Commands {
+impl Incomplete<&Message> for Commands {
     type Completed = CompletedCmds;
 
-    fn complete(&self, context: Message) -> Self::Completed {
+    fn complete(&self, context: &Message) -> Self::Completed {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
         }
-    }
-}
-
-impl Incomplete<MessageCreatedPayload> for Commands {
-    type Completed = CompletedCmds;
-
-    fn complete(&self, context: MessageCreatedPayload) -> Self::Completed {
-        self.complete(context.message)
-    }
-}
-
-impl Incomplete<DirectMessageCreatedPayload> for Commands {
-    type Completed = CompletedCmds;
-
-    fn complete(&self, context: DirectMessageCreatedPayload) -> Self::Completed {
-        self.complete(context.message)
     }
 }
 
@@ -71,4 +55,26 @@ pub trait Completed {
     type Incomplete;
 
     fn incomplete(&self) -> Self::Incomplete;
+}
+
+impl<'a, T> Incomplete<&'a MessageCreatedPayload> for T
+where
+    T: Incomplete<&'a Message>,
+{
+    type Completed = T::Completed;
+
+    fn complete(&self, context: &'a MessageCreatedPayload) -> Self::Completed {
+        self.complete(&context.message)
+    }
+}
+
+impl<'a, T> Incomplete<&'a DirectMessageCreatedPayload> for T
+where
+    T: Incomplete<&'a Message>,
+{
+    type Completed = T::Completed;
+
+    fn complete(&self, context: &'a DirectMessageCreatedPayload) -> Self::Completed {
+        self.complete(&context.message)
+    }
 }

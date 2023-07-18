@@ -1,6 +1,6 @@
 use clap::{Args, Subcommand};
 use serde::{Deserialize, Serialize};
-use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use traq_bot_http::payloads::types::Message;
 
 use super::complete;
 use crate::{cli::Incomplete, model::Owner};
@@ -12,10 +12,10 @@ pub enum Webhook {
     Delete(WebhookDelete),
 }
 
-impl Incomplete<Message> for Webhook {
+impl Incomplete<&Message> for Webhook {
     type Completed = complete::Webhook;
 
-    fn complete(&self, context: Message) -> Self::Completed {
+    fn complete(&self, context: &Message) -> Self::Completed {
         match self {
             Self::Create(create) => complete::Webhook::Create(create.complete(context)),
             Self::List(list) => complete::Webhook::List(list.complete(context)),
@@ -40,12 +40,12 @@ pub struct WebhookCreate {
     pub owner: Option<String>,
 }
 
-impl Incomplete<Message> for WebhookCreate {
+impl Incomplete<&Message> for WebhookCreate {
     type Completed = complete::WebhookCreate;
 
-    fn complete(&self, context: Message) -> Self::Completed {
-        let user = context.user;
-        let embeds = context.embedded;
+    fn complete(&self, context: &Message) -> Self::Completed {
+        let user = &context.user;
+        let embeds = &context.embedded;
         let channel_id = self
             .channel
             .as_deref()
@@ -55,15 +55,15 @@ impl Incomplete<Message> for WebhookCreate {
         let owner = self
             .owner
             .as_deref()
-            .and_then(|o| embeds.into_iter().find(|e| e.raw == o))
+            .and_then(|o| embeds.iter().find(|e| e.raw == o))
             .map(|e| Owner {
                 id: e.id,
-                name: e.raw,
+                name: e.raw.clone(),
                 group: e.type_ == "group",
             })
             .unwrap_or(Owner {
                 id: user.id,
-                name: user.name,
+                name: user.name.clone(),
                 group: false,
             });
         complete::WebhookCreate {
@@ -74,33 +74,16 @@ impl Incomplete<Message> for WebhookCreate {
     }
 }
 
-impl Incomplete<MessageCreatedPayload> for WebhookCreate {
-    type Completed = complete::WebhookCreate;
-
-    fn complete(&self, context: MessageCreatedPayload) -> Self::Completed {
-        self.complete(context.message)
-    }
-}
-
-impl Incomplete<DirectMessageCreatedPayload> for WebhookCreate {
-    type Completed = complete::WebhookCreate;
-
-    fn complete(&self, context: DirectMessageCreatedPayload) -> Self::Completed {
-        self.complete(context.message)
-    }
-}
-
 #[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookList;
 
-impl<T> Incomplete<T> for WebhookList
-where
-    T: Into<complete::WebhookList>,
-{
+impl Incomplete<&Message> for WebhookList {
     type Completed = complete::WebhookList;
 
-    fn complete(&self, context: T) -> Self::Completed {
-        context.into()
+    fn complete(&self, context: &Message) -> Self::Completed {
+        complete::WebhookList {
+            user_id: context.user.id,
+        }
     }
 }
 
