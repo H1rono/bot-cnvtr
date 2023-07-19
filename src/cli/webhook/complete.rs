@@ -28,6 +28,7 @@ impl Completed for Webhook {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookCreate {
     pub user_id: Uuid,
+    pub user_name: String,
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
     pub owner: Owner,

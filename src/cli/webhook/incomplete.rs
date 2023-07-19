@@ -68,6 +68,7 @@ impl Incomplete<&Message> for WebhookCreate {
             });
         complete::WebhookCreate {
             user_id: context.user.id,
+            user_name: context.user.name.clone(),
             channel_name: self.channel.clone(),
             channel_id,
             owner,
