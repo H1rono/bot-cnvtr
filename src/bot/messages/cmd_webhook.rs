@@ -70,6 +70,18 @@ impl Bot {
             .await?;
         }
 
+        // webhook生成してDBに追加
+        let mut id = sha256::digest(format!("{}/{}", owner.id, create.channel_id));
+        while db.find_webhook(&id).await?.is_some() {
+            id = sha256::digest(id);
+        }
+        let webhook = model::Webhook {
+            id,
+            channel_id: create.channel_id,
+            owner_id: owner.id,
+        };
+        db.create_webhook(webhook.clone()).await?;
+
         let message = formatdoc! {
             r##"
                 :@{}:の要望 -- Webhook作成
