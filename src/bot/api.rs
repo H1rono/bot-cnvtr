@@ -74,4 +74,16 @@ impl Bot {
         let res = get_user(&self.config, &user_id).await?;
         Ok(res)
     }
+
+    pub async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
+        let channel_id = channel_id.to_string();
+        let channel = get_channel(&self.config, &channel_id).await?;
+        match channel.parent_id {
+            Some(pid) => {
+                let ppath = self.get_channel_path(&pid).await?;
+                Ok(format!("#{}/{}", ppath, channel.name))
+            }
+            None => Ok(format!("#{}", channel.name)),
+        }
+    }
 }
