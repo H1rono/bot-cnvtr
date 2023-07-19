@@ -84,13 +84,16 @@ impl Bot {
 
         let message = formatdoc! {
             r##"
-                :@{}:の要望 -- Webhook作成
-                チャンネルID: {}
-                所有者: @{}
+                {}
+                投稿先チャンネル: {}
+                各サービスに対応するWebhookエンドポイントは以下の通りです:
+                - GitHub: https://cnvtr.trap.show/wh/{}/github
+                - Gitea: https://cnvtr.trap.show/wh/{}/gitea
+                - ClickUp: https://cnvtr.trap.show/wh/{}/clickup
             "##,
-            create.user_name,
-            create.channel_id,
-            owner.name
+            if owner.group { format!(":@{}:によってWebhookが作成されました", create.user_name) } else { String::new() },
+            self.get_channel_path(&webhook.channel_id).await?,
+            &webhook.id, &webhook.id, &webhook.id
         };
         self.send_direct_message(&create.user_id, &message, true)
             .await?;
