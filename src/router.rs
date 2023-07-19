@@ -49,15 +49,15 @@ pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
 enum Error {
     #[error("not found")]
     NotFound,
-    #[error("sql error")]
-    SqlError(#[from] sqlx::Error),
+    #[error("sqlx error")]
+    Sqlx(#[from] sqlx::Error),
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         match self {
             Self::NotFound => (StatusCode::NOT_FOUND, "Not Found").into_response(),
-            Self::SqlError(e) => {
+            Self::Sqlx(e) => {
                 eprintln!("sqlx error: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
