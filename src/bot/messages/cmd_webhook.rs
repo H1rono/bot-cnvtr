@@ -1,3 +1,4 @@
+use indoc::formatdoc;
 use uuid::Uuid;
 
 use super::{Bot, Result};
@@ -16,8 +17,18 @@ impl Bot {
     }
 
     async fn handle_webhook_create(&self, create: WebhookCreate, _db: &Database) -> Result<()> {
-        let code = serde_json::to_string_pretty(&create)?;
-        self.send_code_dm(&create.user_id, "json", &code).await?;
+        let message = formatdoc! {
+            r##"
+                :@{}:の要望 -- Webhook作成
+                チャンネルID: {}
+                所有者: @{}
+            "##,
+            create.user_name,
+            create.channel_id,
+            create.owner.name
+        };
+        self.send_direct_message(&create.user_id, &message, true)
+            .await?;
         Ok(())
     }
 
