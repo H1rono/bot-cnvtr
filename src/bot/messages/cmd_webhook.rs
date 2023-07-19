@@ -17,6 +17,23 @@ impl Bot {
     }
 
     async fn handle_webhook_create(&self, create: WebhookCreate, _db: &Database) -> Result<()> {
+        let owner = create.owner;
+        // ownerには投稿者自身が含まれている必要がある
+        let own_users = if owner.group {
+            self.get_group_members(&owner.id)
+                .await?
+                .into_iter()
+                .map(|gm| gm.id)
+                .collect::<Vec<_>>()
+        } else {
+            vec![owner.id]
+        };
+        if !own_users.contains(&create.user_id) {
+            let message = format!("エラー: --ownerに @{} が含まれていません", create.user_name);
+            self.send_message(&create.talking_channel_id, &message, true)
+                .await?;
+            return Ok(());
+        }
         let message = formatdoc! {
             r##"
                 :@{}:の要望 -- Webhook作成
@@ -25,7 +42,7 @@ impl Bot {
             "##,
             create.user_name,
             create.channel_id,
-            create.owner.name
+            owner.name
         };
         self.send_direct_message(&create.user_id, &message, true)
             .await?;
