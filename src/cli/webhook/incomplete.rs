@@ -58,7 +58,11 @@ impl Incomplete<&Message> for WebhookCreate {
             .and_then(|o| embeds.iter().find(|e| e.raw == o))
             .map(|e| Owner {
                 id: e.id,
-                name: e.raw.clone(),
+                name: e
+                    .raw
+                    .starts_with('@')
+                    .then(|| e.raw.replacen('@', "", 1))
+                    .unwrap_or(e.raw.clone()),
                 group: e.type_ == "group",
             })
             .unwrap_or(Owner {
