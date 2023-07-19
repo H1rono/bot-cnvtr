@@ -1,6 +1,8 @@
+use async_recursion::async_recursion;
 use indoc::formatdoc;
 use uuid::Uuid;
 
+use traq::apis::channel_api::get_channel;
 use traq::apis::group_api::get_user_group_members;
 use traq::apis::message_api::post_message;
 use traq::apis::user_api::{get_user, post_direct_message};
@@ -75,6 +77,7 @@ impl Bot {
         Ok(res)
     }
 
+    #[async_recursion]
     pub async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
         let channel_id = channel_id.to_string();
         let channel = get_channel(&self.config, &channel_id).await?;
