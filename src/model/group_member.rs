@@ -1,4 +1,7 @@
-use indoc::indoc;
+use std::iter;
+
+use indoc::{formatdoc, indoc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
@@ -86,6 +89,26 @@ impl Database {
         .bind(gm.user_id.to_string())
         .execute(&self.0)
         .await?;
+        Ok(())
+    }
+
+    pub async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
+        let gms_len = gms.len();
+        if gms_len == 0 {
+            return Ok(());
+        }
+        let query = formatdoc! {
+            r#"
+                INSERT IGNORE
+                INTO `group_members` (`group_id`, `user_id`)
+                VALUES {}
+            "#,
+            iter::repeat("(?, ?)").take(gms_len).join(", ")
+        };
+        let query = gms.iter().fold(sqlx::query(&query), |q, gm| {
+            q.bind(gm.group_id.to_string()).bind(gm.user_id.to_string())
+        });
+        query.execute(&self.0).await?;
         Ok(())
     }
 

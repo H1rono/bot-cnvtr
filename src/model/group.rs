@@ -1,4 +1,7 @@
-use indoc::indoc;
+use std::iter;
+
+use indoc::{formatdoc, indoc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
@@ -56,6 +59,26 @@ impl Database {
         .bind(g.name)
         .execute(&self.0)
         .await?;
+        Ok(())
+    }
+
+    pub async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
+        let gs_len = gs.len();
+        if gs_len == 0 {
+            return Ok(());
+        }
+        let query = formatdoc! {
+            r#"
+                INSERT IGNORE
+                INTO `groups` (`id`, `name`)
+                VALUES {}
+            "#,
+            iter::repeat("(?, ?)").take(gs_len).join(", ")
+        };
+        let query = gs.iter().fold(sqlx::query(&query), |q, g| {
+            q.bind(g.id.to_string()).bind(&g.name)
+        });
+        query.execute(&self.0).await?;
         Ok(())
     }
 

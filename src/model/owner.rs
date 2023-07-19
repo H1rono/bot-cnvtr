@@ -1,4 +1,7 @@
-use indoc::indoc;
+use std::iter;
+
+use indoc::{formatdoc, indoc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
@@ -59,6 +62,26 @@ impl Database {
         .bind(o.group)
         .execute(&self.0)
         .await?;
+        Ok(())
+    }
+
+    pub async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
+        let os_len = os.len();
+        if os_len == 0 {
+            return Ok(());
+        }
+        let query = formatdoc! {
+            r#"
+                INSERT IGNORE
+                INTO `owners` (`id`, `name`, `group`)
+                VALUES {}
+            "#,
+            iter::repeat("(?, ?, ?)").take(os_len).join(", ")
+        };
+        let query = os.iter().fold(sqlx::query(&query), |q, o| {
+            q.bind(o.id.to_string()).bind(&o.name).bind(o.group)
+        });
+        query.execute(&self.0).await?;
         Ok(())
     }
 

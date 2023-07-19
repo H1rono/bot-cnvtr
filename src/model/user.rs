@@ -1,4 +1,7 @@
-use indoc::indoc;
+use std::iter;
+
+use indoc::{formatdoc, indoc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
@@ -56,6 +59,26 @@ impl Database {
         .bind(u.name)
         .execute(&self.0)
         .await?;
+        Ok(())
+    }
+
+    pub async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
+        let us_len = us.len();
+        if us_len == 0 {
+            return Ok(());
+        }
+        let query = formatdoc! {
+            r#"
+                INSERT IGNORE
+                INTO `users` (`id`, `name`)
+                VALUES {}
+            "#,
+            iter::repeat("(?, ?)").take(us_len).join(", ")
+        };
+        let query = us.iter().fold(sqlx::query(&query), |q, u| {
+            q.bind(u.id.to_string()).bind(&u.name)
+        });
+        query.execute(&self.0).await?;
         Ok(())
     }
 

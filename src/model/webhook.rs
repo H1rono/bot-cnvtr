@@ -137,6 +137,28 @@ impl Database {
         Ok(())
     }
 
+    pub async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()> {
+        let ws_len = ws.len();
+        if ws_len == 0 {
+            return Ok(());
+        }
+        let query = formatdoc! {
+            r#"
+                INSERT IGNORE
+                INTO `webhooks` (`id`, `channel_id`, `owner_id`)
+                VALUES {}
+            "#,
+            iter::repeat("(?, ?, ?)").take(ws_len).join(", ")
+        };
+        let query = ws.iter().fold(sqlx::query(&query), |q, w| {
+            q.bind(&w.id)
+                .bind(w.channel_id.to_string())
+                .bind(w.owner_id.to_string())
+        });
+        query.execute(&self.0).await?;
+        Ok(())
+    }
+
     pub async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
