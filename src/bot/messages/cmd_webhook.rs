@@ -56,7 +56,7 @@ impl Bot {
         db.create_ignore_owners(&[owner.clone()]).await?;
         if owner.group {
             let group_members = own_users
-                .into_iter()
+                .iter()
                 .map(|u| model::GroupMember {
                     group_id: owner.id,
                     user_id: u.id,
@@ -95,8 +95,15 @@ impl Bot {
             self.get_channel_path(&webhook.channel_id).await?,
             &webhook.id, &webhook.id, &webhook.id
         };
-        self.send_direct_message(&create.user_id, &message, true)
-            .await?;
+        let it = async_stream::stream! {
+            for u in own_users {
+                yield self.send_direct_message(&u.id, &message, true).await;
+            }
+        };
+        pin_mut!(it);
+        while let Some(r) = it.next().await {
+            r?;
+        }
         Ok(())
     }
 
