@@ -1,4 +1,4 @@
-use indoc::indoc;
+use indoc::formatdoc;
 use uuid::Uuid;
 
 use traq::apis::group_api::get_user_group_members;
@@ -25,14 +25,14 @@ impl Bot {
     }
 
     pub async fn send_code(&self, channel_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
-        let message = format!(
-            indoc! {r#"
+        let message = formatdoc! {
+            r#"
             ```{}
             {}
             ```
-        "#},
+            "#,
             lang, code
-        );
+        };
         self.send_message(channel_id, &message, false).await
     }
 
@@ -52,14 +52,14 @@ impl Bot {
     }
 
     pub async fn send_code_dm(&self, user_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
-        let message = format!(
-            indoc! {r#"
+        let message = formatdoc! {
+            r#"
             ```{}
             {}
             ```
-        "#},
+            "#,
             lang, code
-        );
+        };
         self.send_direct_message(user_id, &message, false).await
     }
 
