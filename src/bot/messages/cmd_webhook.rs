@@ -24,8 +24,11 @@ impl Bot {
     async fn handle_webhook_list(&self, list: WebhookList, db: &Database) -> Result<()> {
         let user_id = list.user_id;
         let groups = db.filter_group_member_by_uid(&user_id).await?;
-        let mut owners: Vec<Uuid> = groups.into_iter().map(|gm| gm.group_id).collect();
-        owners.push(user_id);
+        let owners: Vec<Uuid> = groups
+            .into_iter()
+            .map(|gm| gm.group_id)
+            .chain([user_id].into_iter())
+            .collect();
         let webhooks = db.filter_webhooks_by_oids(&owners).await?;
         let code = serde_json::to_string_pretty(&webhooks)?;
         self.send_code_dm(&user_id, "json", &code).await?;
