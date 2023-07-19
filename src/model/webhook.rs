@@ -1,4 +1,7 @@
-use indoc::indoc;
+use std::iter;
+
+use indoc::{formatdoc, indoc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Result};
 use uuid::Uuid;
@@ -65,6 +68,48 @@ impl Database {
         .iter()
         .map(Webhook::from_row)
         .collect()
+    }
+
+    pub async fn filter_webhooks_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>> {
+        let cid_len = cids.len();
+        if cid_len == 0 {
+            return Ok(vec![]);
+        }
+        let query = formatdoc! {r#"
+                SELECT *
+                FROM `webhooks`
+                WHERE `channel_id` IN ({})
+            "#,
+            iter::repeat('?').take(cid_len).join(", ")
+        };
+        let query = cids.iter().fold(sqlx::query(&query), |q, i| q.bind(i));
+        query
+            .fetch_all(&self.0)
+            .await?
+            .iter()
+            .map(Webhook::from_row)
+            .collect()
+    }
+
+    pub async fn filter_webhooks_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>> {
+        let oid_len = oids.len();
+        if oid_len == 0 {
+            return Ok(vec![]);
+        }
+        let query = formatdoc! {r#"
+                SELECT *
+                FROM `webhooks`
+                WHERE `owner_id` IN ({})
+            "#,
+            iter::repeat('?').take(oid_len).join(", ")
+        };
+        let query = oids.iter().fold(sqlx::query(&query), |q, i| q.bind(i));
+        query
+            .fetch_all(&self.0)
+            .await?
+            .iter()
+            .map(Webhook::from_row)
+            .collect()
     }
 
     pub async fn create_webhook(&self, w: Webhook) -> Result<()> {
