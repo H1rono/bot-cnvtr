@@ -1,14 +1,23 @@
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Result};
+use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
 
-use super::Database;
+use super::{parse_col_str2uuid, Database};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GroupMember {
     pub group_id: Uuid,
     pub user_id: Uuid,
+}
+
+impl<'r> FromRow<'r, MySqlRow> for GroupMember {
+    fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
+        Ok(Self {
+            group_id: parse_col_str2uuid(row, "group_id")?,
+            user_id: parse_col_str2uuid(row, "user_id")?,
+        })
+    }
 }
 
 impl Database {

@@ -1,5 +1,7 @@
 use sqlx::migrate::Migrator;
-use sqlx::MySqlPool;
+use sqlx::mysql::MySqlRow;
+use sqlx::{MySqlPool, Row};
+use uuid::Uuid;
 
 use super::config::DbConfig;
 
@@ -34,4 +36,13 @@ impl Database {
         MIGRATOR.run(&self.0).await?;
         Ok(())
     }
+}
+
+fn parse_col_str2uuid(row: &MySqlRow, col: &str) -> sqlx::Result<Uuid> {
+    row.try_get(col).and_then(|u| {
+        Uuid::parse_str(u).map_err(|e| sqlx::Error::ColumnDecode {
+            index: col.to_string(),
+            source: e.into(),
+        })
+    })
 }

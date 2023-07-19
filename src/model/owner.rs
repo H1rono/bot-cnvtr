@@ -1,15 +1,25 @@
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Result};
+use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use super::Database;
+use super::{parse_col_str2uuid, Database};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Owner {
     pub id: Uuid,
     pub name: String,
     pub group: bool,
+}
+
+impl<'r> FromRow<'r, MySqlRow> for Owner {
+    fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
+        Ok(Self {
+            id: parse_col_str2uuid(row, "id")?,
+            name: row.try_get("name")?,
+            group: row.try_get("group")?,
+        })
+    }
 }
 
 impl Database {

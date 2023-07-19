@@ -3,16 +3,26 @@ use std::iter;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Result};
+use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use super::Database;
+use super::{parse_col_str2uuid, Database};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, FromRow)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Webhook {
     pub id: String,
     pub channel_id: Uuid,
     pub owner_id: Uuid,
+}
+
+impl<'r> FromRow<'r, MySqlRow> for Webhook {
+    fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            channel_id: parse_col_str2uuid(row, "channel_id")?,
+            owner_id: parse_col_str2uuid(row, "owner_id")?,
+        })
+    }
 }
 
 impl Database {
@@ -103,7 +113,9 @@ impl Database {
             "#,
             iter::repeat('?').take(oid_len).join(", ")
         };
-        let query = oids.iter().fold(sqlx::query(&query), |q, i| q.bind(i));
+        let query = oids
+            .iter()
+            .fold(sqlx::query(&query), |q, i| q.bind(i.to_string()));
         query
             .fetch_all(&self.0)
             .await?
@@ -118,8 +130,8 @@ impl Database {
             VALUES (?, ?, ?)
         "#})
         .bind(w.id)
-        .bind(w.channel_id)
-        .bind(w.owner_id)
+        .bind(w.channel_id.to_string())
+        .bind(w.owner_id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
