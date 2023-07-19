@@ -40,7 +40,7 @@ impl Database {
             WHERE `id` = ?
             LIMIT 1
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .fetch_optional(&self.0)
         .await?
         .map(|g| Group::from_row(&g))
@@ -52,7 +52,7 @@ impl Database {
             INSERT INTO `groups` (`id`, `name`)
             VALUES (?, ?)
         "#})
-        .bind(g.id)
+        .bind(g.id.to_string())
         .bind(g.name)
         .execute(&self.0)
         .await?;
@@ -65,9 +65,9 @@ impl Database {
             SET `id` = ?, `name` = ?
             WHERE `id` = ?
         "#})
-        .bind(g.id)
+        .bind(g.id.to_string())
         .bind(g.name)
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
@@ -78,7 +78,7 @@ impl Database {
             DELETE FROM `groups`
             WHERE `id` = ?
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())

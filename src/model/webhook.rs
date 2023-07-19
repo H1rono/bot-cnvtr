@@ -58,7 +58,7 @@ impl Database {
             FROM `webhooks`
             WHERE `channel_id` = ?
         "#})
-        .bind(channel_id)
+        .bind(channel_id.to_string())
         .fetch_all(&self.0)
         .await?
         .iter()
@@ -72,7 +72,7 @@ impl Database {
             FROM `webhooks`
             WHERE `owner_id` = ?
         "#})
-        .bind(owner_id)
+        .bind(owner_id.to_string())
         .fetch_all(&self.0)
         .await?
         .iter()
@@ -129,7 +129,7 @@ impl Database {
             INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`)
             VALUES (?, ?, ?)
         "#})
-        .bind(w.id)
+        .bind(w.id.to_string())
         .bind(w.channel_id.to_string())
         .bind(w.owner_id.to_string())
         .execute(&self.0)
@@ -143,9 +143,9 @@ impl Database {
             SET `id` = ?, `channel_id` = ?, `owner_id` = ?
             WHERE `id` = ?
         "#})
-        .bind(w.id)
-        .bind(w.channel_id)
-        .bind(w.owner_id)
+        .bind(w.id.to_string())
+        .bind(w.channel_id.to_string())
+        .bind(w.owner_id.to_string())
         .bind(id)
         .execute(&self.0)
         .await?;

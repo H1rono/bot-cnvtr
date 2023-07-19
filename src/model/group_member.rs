@@ -40,8 +40,8 @@ impl Database {
             WHERE `group_id` = ?, `user_id` = ?
             LIMIT 1
         "#})
-        .bind(gid)
-        .bind(uid)
+        .bind(gid.to_string())
+        .bind(uid.to_string())
         .fetch_optional(&self.0)
         .await?
         .map(|gm| GroupMember::from_row(&gm))
@@ -54,7 +54,7 @@ impl Database {
             FROM `group_members`
             WHERE `group_id` = ?
         "#})
-        .bind(gid)
+        .bind(gid.to_string())
         .fetch_all(&self.0)
         .await?
         .iter()
@@ -68,7 +68,7 @@ impl Database {
             FROM `group_members`
             WHERE `user_id` = ?
         "#})
-        .bind(uid)
+        .bind(uid.to_string())
         .fetch_all(&self.0)
         .await?
         .iter()
@@ -82,8 +82,8 @@ impl Database {
             INTO `group_members` (`group_id`, `user_id`)
             VALUES (?, ?)
         "#})
-        .bind(gm.group_id)
-        .bind(gm.user_id)
+        .bind(gm.group_id.to_string())
+        .bind(gm.user_id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
@@ -95,10 +95,10 @@ impl Database {
             SET `group_id` = ?, `user_id` = ?
             WHERE `group_id` = ?, `user_id` = ?
         "#})
-        .bind(gm.group_id)
-        .bind(gm.user_id)
-        .bind(gid)
-        .bind(uid)
+        .bind(gm.group_id.to_string())
+        .bind(gm.user_id.to_string())
+        .bind(gid.to_string())
+        .bind(uid.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
@@ -109,8 +109,8 @@ impl Database {
             DELETE FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?
         "#})
-        .bind(gm.group_id)
-        .bind(gm.user_id)
+        .bind(gm.group_id.to_string())
+        .bind(gm.user_id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())

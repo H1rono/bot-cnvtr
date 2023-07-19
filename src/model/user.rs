@@ -40,7 +40,7 @@ impl Database {
             WHERE `id` = ?
             LIMIT 1
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .fetch_optional(&self.0)
         .await?
         .map(|u| User::from_row(&u))
@@ -52,7 +52,7 @@ impl Database {
             INSERT INTO `users` (`id`, `name`)
             VALUES (?, ?)
         "#})
-        .bind(u.id)
+        .bind(u.id.to_string())
         .bind(u.name)
         .execute(&self.0)
         .await?;
@@ -65,9 +65,9 @@ impl Database {
             SET `id` = ?, `name` = ?
             WHERE `id` = ?
         "#})
-        .bind(u.id)
+        .bind(u.id.to_string())
         .bind(u.name)
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
@@ -78,7 +78,7 @@ impl Database {
             DELETE FROM `users`
             WHERE `id` = ?
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())

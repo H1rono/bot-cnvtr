@@ -42,7 +42,7 @@ impl Database {
             WHERE `id` = ?
             LIMIT 1
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .fetch_optional(&self.0)
         .await?
         .map(|o| Owner::from_row(&o))
@@ -54,7 +54,7 @@ impl Database {
             INSERT INTO `owners` (`id`, `name`, `group`)
             VALUES (?, ?, ?)
         "#})
-        .bind(o.id)
+        .bind(o.id.to_string())
         .bind(o.name)
         .bind(o.group)
         .execute(&self.0)
@@ -68,10 +68,10 @@ impl Database {
             SET `id` = ?, `name` = ?, `group` = ?
             WHERE `id` = ?
         "#})
-        .bind(o.id)
+        .bind(o.id.to_string())
         .bind(o.name)
         .bind(o.group)
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
@@ -82,7 +82,7 @@ impl Database {
             DELETE FROM `owners`
             WHERE `id` = ?
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())
