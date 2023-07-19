@@ -1,10 +1,11 @@
+use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
 use super::{Bot, Result};
 
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
-use crate::Database;
+use crate::{model, Database};
 
 impl Bot {
     pub(super) async fn handle_webhook_command(&self, wh: Webhook, db: &Database) -> Result<()> {
@@ -16,8 +17,9 @@ impl Bot {
         }
     }
 
-    async fn handle_webhook_create(&self, create: WebhookCreate, _db: &Database) -> Result<()> {
+    async fn handle_webhook_create(&self, create: WebhookCreate, db: &Database) -> Result<()> {
         let owner = create.owner;
+
         // ownerには投稿者自身が含まれている必要がある
         let own_users = if owner.group {
             self.get_group_members(&owner.id)
@@ -34,6 +36,40 @@ impl Bot {
                 .await?;
             return Ok(());
         }
+
+        // DBにユーザーとグループを追加
+        let own_users = async_stream::stream! {
+            for u in own_users {
+                yield self.get_user(&u).await.map(|user| model::User {
+                    id: user.id,
+                    name: user.name,
+                });
+            }
+        };
+        pin_mut!(own_users);
+        let own_users = own_users
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+        db.create_ignore_users(&own_users).await?;
+        db.create_ignore_owners(&[owner.clone()]).await?;
+        if owner.group {
+            let group_members = own_users
+                .into_iter()
+                .map(|u| model::GroupMember {
+                    group_id: owner.id,
+                    user_id: u.id,
+                })
+                .collect::<Vec<_>>();
+            db.create_ignore_group_members(&group_members).await?;
+            db.create_ignore_groups(&[model::Group {
+                id: owner.id,
+                name: owner.name.clone(),
+            }])
+            .await?;
+        }
+
         let message = formatdoc! {
             r##"
                 :@{}:の要望 -- Webhook作成
