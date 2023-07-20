@@ -17,6 +17,7 @@ impl Bot {
         content: &str,
         embed: bool,
     ) -> Result<Message> {
+        println!("send_message: {}", channel_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
@@ -44,6 +45,7 @@ impl Bot {
         content: &str,
         embed: bool,
     ) -> Result<Message> {
+        println!("send_dm: {}", user_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
@@ -66,12 +68,14 @@ impl Bot {
     }
 
     pub async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {
+        println!("get_group_members: {}", group_id);
         let group_id = group_id.to_string();
         let res = get_user_group_members(&self.config, &group_id).await?;
         Ok(res)
     }
 
     pub async fn get_user(&self, user_id: &Uuid) -> Result<UserDetail> {
+        println!("get_user: {}", user_id);
         let user_id = user_id.to_string();
         let res = get_user(&self.config, &user_id).await?;
         Ok(res)
@@ -79,6 +83,7 @@ impl Bot {
 
     #[async_recursion]
     pub async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
+        println!("get_channel_path: {}", channel_id);
         let channel_id = channel_id.to_string();
         let channel = get_channel(&self.config, &channel_id).await?;
         match channel.parent_id {
