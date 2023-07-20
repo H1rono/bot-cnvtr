@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use axum::{
     body::Bytes,
     extract::State,
@@ -17,12 +19,14 @@ pub(super) async fn event(
             Err(err) => {
                 eprintln!("ERROR: {err}");
                 eprintln!("{err:?}");
+                eprintln!("{:?}", err.source());
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         },
         Err(err) => {
             eprintln!("ERROR: {err}");
             eprintln!("{err:?}");
+            eprintln!("{:?}", err.source());
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
