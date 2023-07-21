@@ -21,12 +21,15 @@ impl Bot {
         }
     }
 
-    async fn handle_sudo_wh_list_all(&self, list_all: ListAll, _db: &Database) -> Result<()> {
+    async fn handle_sudo_wh_list_all(&self, list_all: ListAll, db: &Database) -> Result<()> {
         if !list_all.valid {
             let message = "Permission denied.";
             self.send_code(&list_all.talking_channel_id, "", message)
                 .await?;
         }
+        let webhooks = db.read_webhooks().await?;
+        let code = serde_json::to_string_pretty(&webhooks)?;
+        self.send_code_dm(&list_all.user_id, "json", &code).await?;
         Ok(())
     }
 
