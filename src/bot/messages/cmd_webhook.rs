@@ -82,6 +82,16 @@ impl Bot {
         };
         db.create_webhook(webhook.clone()).await?;
 
+        let message_title = if owner.group {
+            format!(":@{}:によってWebhookが作成されました", create.user_name)
+        } else {
+            String::new()
+        };
+        let channel_path = if !create.in_dm {
+            self.get_channel_path(&webhook.channel_id).await?
+        } else {
+            "DM".to_string()
+        };
         let message = formatdoc! {
             r##"
                 {}
@@ -91,8 +101,8 @@ impl Bot {
                 - Gitea: https://cnvtr.trap.show/wh/{}/gitea
                 - ClickUp: https://cnvtr.trap.show/wh/{}/clickup
             "##,
-            if owner.group { format!(":@{}:によってWebhookが作成されました", create.user_name) } else { String::new() },
-            self.get_channel_path(&webhook.channel_id).await?,
+            message_title,
+            channel_path,
             &webhook.id, &webhook.id, &webhook.id
         };
         let it = async_stream::stream! {
