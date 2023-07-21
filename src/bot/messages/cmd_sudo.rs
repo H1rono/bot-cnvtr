@@ -21,11 +21,21 @@ impl Bot {
         }
     }
 
-    async fn handle_sudo_wh_list_all(&self, _list_all: ListAll, _db: &Database) -> Result<()> {
+    async fn handle_sudo_wh_list_all(&self, list_all: ListAll, _db: &Database) -> Result<()> {
+        if !list_all.valid {
+            let message = "Permission denied.";
+            self.send_code(&list_all.talking_channel_id, "", message)
+                .await?;
+        }
         Ok(())
     }
 
-    async fn handle_sudo_wh_delete(&self, _delete: Delete, _db: &Database) -> Result<()> {
+    async fn handle_sudo_wh_delete(&self, delete: Delete, _db: &Database) -> Result<()> {
+        if !delete.valid {
+            let message = "Permission denied.";
+            self.send_code(&delete.talking_channel_id, "", message)
+                .await?;
+        }
         Ok(())
     }
 }

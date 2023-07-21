@@ -1,5 +1,6 @@
 use clap::Subcommand;
 use traq_bot_http::payloads::types::Message;
+use uuid::Uuid;
 
 use crate::cli;
 
@@ -23,10 +24,12 @@ impl<'a> cli::Incomplete<&'a Message> for Incomplete {
         match self {
             Self::ListAll => Completed::ListAll(ListAll {
                 valid: validate(context),
+                talking_channel_id: context.channel_id,
             }),
             Self::Delete { id } => Completed::Delete(Delete {
                 id: id.clone(),
                 valid: validate(context),
+                talking_channel_id: context.channel_id,
             }),
         }
     }
@@ -52,10 +55,12 @@ impl cli::Completed for Completed {
 #[derive(Debug, Clone)]
 pub struct ListAll {
     pub valid: bool,
+    pub talking_channel_id: Uuid,
 }
 
 #[derive(Debug, Clone)]
 pub struct Delete {
     pub id: String,
     pub valid: bool,
+    pub talking_channel_id: Uuid,
 }
