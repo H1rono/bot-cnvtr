@@ -51,6 +51,8 @@ enum Error {
     NotFound,
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
+    #[error("processing error")]
+    Process(#[from] crate::bot::Error),
 }
 
 impl IntoResponse for Error {
@@ -59,6 +61,10 @@ impl IntoResponse for Error {
             Self::NotFound => (StatusCode::NOT_FOUND, "Not Found").into_response(),
             Self::Sqlx(e) => {
                 eprintln!("sqlx error: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+            Self::Process(e) => {
+                eprintln!("processing error: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }
