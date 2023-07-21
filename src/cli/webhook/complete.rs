@@ -83,6 +83,7 @@ impl Completed for WebhookList {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub user_id: Uuid,
+    pub user_name: String,
     pub webhook_id: String,
 }
 
