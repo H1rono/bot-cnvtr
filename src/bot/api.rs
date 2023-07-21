@@ -89,7 +89,7 @@ impl Bot {
         match channel.parent_id {
             Some(pid) => {
                 let ppath = self.get_channel_path(&pid).await?;
-                Ok(format!("#{}/{}", ppath, channel.name))
+                Ok(format!("{}/{}", ppath, channel.name))
             }
             None => Ok(format!("#{}", channel.name)),
         }
