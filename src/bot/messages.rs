@@ -8,6 +8,7 @@ use crate::{
     Cli, Database,
 };
 
+mod cmd_sudo;
 mod cmd_webhook;
 
 fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
@@ -54,6 +55,7 @@ impl Bot {
         let cmd = cli.cmd.complete(&payload);
         match cmd {
             CompletedCmds::Webhook(w) => self.handle_webhook_command(w, db).await,
+            CompletedCmds::Sudo(sudo) => self.handle_sudo_command(sudo, db).await,
         }?;
         Ok(())
     }
