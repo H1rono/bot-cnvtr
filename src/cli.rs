@@ -17,6 +17,11 @@ pub enum Commands {
         #[command(subcommand)]
         wh: webhook::Incomplete,
     },
+    #[command(about = "sudoコマンド")]
+    Sudo {
+        #[command(subcommand)]
+        sudo: sudo::Sudo,
+    },
 }
 
 impl<'a> Incomplete<&'a MessageCreatedPayload> for Commands {
@@ -25,6 +30,7 @@ impl<'a> Incomplete<&'a MessageCreatedPayload> for Commands {
     fn complete(&self, context: &'a MessageCreatedPayload) -> Self::Completed {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
+            Self::Sudo { sudo } => CompletedCmds::Sudo(sudo.complete(context)),
         }
     }
 }
@@ -35,6 +41,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
     fn complete(&self, context: &'a DirectMessageCreatedPayload) -> Self::Completed {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
+            Self::Sudo { sudo } => CompletedCmds::Sudo(sudo.complete(context)),
         }
     }
 }
@@ -42,6 +49,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
 #[derive(Debug, Clone)]
 pub enum CompletedCmds {
     Webhook(webhook::Complete),
+    Sudo(sudo::SudoCompleted),
 }
 
 impl Completed for CompletedCmds {
@@ -51,6 +59,9 @@ impl Completed for CompletedCmds {
         match self {
             Self::Webhook(wh) => Commands::Webhook {
                 wh: wh.incomplete(),
+            },
+            Self::Sudo(sudo) => Commands::Sudo {
+                sudo: sudo.incomplete(),
             },
         }
     }
