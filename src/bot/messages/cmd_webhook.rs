@@ -131,8 +131,38 @@ impl Bot {
         Ok(())
     }
 
-    async fn handle_webhook_delete(&self, _: WebhookDelete, _db: &Database) -> Result<()> {
-        // TODO
+    async fn handle_webhook_delete(&self, delete: WebhookDelete, db: &Database) -> Result<()> {
+        let webhook = db.find_webhook(&delete.webhook_id).await?;
+        if webhook.is_none() {
+            let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);
+            self.send_message(&delete.talking_channel_id, &message, true)
+                .await?;
+            return Ok(());
+        }
+        let webhook = webhook.unwrap();
+        let owner = db.find_owner(&webhook.owner_id).await?.unwrap();
+        let own_users = if owner.group {
+            self.get_group_members(&owner.id)
+                .await?
+                .into_iter()
+                .map(|gm| gm.id)
+                .collect::<Vec<_>>()
+        } else {
+            vec![owner.id]
+        };
+        if !own_users.contains(&delete.user_id) {
+            let message = format!(
+                "エラー: webhook所有者に @{} が含まれていません",
+                delete.user_name
+            );
+            self.send_message(&delete.talking_channel_id, &message, true)
+                .await?;
+            return Ok(());
+        }
+        db.delete_webhook(&delete.webhook_id).await?;
+        let message = format!("Webhook {} を削除しました", delete.webhook_id);
+        self.send_message(&delete.talking_channel_id, &message, true)
+            .await?;
         Ok(())
     }
 }
