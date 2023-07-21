@@ -25,6 +25,7 @@ impl<'a> cli::Incomplete<&'a Message> for Incomplete {
             Self::ListAll => Completed::ListAll(ListAll {
                 valid: validate(context),
                 talking_channel_id: context.channel_id,
+                user_id: context.user.id,
             }),
             Self::Delete { id } => Completed::Delete(Delete {
                 id: id.clone(),
@@ -56,6 +57,7 @@ impl cli::Completed for Completed {
 pub struct ListAll {
     pub valid: bool,
     pub talking_channel_id: Uuid,
+    pub user_id: Uuid,
 }
 
 #[derive(Debug, Clone)]
