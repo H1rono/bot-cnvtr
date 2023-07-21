@@ -84,6 +84,7 @@ impl Completed for WebhookList {
 pub struct WebhookDelete {
     pub user_id: Uuid,
     pub user_name: String,
+    pub talking_channel_id: Uuid,
     pub webhook_id: String,
 }
 

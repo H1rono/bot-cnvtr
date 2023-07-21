@@ -136,6 +136,7 @@ impl<'a> Incomplete<&'a Message> for WebhookDelete {
         complete::WebhookDelete {
             user_id: context.user.id,
             user_name: context.user.name.clone(),
+            talking_channel_id: context.channel_id,
             webhook_id: self.id.clone(),
         }
     }
