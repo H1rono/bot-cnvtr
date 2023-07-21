@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
+pub mod sudo;
 pub mod webhook;
 
 #[derive(Debug, Clone, Parser)]
