@@ -18,10 +18,20 @@ pub enum Commands {
     },
 }
 
-impl Incomplete<&Message> for Commands {
+impl<'a> Incomplete<&'a MessageCreatedPayload> for Commands {
     type Completed = CompletedCmds;
 
-    fn complete(&self, context: &Message) -> Self::Completed {
+    fn complete(&self, context: &'a MessageCreatedPayload) -> Self::Completed {
+        match self {
+            Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
+        }
+    }
+}
+
+impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
+    type Completed = CompletedCmds;
+
+    fn complete(&self, context: &'a DirectMessageCreatedPayload) -> Self::Completed {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
         }

@@ -29,6 +29,7 @@ impl Completed for Webhook {
 pub struct WebhookCreate {
     pub user_id: Uuid,
     pub user_name: String,
+    pub in_dm: bool,
     pub talking_channel_id: Uuid,
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
