@@ -256,23 +256,17 @@ version = "0.1.0"
 dependencies = [
  "async-recursion",
  "async-stream",
- "axum",
  "clap",
  "cli",
  "config",
- "dotenvy",
- "envy",
  "futures",
  "indoc",
- "itertools 0.11.0",
  "model",
  "reqwest",
- "serde",
  "serde_json",
  "shlex",
  "sqlx",
  "thiserror",
- "tokio",
  "traq",
  "traq-bot-http",
  "uuid",
@@ -353,24 +347,9 @@ checksum = "2da6da31387c7e4ef160ffab6d5e7f00c42626fe39aea70a7b0f1773f7dd6c1b"
 name = "cli"
 version = "0.1.0"
 dependencies = [
- "async-recursion",
- "async-stream",
- "axum",
  "clap",
- "dotenvy",
- "envy",
- "futures",
- "indoc",
- "itertools 0.11.0",
  "model",
- "reqwest",
  "serde",
- "serde_json",
- "shlex",
- "sqlx",
- "thiserror",
- "tokio",
- "traq",
  "traq-bot-http",
  "uuid",
 ]
@@ -379,29 +358,13 @@ dependencies = [
 name = "cnvtr"
 version = "0.1.0"
 dependencies = [
- "async-recursion",
- "async-stream",
  "axum",
  "bot",
- "clap",
  "config",
- "dotenvy",
- "envy",
- "futures",
- "indoc",
- "itertools 0.11.0",
  "model",
- "reqwest",
  "router",
- "serde",
- "serde_json",
- "shlex",
- "sqlx",
- "thiserror",
  "tokio",
- "traq",
  "traq-bot-http",
- "uuid",
 ]
 
 [[package]]
@@ -414,25 +377,9 @@ checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 name = "config"
 version = "0.1.0"
 dependencies = [
- "async-recursion",
- "async-stream",
- "axum",
- "clap",
  "dotenvy",
  "envy",
- "futures",
- "indoc",
- "itertools 0.11.0",
- "reqwest",
  "serde",
- "serde_json",
- "shlex",
- "sqlx",
- "thiserror",
- "tokio",
- "traq",
- "traq-bot-http",
- "uuid",
 ]
 
 [[package]]
@@ -1083,25 +1030,11 @@ dependencies = [
 name = "model"
 version = "0.1.0"
 dependencies = [
- "async-recursion",
- "async-stream",
- "axum",
- "clap",
  "config",
- "dotenvy",
- "envy",
- "futures",
  "indoc",
  "itertools 0.11.0",
- "reqwest",
  "serde",
- "serde_json",
- "shlex",
  "sqlx",
- "thiserror",
- "tokio",
- "traq",
- "traq-bot-http",
  "uuid",
 ]
 
@@ -1504,25 +1437,13 @@ dependencies = [
 name = "router"
 version = "0.1.0"
 dependencies = [
- "async-recursion",
- "async-stream",
  "axum",
  "bot",
- "clap",
- "dotenvy",
- "envy",
- "futures",
  "indoc",
- "itertools 0.11.0",
  "model",
- "reqwest",
- "serde",
  "serde_json",
- "shlex",
  "sqlx",
  "thiserror",
- "tokio",
- "traq",
  "traq-bot-http",
  "uuid",
 ]
