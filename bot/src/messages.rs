@@ -2,7 +2,7 @@ use clap::Parser;
 
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use cli::{CompletedCmds, Incomplete, Cli};
+use cli::{Cli, CompletedCmds, Incomplete};
 use model::Database;
 
 use super::{Bot, Result};
