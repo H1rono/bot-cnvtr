@@ -5,6 +5,7 @@ use axum::{
 };
 use indoc::indoc;
 use serde_json::Value;
+use uuid::Uuid;
 
 use super::{AppState, Error, Result};
 use crate::model::Webhook;
@@ -12,7 +13,7 @@ use crate::model::Webhook;
 /// GET /wh/:id
 pub(super) async fn get_wh(
     State(st): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>> {
     st.db
         .find_webhook(&id)
@@ -24,7 +25,7 @@ pub(super) async fn get_wh(
 /// POST /wh/:id/github
 pub(super) async fn wh_github(
     State(st): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
     Json(_payload): Json<Value>,
 ) -> Result<StatusCode> {
     let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
@@ -44,7 +45,7 @@ pub(super) async fn wh_github(
 /// POST /wh/:id/gitea
 pub(super) async fn wh_gitea(
     State(st): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
     Json(_payload): Json<Value>,
 ) -> Result<StatusCode> {
     let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
@@ -64,7 +65,7 @@ pub(super) async fn wh_gitea(
 /// POST /wh/:id/clickup
 pub(super) async fn wh_clickup(
     State(st): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<Uuid>,
     Json(_payload): Json<Value>,
 ) -> Result<StatusCode> {
     let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;

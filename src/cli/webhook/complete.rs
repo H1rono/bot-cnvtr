@@ -85,7 +85,7 @@ pub struct WebhookDelete {
     pub user_id: Uuid,
     pub user_name: String,
     pub talking_channel_id: Uuid,
-    pub webhook_id: String,
+    pub webhook_id: Uuid,
 }
 
 impl Completed for WebhookDelete {
@@ -93,7 +93,7 @@ impl Completed for WebhookDelete {
 
     fn incomplete(&self) -> Self::Incomplete {
         incomplete::WebhookDelete {
-            id: self.webhook_id.clone(),
+            id: self.webhook_id,
         }
     }
 }

@@ -3,14 +3,14 @@ use std::iter;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
+use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
 
 use super::{parse_col_str2uuid, Database};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Webhook {
-    pub id: String,
+    pub id: Uuid,
     pub channel_id: Uuid,
     pub owner_id: Uuid,
 }
@@ -18,7 +18,7 @@ pub struct Webhook {
 impl<'r> FromRow<'r, MySqlRow> for Webhook {
     fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
         Ok(Self {
-            id: row.try_get("id")?,
+            id: parse_col_str2uuid(row, "id")?,
             channel_id: parse_col_str2uuid(row, "channel_id")?,
             owner_id: parse_col_str2uuid(row, "owner_id")?,
         })
@@ -38,14 +38,14 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_webhook(&self, id: &str) -> Result<Option<Webhook>> {
+    pub async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `webhooks`
             WHERE `id` = ?
             LIMIT 1
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .fetch_optional(&self.0)
         .await?
         .map(|w| Webhook::from_row(&w))
@@ -151,7 +151,7 @@ impl Database {
             iter::repeat("(?, ?, ?)").take(ws_len).join(", ")
         };
         let query = ws.iter().fold(sqlx::query(&query), |q, w| {
-            q.bind(&w.id)
+            q.bind(w.id.to_string())
                 .bind(w.channel_id.to_string())
                 .bind(w.owner_id.to_string())
         });
@@ -174,12 +174,12 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_webhook(&self, id: &str) -> Result<()> {
+    pub async fn delete_webhook(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `webhooks`
             WHERE `id` = ?
         "#})
-        .bind(id)
+        .bind(id.to_string())
         .execute(&self.0)
         .await?;
         Ok(())

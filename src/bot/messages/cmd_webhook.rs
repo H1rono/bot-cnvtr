@@ -71,9 +71,10 @@ impl Bot {
         }
 
         // webhook生成してDBに追加
-        let mut id = sha256::digest(format!("{}/{}", owner.id, create.channel_id));
+        let mut id = Uuid::new_v4();
         while db.find_webhook(&id).await?.is_some() {
-            id = sha256::digest(id);
+            // 重複しないようにする
+            id = Uuid::new_v4();
         }
         let webhook = model::Webhook {
             id,

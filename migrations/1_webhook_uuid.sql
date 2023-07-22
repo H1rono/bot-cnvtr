@@ -1,0 +1,2 @@
+ALTER TABLE `webhooks`
+MODIFY `id` CHAR(36) NOT NULL;

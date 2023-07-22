@@ -1,6 +1,7 @@
 use clap::{Args, Subcommand};
 use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use uuid::Uuid;
 
 use super::complete;
 use crate::{cli::Incomplete, model::Owner};
@@ -126,7 +127,7 @@ impl<'a> Incomplete<&'a Message> for WebhookList {
 
 #[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookDelete {
-    pub id: String,
+    pub id: Uuid,
 }
 
 impl<'a> Incomplete<&'a Message> for WebhookDelete {
@@ -137,7 +138,7 @@ impl<'a> Incomplete<&'a Message> for WebhookDelete {
             user_id: context.user.id,
             user_name: context.user.name.clone(),
             talking_channel_id: context.channel_id,
-            webhook_id: self.id.clone(),
+            webhook_id: self.id,
         }
     }
 }
