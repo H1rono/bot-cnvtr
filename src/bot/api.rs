@@ -36,7 +36,7 @@ impl Bot {
             "#,
             lang, code
         };
-        self.send_message(channel_id, &message, false).await
+        self.send_message(channel_id, message.trim(), false).await
     }
 
     pub async fn send_direct_message(
@@ -64,7 +64,8 @@ impl Bot {
             "#,
             lang, code
         };
-        self.send_direct_message(user_id, &message, false).await
+        self.send_direct_message(user_id, message.trim(), false)
+            .await
     }
 
     pub async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {

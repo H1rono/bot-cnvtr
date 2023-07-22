@@ -106,9 +106,10 @@ impl Bot {
             channel_path,
             &webhook.id, &webhook.id, &webhook.id
         };
+        let msg = message.trim();
         let it = async_stream::stream! {
             for u in own_users {
-                yield self.send_direct_message(&u.id, &message, true).await;
+                yield self.send_direct_message(&u.id, msg, true).await;
             }
         };
         pin_mut!(it);
