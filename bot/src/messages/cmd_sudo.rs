@@ -1,10 +1,10 @@
 use super::{Bot, Result};
 
-use crate::cli::sudo::{
+use cli::sudo::{
     webhook::{Completed, Delete, ListAll},
     SudoCompleted,
 };
-use crate::Database;
+use model::Database;
 
 impl Bot {
     pub(super) async fn handle_sudo_command(

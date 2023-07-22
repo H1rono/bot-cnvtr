@@ -3,8 +3,10 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
+use model::Owner;
+
 use super::complete;
-use crate::{cli::Incomplete, model::Owner};
+use crate::Incomplete;
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Webhook {

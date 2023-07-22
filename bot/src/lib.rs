@@ -4,7 +4,8 @@ use thiserror::Error as ThisError;
 use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
-use super::{config::BotConfig, Database};
+use config::BotConfig;
+use model::Database;
 
 mod api;
 mod error;

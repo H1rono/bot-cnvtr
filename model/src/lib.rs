@@ -3,7 +3,7 @@ use sqlx::mysql::MySqlRow;
 use sqlx::{MySqlPool, Row};
 use uuid::Uuid;
 
-use super::config::DbConfig;
+use config::DbConfig;
 
 mod group;
 mod group_member;
@@ -17,7 +17,7 @@ pub use owner::Owner;
 pub use user::User;
 pub use webhook::Webhook;
 
-pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
+pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
 
 pub struct Database(MySqlPool);
 

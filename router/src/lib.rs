@@ -11,7 +11,8 @@ use axum::{
 
 use traq_bot_http::RequestParser;
 
-use super::{Bot, Database};
+use ::bot::Bot;
+use model::Database;
 
 mod bot;
 mod wh;
@@ -52,7 +53,7 @@ enum Error {
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
     #[error("processing error")]
-    Process(#[from] crate::bot::Error),
+    Process(#[from] ::bot::Error),
 }
 
 impl IntoResponse for Error {

@@ -3,7 +3,10 @@ use std::net::SocketAddr;
 
 use traq_bot_http::RequestParser;
 
-use bot_cnvtr::{Bot, Config, Database};
+use bot::Bot;
+use config::Config;
+use model::Database;
+use router::make_router;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -12,7 +15,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let db = Database::from_config(db_config).await?;
     db.migrate().await?;
     let bot = Bot::from_config(bot_config);
-    let app = bot_cnvtr::router::make_router(db, parser, bot);
+    let app = make_router(db, parser, bot);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let server = axum::Server::bind(&addr).serve(app.into_make_service());
     println!("listening on {} ...", addr);

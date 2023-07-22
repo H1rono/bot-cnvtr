@@ -2,8 +2,6 @@ use clap::Subcommand;
 use traq_bot_http::payloads::types::Message;
 use uuid::Uuid;
 
-use crate::cli;
-
 fn validate(context: &Message) -> bool {
     context.user.name == "H1rono_K"
 }
@@ -17,7 +15,7 @@ pub enum Incomplete {
     },
 }
 
-impl<'a> cli::Incomplete<&'a Message> for Incomplete {
+impl<'a> crate::Incomplete<&'a Message> for Incomplete {
     type Completed = Completed;
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
@@ -42,7 +40,7 @@ pub enum Completed {
     Delete(Delete),
 }
 
-impl cli::Completed for Completed {
+impl crate::Completed for Completed {
     type Incomplete = Incomplete;
 
     fn incomplete(&self) -> Self::Incomplete {

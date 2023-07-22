@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 use super::{Bot, Result};
 
-use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
-use crate::{model, Database};
+use cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
+use model::{self, Database};
 
 impl Bot {
     pub(super) async fn handle_webhook_command(&self, wh: Webhook, db: &Database) -> Result<()> {

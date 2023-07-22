@@ -8,7 +8,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use super::{AppState, Error, Result};
-use crate::model::Webhook;
+use model::Webhook;
 
 /// GET /wh/:id
 pub(super) async fn get_wh(

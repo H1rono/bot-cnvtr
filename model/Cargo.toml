@@ -28,3 +28,5 @@ reqwest = { workspace = true }
 traq-bot-http = { workspace = true }
 traq = { workspace = true }
 sqlx = { workspace = true }
+
+config = { path = "../config" }

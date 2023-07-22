@@ -2,11 +2,10 @@ use clap::Parser;
 
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
+use cli::{CompletedCmds, Incomplete, Cli};
+use model::Database;
+
 use super::{Bot, Result};
-use crate::{
-    cli::{CompletedCmds, Incomplete},
-    Cli, Database,
-};
 
 mod cmd_sudo;
 mod cmd_webhook;
