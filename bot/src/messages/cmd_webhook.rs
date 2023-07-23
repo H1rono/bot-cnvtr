@@ -55,6 +55,11 @@ impl Bot {
         db.create_ignore_users(&own_users).await?;
         db.create_ignore_owners(&[owner.clone()]).await?;
         if owner.group {
+            db.create_ignore_groups(&[model::Group {
+                id: owner.id,
+                name: owner.name.clone(),
+            }])
+            .await?;
             let group_members = own_users
                 .iter()
                 .map(|u| model::GroupMember {
@@ -63,11 +68,6 @@ impl Bot {
                 })
                 .collect::<Vec<_>>();
             db.create_ignore_group_members(&group_members).await?;
-            db.create_ignore_groups(&[model::Group {
-                id: owner.id,
-                name: owner.name.clone(),
-            }])
-            .await?;
         }
 
         // webhook生成してDBに追加
