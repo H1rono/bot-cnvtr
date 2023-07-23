@@ -88,7 +88,7 @@ impl Bot {
         } else {
             String::new()
         };
-        let channel_path = if !create.in_dm {
+        let channel_path = if !create.channel_dm {
             self.get_channel_path(&webhook.channel_id).await?
         } else {
             "DM".to_string()
