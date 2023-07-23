@@ -162,9 +162,16 @@ impl Bot {
             return Ok(());
         }
         db.delete_webhook(&delete.webhook_id).await?;
-        let message = format!("Webhook {} を削除しました", delete.webhook_id);
-        self.send_message(&delete.talking_channel_id, &message, true)
-            .await?;
+        let it = async_stream::stream! {
+            let message = format!("Webhook {} を削除しました", delete.webhook_id);
+            for u in own_users {
+                yield self.send_direct_message(&u, &message, false).await;
+            }
+        };
+        pin_mut!(it);
+        while let Some(r) = it.next().await {
+            r?;
+        }
         Ok(())
     }
 }
