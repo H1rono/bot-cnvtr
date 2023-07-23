@@ -11,7 +11,7 @@ pub enum Incomplete {
     ListAll,
     Delete {
         #[clap(help = "削除するWebhookのID")]
-        id: String,
+        id: Uuid,
     },
 }
 
@@ -26,7 +26,7 @@ impl<'a> crate::Incomplete<&'a Message> for Incomplete {
                 user_id: context.user.id,
             }),
             Self::Delete { id } => Completed::Delete(Delete {
-                id: id.clone(),
+                id: *id,
                 valid: validate(context),
                 talking_channel_id: context.channel_id,
             }),
@@ -46,7 +46,7 @@ impl crate::Completed for Completed {
     fn incomplete(&self) -> Self::Incomplete {
         match self {
             Self::ListAll(_) => Incomplete::ListAll,
-            Self::Delete(Delete { id, .. }) => Incomplete::Delete { id: id.clone() },
+            Self::Delete(Delete { id, .. }) => Incomplete::Delete { id: *id },
         }
     }
 }
@@ -60,7 +60,7 @@ pub struct ListAll {
 
 #[derive(Debug, Clone)]
 pub struct Delete {
-    pub id: String,
+    pub id: Uuid,
     pub valid: bool,
     pub talking_channel_id: Uuid,
 }
