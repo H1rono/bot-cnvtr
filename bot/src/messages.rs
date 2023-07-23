@@ -4,6 +4,7 @@ use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, Messa
 
 use cli::{Cli, CompletedCmds, Incomplete};
 use model::Database;
+use uuid::Uuid;
 
 use super::{Bot, Result};
 
@@ -32,11 +33,30 @@ impl Bot {
         }
     }
 
-    async fn run_command(&self, cmd: CompletedCmds, db: &Database) -> Result<()> {
+    async fn run_command(
+        &self,
+        message_id: &Uuid,
+        cmd: CompletedCmds,
+        db: &Database,
+    ) -> Result<()> {
         use CompletedCmds::*;
-        match cmd {
+        let res = match cmd {
             Webhook(w) => self.handle_webhook_command(w, db).await,
             Sudo(s) => self.handle_sudo_command(s, db).await,
+        };
+        match res {
+            Ok(_) => {
+                // :done:
+                const STAMP_ID: Uuid = uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d");
+                self.add_message_stamp(message_id, &STAMP_ID, 1).await?;
+                Ok(())
+            }
+            Err(e) => {
+                // :melting_face:
+                const STAMP_ID: Uuid = uuid::uuid!("67c90d0e-18da-483e-9b2f-e6e50adec29d");
+                self.add_message_stamp(message_id, &STAMP_ID, 1).await?;
+                Err(e)
+            }
         }
     }
 
@@ -53,8 +73,9 @@ impl Bot {
             Some(c) => c,
             None => return Ok(()),
         };
+        let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(cmd, db).await
+        self.run_command(mid, cmd, db).await
     }
 
     pub async fn on_direct_message_created(
@@ -70,7 +91,8 @@ impl Bot {
             Some(c) => c,
             None => return Ok(()),
         };
+        let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(cmd, db).await
+        self.run_command(mid, cmd, db).await
     }
 }
