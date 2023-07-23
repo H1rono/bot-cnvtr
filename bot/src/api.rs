@@ -5,8 +5,11 @@ use uuid::Uuid;
 use traq::apis::channel_api::get_channel;
 use traq::apis::group_api::get_user_group_members;
 use traq::apis::message_api::post_message;
+use traq::apis::stamp_api::add_message_stamp;
 use traq::apis::user_api::{get_user, post_direct_message};
-use traq::models::{Message, PostMessageRequest, UserDetail, UserGroupMember};
+use traq::models::{
+    Message, PostMessageRequest, PostMessageStampRequest, UserDetail, UserGroupMember,
+};
 
 use super::{Bot, Result};
 
@@ -94,5 +97,19 @@ impl Bot {
             }
             None => Ok(format!("#{}", channel.name)),
         }
+    }
+
+    pub async fn add_message_stamp(
+        &self,
+        message_id: &Uuid,
+        stamp_id: &Uuid,
+        count: i32,
+    ) -> Result<()> {
+        println!("add_message_stamp: {}, {}", message_id, stamp_id);
+        let req = PostMessageStampRequest { count };
+        let message_id = message_id.to_string();
+        let stamp_id = stamp_id.to_string();
+        add_message_stamp(&self.config, &message_id, &stamp_id, Some(req)).await?;
+        Ok(())
     }
 }
