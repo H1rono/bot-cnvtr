@@ -93,6 +93,7 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             talking_channel_id: context.channel_id,
             channel_name: self.channel.clone(),
             channel_id,
+            channel_dm: self.channel.is_none() && in_dm,
             owner,
         }
     }

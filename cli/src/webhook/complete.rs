@@ -35,6 +35,7 @@ pub struct WebhookCreate {
     pub talking_channel_id: Uuid,
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
+    pub channel_dm: bool,
     pub owner: Owner,
 }
 
