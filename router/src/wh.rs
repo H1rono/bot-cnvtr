@@ -12,6 +12,7 @@ use model::Webhook;
 mod clickup;
 mod gitea;
 mod github;
+mod utils;
 
 /// GET /wh/:id
 pub(super) async fn get_wh(
