@@ -2,6 +2,7 @@ use axum::http::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
 
+use super::utils::ValueExt;
 use crate::{Error, Result};
 
 pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<String> {
@@ -17,12 +18,9 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<String> {
         event_type.to_string()
     };
     let repo_name = payload
-        .get("repository")
-        .ok_or(Error::BadRequest)?
-        .get("full_name")
-        .ok_or(Error::BadRequest)?
-        .as_str()
-        .ok_or(Error::BadRequest)?;
+        .get_or_err("repository")?
+        .get_or_err("full_name")?
+        .as_str_or_err()?;
     let message = formatdoc! {
         r##"
             GitHubからWebhookが送信されました。
