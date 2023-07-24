@@ -35,6 +35,10 @@ pub(super) async fn wh_github(
 ) -> Result<StatusCode> {
     let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
     let message = github::handle(headers, payload)?;
+    if message.is_none() {
+        return Ok(StatusCode::NO_CONTENT);
+    }
+    let message = message.unwrap();
     st.bot
         .send_message(&webhook.channel_id, message.trim(), false)
         .await

@@ -5,7 +5,7 @@ use serde_json::Value;
 use super::utils::ValueExt;
 use crate::{Error, Result};
 
-pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<String> {
+pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String>> {
     let event_type = headers
         .get("X-GitHub-Event")
         .ok_or(Error::BadRequest)?
@@ -16,13 +16,19 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<String> {
         "delete" => delete(payload),
         "push" => push(payload),
         "issues" => issues(payload),
+        "ping" => ping(payload),
         _ => default(event_type, payload),
     }?;
     Ok(message)
 }
 
+/// X-GitHub-Event: ping
+fn ping(_: Value) -> Result<Option<String>> {
+    Ok(None)
+}
+
 /// X-GitHub-Event: create
-fn create(payload: Value) -> Result<String> {
+fn create(payload: Value) -> Result<Option<String>> {
     let ref_name = payload.get_or_err("ref")?;
     let ref_type = payload.get_or_err("ref_type")?;
     let repo = payload.get_or_err("repository")?;
@@ -35,11 +41,11 @@ fn create(payload: Value) -> Result<String> {
         "##,
         repo_name, repo_url, ref_type, ref_name, sender_name, sender_url
     };
-    Ok(message)
+    Ok(Some(message))
 }
 
 /// X-GitHub-Event: delete
-fn delete(payload: Value) -> Result<String> {
+fn delete(payload: Value) -> Result<Option<String>> {
     let ref_name = payload.get_or_err("ref")?;
     let ref_type = payload.get_or_err("ref_type")?;
     let repo = payload.get_or_err("repository")?;
@@ -52,11 +58,11 @@ fn delete(payload: Value) -> Result<String> {
         "##,
         repo_name, repo_url, ref_type, ref_name, sender_name, sender_url
     };
-    Ok(message)
+    Ok(Some(message))
 }
 
 /// X-GitHub-Event: push
-fn push(payload: Value) -> Result<String> {
+fn push(payload: Value) -> Result<Option<String>> {
     let ref_name = payload.get_or_err("ref")?.as_str_or_err()?;
     let repo = payload.get_or_err("repository")?;
     let (repo_name, repo_url) = repo_info(repo)?;
@@ -86,11 +92,11 @@ fn push(payload: Value) -> Result<String> {
         "##,
         repo_name, repo_url, ref_name, commit_count, sender_name, sender_url, commits
     };
-    Ok(message)
+    Ok(Some(message))
 }
 
 /// X-GitHub-Event: issues
-fn issues(payload: Value) -> Result<String> {
+fn issues(payload: Value) -> Result<Option<String>> {
     let action = payload.get_or_err("action")?.as_str_or_err()?;
     let repo = payload.get_or_err("repository")?;
     let (repo_name, repo_url) = repo_info(repo)?;
@@ -109,10 +115,10 @@ fn issues(payload: Value) -> Result<String> {
         action,
         sender_name, sender_url
     };
-    Ok(message)
+    Ok(Some(message))
 }
 
-fn default(event_type: &str, payload: Value) -> Result<String> {
+fn default(event_type: &str, payload: Value) -> Result<Option<String>> {
     let action = payload.get("action").and_then(Value::as_str);
     let ev_action = if let Some(act) = action {
         format!("{} {}", event_type, act)
@@ -129,7 +135,7 @@ fn default(event_type: &str, payload: Value) -> Result<String> {
         repo_name, repo_url,
         ev_action
     };
-    Ok(message)
+    Ok(Some(message))
 }
 
 /// user -> user.login, user.html_url
