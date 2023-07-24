@@ -77,18 +77,14 @@ fn default(event_type: &str, payload: Value) -> Result<String> {
     } else {
         event_type.to_string()
     };
-    let repo_name = payload
-        .get_or_err("repository")?
-        .get_or_err("full_name")?
-        .as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let (repo_name, repo_url) = repo_info(repo)?;
     let message = formatdoc! {
         r##"
-            GitHubからWebhookが送信されました。
-            リポジトリ: {}
-            イベント: {}
+            [[{}]({})] {}
             詳細は現在工事中です :construction:
         "##,
-        repo_name,
+        repo_name, repo_url,
         ev_action
     };
     Ok(message)
