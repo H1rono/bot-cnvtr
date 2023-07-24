@@ -2,7 +2,7 @@ use serde_json::{value::Index, Value};
 
 use crate::{Error, Result};
 
-pub trait ValueExt {
+pub(crate) trait ValueExt {
     fn get_or_err<I>(&self, index: I) -> Result<&Value>
     where
         I: Index;
