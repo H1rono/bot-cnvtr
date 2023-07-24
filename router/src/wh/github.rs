@@ -11,15 +11,16 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String
         .ok_or(Error::BadRequest)?
         .to_str()
         .map_err(|_| Error::BadRequest)?;
-    let message = match event_type {
+    match event_type {
         "create" => create(payload),
         "delete" => delete(payload),
         "push" => push(payload),
         "issues" => issues(payload),
         "ping" => ping(payload),
+        "fork" => fork(payload),
+        "branch_protection_rule" => branch_protection_rule(payload),
         _ => default(event_type, payload),
-    }?;
-    Ok(message)
+    }
 }
 
 /// X-GitHub-Event: ping
@@ -110,6 +111,44 @@ fn issues(payload: Value) -> Result<Option<String>> {
     Ok(Some(message))
 }
 
+/// X-GitHub-Event: fork
+fn fork(payload: Value) -> Result<Option<String>> {
+    let forkee = payload.get_or_err("forkee")?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let message = formatdoc! {
+        r##"
+            [{}] forked to {} by {}
+        "##,
+        repo_str(repo)?,
+        repo_str(forkee)?,
+        user_str(sender)?
+    };
+    Ok(Some(message))
+}
+
+/// X-GitHub-Event: branch_protection_rule
+fn branch_protection_rule(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let branch = payload
+        .get_or_err("rule")?
+        .get_or_err("name")?
+        .as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let message = formatdoc! {
+        r##"
+            [{}:{}] branch protection rule {} by {}
+        "##,
+        repo_str(repo)?,
+        branch,
+        action,
+        user_str(sender)?
+    };
+    Ok(Some(message))
+}
+
+/// X-GitHub-Event: *
 fn default(event_type: &str, payload: Value) -> Result<Option<String>> {
     let action = payload.get("action").and_then(Value::as_str);
     let ev_action = if let Some(act) = action {
