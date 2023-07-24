@@ -13,7 +13,9 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<String> {
         .map_err(|_| Error::BadRequest)?;
     let message = match event_type {
         "create" => create(payload),
+        "delete" => delete(payload),
         "push" => push(payload),
+        "issues" => issues(payload),
         _ => default(event_type, payload),
     }?;
     Ok(message)
@@ -30,6 +32,23 @@ fn create(payload: Value) -> Result<String> {
     let message = formatdoc! {
         r##"
             [[{}]({})] {} `{}` was created by [{}]({}).
+        "##,
+        repo_name, repo_url, ref_type, ref_name, sender_name, sender_url
+    };
+    Ok(message)
+}
+
+/// X-GitHub-Event: delete
+fn delete(payload: Value) -> Result<String> {
+    let ref_name = payload.get_or_err("ref")?;
+    let ref_type = payload.get_or_err("ref_type")?;
+    let repo = payload.get_or_err("repository")?;
+    let (repo_name, repo_url) = repo_info(repo)?;
+    let sender = payload.get_or_err("sender")?;
+    let (sender_name, sender_url) = user_info(sender)?;
+    let message = formatdoc! {
+        r##"
+            [[{}]({})] {} `{}` was deleted by [{}]({}).
         "##,
         repo_name, repo_url, ref_type, ref_name, sender_name, sender_url
     };
@@ -66,6 +85,29 @@ fn push(payload: Value) -> Result<String> {
             {}
         "##,
         repo_name, repo_url, ref_name, commit_count, sender_name, sender_url, commits
+    };
+    Ok(message)
+}
+
+/// X-GitHub-Event: issues
+fn issues(payload: Value) -> Result<String> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let (repo_name, repo_url) = repo_info(repo)?;
+    let sender = payload.get_or_err("sender")?;
+    let (sender_name, sender_url) = user_info(sender)?;
+    let issue = payload.get_or_err("issue")?;
+    let issue_number = issue.get_or_err("number")?.as_u64_or_err()?;
+    let issue_title = issue.get_or_err("title")?.as_str_or_err()?;
+    let issue_url = issue.get_or_err("html_url")?.as_str_or_err()?;
+    let message = formatdoc! {
+        r##"
+            [[{}]({})] Issue [`#{} {}`]({}) {} by [{}]({})
+        "##,
+        repo_name, repo_url,
+        issue_number, issue_title, issue_url,
+        action,
+        sender_name, sender_url
     };
     Ok(message)
 }
