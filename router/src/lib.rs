@@ -3,6 +3,7 @@ use std::sync::Arc;
 use thiserror::Error as ThisError;
 
 use axum::{
+    extract::State,
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
@@ -32,6 +33,12 @@ impl AppState {
             parser,
             bot,
         }
+    }
+}
+
+impl AsRef<AppState> for State<AppState> {
+    fn as_ref(&self) -> &AppState {
+        &self.0
     }
 }
 
