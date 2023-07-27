@@ -149,23 +149,8 @@ fn branch_protection_rule(payload: Value) -> Result<Option<String>> {
 }
 
 /// X-GitHub-Event: *
-fn default(event_type: &str, payload: Value) -> Result<Option<String>> {
-    let action = payload.get("action").and_then(Value::as_str);
-    let ev_action = if let Some(act) = action {
-        format!("{} {}", event_type, act)
-    } else {
-        event_type.to_string()
-    };
-    let repo = payload.get_or_err("repository")?;
-    let message = formatdoc! {
-        r##"
-            [{}] {}
-            詳細は現在工事中です :construction:
-        "##,
-        repo_str(repo)?,
-        ev_action
-    };
-    Ok(Some(message))
+fn default(_event_type: &str, _payload: Value) -> Result<Option<String>> {
+    Ok(None)
 }
 
 /// user -> [user.login](user.html_url)
