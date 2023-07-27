@@ -11,6 +11,7 @@ serde_json = { workspace = true }
 uuid = { workspace = true }
 
 axum = { workspace = true }
+hyper = { workspace = true }
 
 traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
