@@ -23,6 +23,7 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String
         "pull_request_comment" => pull_request_comment(payload),
         "pull_request_review" => pull_request_review(payload),
         "pull_request_review_thread" => pull_request_review_thread(payload),
+        "release" => release(payload),
         _ => default(event_type, payload),
     }
 }
@@ -236,6 +237,24 @@ fn pull_request_review_thread(payload: Value) -> Result<Option<String>> {
     Ok(Some(message))
 }
 
+/// X-GitHub-Event: release
+fn release(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let release = payload.get_or_err("release")?;
+    let message = formatdoc! {
+        r##"
+            [{}] Release {} {} by {}
+        "##,
+        repo_str(repo)?,
+        release_str(release)?,
+        action,
+        user_str(sender)?
+    };
+    Ok(Some(message))
+}
+
 /// X-GitHub-Event: *
 fn default(_event_type: &str, _payload: Value) -> Result<Option<String>> {
     Ok(None)
@@ -279,4 +298,17 @@ fn pr_info(pr: &Value) -> Result<(u64, &str, &str)> {
     let title = pr.get_or_err("title")?.as_str_or_err()?;
     let url = pr.get_or_err("html_url")?.as_str_or_err()?;
     Ok((number, title, url))
+}
+
+/// release -> [release.name](release.html_url)
+fn release_str(release: &Value) -> Result<String> {
+    let (name, url) = release_info(release)?;
+    Ok(format!("[{}]({})", name, url))
+}
+
+/// release -> release.name, release.html_url
+fn release_info(release: &Value) -> Result<(&str, &str)> {
+    let name = release.get_or_err("name")?.as_str_or_err()?;
+    let url = release.get_or_err("html_url")?.as_str_or_err()?;
+    Ok((name, url))
 }
