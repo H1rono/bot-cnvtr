@@ -19,6 +19,10 @@ pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String
         "ping" => ping(payload),
         "fork" => fork(payload),
         "branch_protection_rule" => branch_protection_rule(payload),
+        "pull_request" => pull_request(payload),
+        "pull_request_comment" => pull_request_comment(payload),
+        "pull_request_review" => pull_request_review(payload),
+        "pull_request_review_thread" => pull_request_review_thread(payload),
         _ => default(event_type, payload),
     }
 }
@@ -148,6 +152,90 @@ fn branch_protection_rule(payload: Value) -> Result<Option<String>> {
     Ok(Some(message))
 }
 
+/// X-GitHub-Event: pull_request
+fn pull_request(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let pull_request = payload.get_or_err("pull_request")?;
+    let message = formatdoc! {
+        r##"
+            [{}] Pull Request {} {} by {}
+        "##,
+        repo_str(repo)?,
+        pr_str(pull_request)?,
+        action.replace('_', " "),
+        user_str(sender)?
+    };
+    Ok(Some(message))
+}
+
+/// X-GitHub-Event: pull_request_comment
+fn pull_request_comment(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let pull_request = payload.get_or_err("pull_request")?;
+    let comment_url = payload
+        .get_or_err("comment")?
+        .get_or_err("html_url")?
+        .as_str_or_err()?;
+    let message = formatdoc! {
+        r##"
+            [{}] Pull Request comment {} in {} by {}
+            {}
+        "##,
+        repo_str(repo)?,
+        action,
+        pr_str(pull_request)?,
+        user_str(sender)?,
+        comment_url
+    };
+    Ok(Some(message))
+}
+
+/// X-GitHub-Event: pull_request_review
+fn pull_request_review(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let pull_request = payload.get_or_err("pull_request")?;
+    let review_url = payload
+        .get_or_err("review")?
+        .get_or_err("html_url")?
+        .as_str_or_err()?;
+    let message = formatdoc! {
+        r##"
+            [{}] Pull Request review {} {} by {}
+            {}
+        "##,
+        repo_str(repo)?,
+        pr_str(pull_request)?,
+        action.replace('_', " "),
+        user_str(sender)?,
+        review_url
+    };
+    Ok(Some(message))
+}
+
+/// X-GitHub-Event: pull_request_review_thread
+fn pull_request_review_thread(payload: Value) -> Result<Option<String>> {
+    let action = payload.get_or_err("action")?.as_str_or_err()?;
+    let repo = payload.get_or_err("repository")?;
+    let sender = payload.get_or_err("sender")?;
+    let pull_request = payload.get_or_err("pull_request")?;
+    let message = formatdoc! {
+        r##"
+            [{}] Pull Request review thread {} {} by {}
+        "##,
+        repo_str(repo)?,
+        pr_str(pull_request)?,
+        action.replace('_', " "),
+        user_str(sender)?
+    };
+    Ok(Some(message))
+}
+
 /// X-GitHub-Event: *
 fn default(_event_type: &str, _payload: Value) -> Result<Option<String>> {
     Ok(None)
@@ -177,4 +265,18 @@ fn repo_info(repo: &Value) -> Result<(&str, &str)> {
     let name = repo.get_or_err("full_name")?.as_str_or_err()?;
     let url = repo.get_or_err("html_url")?.as_str_or_err()?;
     Ok((name, url))
+}
+
+/// pr -> [`pr.number pr.title`](pr.html_url)
+fn pr_str(pr: &Value) -> Result<String> {
+    let (number, title, url) = pr_info(pr)?;
+    Ok(format!("[`#{} {}`]({})", number, title, url))
+}
+
+/// pr -> pr.number, pr.title, pr.html_url
+fn pr_info(pr: &Value) -> Result<(u64, &str, &str)> {
+    let number = pr.get_or_err("number")?.as_u64_or_err()?;
+    let title = pr.get_or_err("title")?.as_str_or_err()?;
+    let url = pr.get_or_err("html_url")?.as_str_or_err()?;
+    Ok((number, title, url))
 }
