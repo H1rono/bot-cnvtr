@@ -1,11 +1,7 @@
 use std::sync::Arc;
 
-use thiserror::Error as ThisError;
-
 use axum::{
     extract::State,
-    http::StatusCode,
-    response::IntoResponse,
     routing::{get, post},
     Router,
 };
@@ -16,7 +12,10 @@ use ::bot::Bot;
 use model::Database;
 
 mod bot;
+mod error;
 mod wh;
+
+use error::{Error, Result};
 
 #[allow(dead_code)]
 #[derive(Clone)]
@@ -52,34 +51,3 @@ pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
         .route("/wh/:id/clickup", post(wh::wh_clickup))
         .with_state(state)
 }
-
-#[derive(Debug, ThisError)]
-enum Error {
-    #[error("not found")]
-    NotFound,
-    #[error("bad request")]
-    BadRequest,
-    #[error("sqlx error")]
-    Sqlx(#[from] sqlx::Error),
-    #[error("processing error")]
-    Process(#[from] ::bot::Error),
-}
-
-impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::NotFound => (StatusCode::NOT_FOUND, "Not Found").into_response(),
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request").into_response(),
-            Self::Sqlx(e) => {
-                eprintln!("sqlx error: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-            Self::Process(e) => {
-                eprintln!("processing error: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-        }
-    }
-}
-
-type Result<T, E = Error> = std::result::Result<T, E>;
