@@ -38,6 +38,12 @@ impl Database {
     }
 }
 
+impl AsRef<MySqlPool> for Database {
+    fn as_ref(&self) -> &MySqlPool {
+        &self.0
+    }
+}
+
 fn parse_col_str2uuid(row: &MySqlRow, col: &str) -> sqlx::Result<Uuid> {
     row.try_get(col).and_then(|u| {
         Uuid::parse_str(u).map_err(|e| sqlx::Error::ColumnDecode {
