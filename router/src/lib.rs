@@ -9,7 +9,7 @@ use axum::{
 use traq_bot_http::RequestParser;
 
 use ::bot::Bot;
-use model::Database;
+use model::DatabaseImpl;
 
 mod bot;
 mod error;
@@ -20,13 +20,13 @@ use error::{Error, Result};
 #[allow(dead_code)]
 #[derive(Clone)]
 struct AppState {
-    pub db: Arc<Database>,
+    pub db: Arc<DatabaseImpl>,
     pub parser: RequestParser,
     pub bot: Bot,
 }
 
 impl AppState {
-    pub fn new(db: Database, parser: RequestParser, bot: Bot) -> Self {
+    pub fn new(db: DatabaseImpl, parser: RequestParser, bot: Bot) -> Self {
         Self {
             db: Arc::new(db),
             parser,
@@ -41,7 +41,7 @@ impl AsRef<AppState> for State<AppState> {
     }
 }
 
-pub fn make_router(db: Database, parser: RequestParser, bot: Bot) -> Router {
+pub fn make_router(db: DatabaseImpl, parser: RequestParser, bot: Bot) -> Router {
     let state = AppState::new(db, parser, bot);
     Router::new()
         .route("/bot", post(bot::event))

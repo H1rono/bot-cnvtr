@@ -8,7 +8,11 @@ use cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList}
 use model::{self, Database};
 
 impl Bot {
-    pub(super) async fn handle_webhook_command(&self, wh: Webhook, db: &Database) -> Result<()> {
+    pub(super) async fn handle_webhook_command<Db: Database>(
+        &self,
+        wh: Webhook,
+        db: &Db,
+    ) -> Result<()> {
         use Webhook::*;
         match wh {
             Create(create) => self.handle_webhook_create(create, db).await,
@@ -17,7 +21,11 @@ impl Bot {
         }
     }
 
-    async fn handle_webhook_create(&self, create: WebhookCreate, db: &Database) -> Result<()> {
+    async fn handle_webhook_create<Db: Database>(
+        &self,
+        create: WebhookCreate,
+        db: &Db,
+    ) -> Result<()> {
         let owner = create.owner;
 
         // ownerには投稿者自身が含まれている必要がある
@@ -119,7 +127,7 @@ impl Bot {
         Ok(())
     }
 
-    async fn handle_webhook_list(&self, list: WebhookList, db: &Database) -> Result<()> {
+    async fn handle_webhook_list<Db: Database>(&self, list: WebhookList, db: &Db) -> Result<()> {
         let user_id = list.user_id;
         let groups = db.filter_group_member_by_uid(&user_id).await?;
         let owners: Vec<Uuid> = groups
@@ -133,7 +141,11 @@ impl Bot {
         Ok(())
     }
 
-    async fn handle_webhook_delete(&self, delete: WebhookDelete, db: &Database) -> Result<()> {
+    async fn handle_webhook_delete<Db: Database>(
+        &self,
+        delete: WebhookDelete,
+        db: &Db,
+    ) -> Result<()> {
         let webhook = db.find_webhook(&delete.webhook_id).await?;
         if webhook.is_none() {
             let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);

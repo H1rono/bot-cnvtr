@@ -5,14 +5,14 @@ use traq_bot_http::RequestParser;
 
 use bot::Bot;
 use config::Config;
-use model::Database;
+use model::DatabaseImpl;
 use router::make_router;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let Config(bot_config, db_config) = Config::from_env()?;
     let parser = RequestParser::new(&bot_config.verification_token);
-    let db = Database::from_config(db_config).await?;
+    let db = DatabaseImpl::from_config(db_config).await?;
     db.migrate().await?;
     let bot = Bot::from_config(bot_config);
     let app = make_router(db, parser, bot);

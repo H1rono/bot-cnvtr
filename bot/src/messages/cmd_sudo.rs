@@ -8,10 +8,10 @@ use futures::{pin_mut, StreamExt};
 use model::Database;
 
 impl Bot {
-    pub(super) async fn handle_sudo_command(
+    pub(super) async fn handle_sudo_command<Db: Database>(
         &self,
         sudo: SudoCompleted,
-        db: &Database,
+        db: &Db,
     ) -> Result<()> {
         use SudoCompleted::*;
         match sudo {
@@ -22,7 +22,11 @@ impl Bot {
         }
     }
 
-    async fn handle_sudo_wh_list_all(&self, list_all: ListAll, db: &Database) -> Result<()> {
+    async fn handle_sudo_wh_list_all<Db: Database>(
+        &self,
+        list_all: ListAll,
+        db: &Db,
+    ) -> Result<()> {
         if !list_all.valid {
             let message = "Permission denied.";
             self.send_code(&list_all.talking_channel_id, "", message)
@@ -34,7 +38,7 @@ impl Bot {
         Ok(())
     }
 
-    async fn handle_sudo_wh_delete(&self, delete: Delete, db: &Database) -> Result<()> {
+    async fn handle_sudo_wh_delete<Db: Database>(&self, delete: Delete, db: &Db) -> Result<()> {
         if !delete.valid {
             let message = "Permission denied.";
             self.send_code(&delete.talking_channel_id, "", message)

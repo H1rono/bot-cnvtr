@@ -2,7 +2,7 @@ use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
 use config::BotConfig;
-use model::Database;
+use model::DatabaseImpl;
 
 mod api;
 mod error;
@@ -53,7 +53,7 @@ impl Bot {
         }
     }
 
-    pub async fn handle_event(&self, db: &Database, event: Event) -> Result<(), Error> {
+    pub async fn handle_event(&self, db: &DatabaseImpl, event: Event) -> Result<(), Error> {
         use Event::*;
         match event {
             Joined(payload) => self.on_joined(payload, db).await,

@@ -3,7 +3,7 @@ use clap::Parser;
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
 use cli::{Cli, CompletedCmds, Incomplete};
-use model::Database;
+use model::DatabaseImpl;
 use uuid::Uuid;
 
 use super::{Bot, Result};
@@ -37,7 +37,7 @@ impl Bot {
         &self,
         message_id: &Uuid,
         cmd: CompletedCmds,
-        db: &Database,
+        db: &DatabaseImpl,
     ) -> Result<()> {
         use CompletedCmds::*;
         let res = match cmd {
@@ -63,7 +63,7 @@ impl Bot {
     pub async fn on_message_created(
         &self,
         payload: MessageCreatedPayload,
-        db: &Database,
+        db: &DatabaseImpl,
     ) -> Result<()> {
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
@@ -81,7 +81,7 @@ impl Bot {
     pub async fn on_direct_message_created(
         &self,
         payload: DirectMessageCreatedPayload,
-        db: &Database,
+        db: &DatabaseImpl,
     ) -> Result<()> {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
