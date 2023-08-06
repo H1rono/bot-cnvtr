@@ -1,12 +1,13 @@
 use std::iter;
 
+use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use super::{parse_col_str2uuid, Database};
+use super::{parse_col_str2uuid, DatabaseImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Group {
@@ -23,8 +24,19 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
     }
 }
 
-impl Database {
-    pub async fn read_groups(&self) -> Result<Vec<Group>> {
+#[async_trait]
+pub trait GroupDb {
+    async fn read_groups(&self) -> Result<Vec<Group>>;
+    async fn find_group(&self, id: &Uuid) -> Result<Option<Group>>;
+    async fn create_group(&self, g: Group) -> Result<()>;
+    async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()>;
+    async fn update_group(&self, id: &Uuid, g: Group) -> Result<()>;
+    async fn delete_group(&self, id: &Uuid) -> Result<()>;
+}
+
+#[async_trait]
+impl GroupDb for DatabaseImpl {
+    async fn read_groups(&self) -> Result<Vec<Group>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `groups`
@@ -36,7 +48,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
+    async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `groups`
@@ -50,7 +62,7 @@ impl Database {
         .transpose()
     }
 
-    pub async fn create_group(&self, g: Group) -> Result<()> {
+    async fn create_group(&self, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `groups` (`id`, `name`)
             VALUES (?, ?)
@@ -62,7 +74,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
+    async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
         let gs_len = gs.len();
         if gs_len == 0 {
             return Ok(());
@@ -82,7 +94,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
+    async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `groups`
             SET `id` = ?, `name` = ?
@@ -96,7 +108,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_group(&self, id: &Uuid) -> Result<()> {
+    async fn delete_group(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `groups`
             WHERE `id` = ?

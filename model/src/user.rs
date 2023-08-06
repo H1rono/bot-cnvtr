@@ -1,12 +1,13 @@
 use std::iter;
 
+use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use super::{parse_col_str2uuid, Database};
+use super::{parse_col_str2uuid, DatabaseImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct User {
@@ -23,8 +24,19 @@ impl<'r> FromRow<'r, MySqlRow> for User {
     }
 }
 
-impl Database {
-    pub async fn read_users(&self) -> Result<Vec<User>> {
+#[async_trait]
+pub trait UserDb {
+    async fn read_users(&self) -> Result<Vec<User>>;
+    async fn find_user(&self, id: &Uuid) -> Result<Option<User>>;
+    async fn create_user(&self, u: User) -> Result<()>;
+    async fn create_ignore_users(&self, us: &[User]) -> Result<()>;
+    async fn update_user(&self, id: &Uuid, u: User) -> Result<()>;
+    async fn delete_user(&self, id: &Uuid) -> Result<()>;
+}
+
+#[async_trait]
+impl UserDb for DatabaseImpl {
+    async fn read_users(&self) -> Result<Vec<User>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `users`
@@ -36,7 +48,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_user(&self, id: &Uuid) -> Result<Option<User>> {
+    async fn find_user(&self, id: &Uuid) -> Result<Option<User>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `users`
@@ -50,7 +62,7 @@ impl Database {
         .transpose()
     }
 
-    pub async fn create_user(&self, u: User) -> Result<()> {
+    async fn create_user(&self, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `users` (`id`, `name`)
             VALUES (?, ?)
@@ -62,7 +74,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
+    async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
         let us_len = us.len();
         if us_len == 0 {
             return Ok(());
@@ -82,7 +94,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_user(&self, id: &Uuid, u: User) -> Result<()> {
+    async fn update_user(&self, id: &Uuid, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
             SET `id` = ?, `name` = ?
@@ -96,7 +108,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_user(&self, id: &Uuid) -> Result<()> {
+    async fn delete_user(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `users`
             WHERE `id` = ?

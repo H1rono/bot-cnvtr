@@ -1,12 +1,13 @@
 use std::iter;
 
+use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use super::{parse_col_str2uuid, Database};
+use super::{parse_col_str2uuid, DatabaseImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Owner {
@@ -25,8 +26,19 @@ impl<'r> FromRow<'r, MySqlRow> for Owner {
     }
 }
 
-impl Database {
-    pub async fn read_owners(&self) -> Result<Vec<Owner>> {
+#[async_trait]
+pub trait OwnerDb {
+    async fn read_owners(&self) -> Result<Vec<Owner>>;
+    async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>>;
+    async fn create_owner(&self, o: Owner) -> Result<()>;
+    async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()>;
+    async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()>;
+    async fn delete_owner(&self, id: &Uuid) -> Result<()>;
+}
+
+#[async_trait]
+impl OwnerDb for DatabaseImpl {
+    async fn read_owners(&self) -> Result<Vec<Owner>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -38,7 +50,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
+    async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -52,7 +64,7 @@ impl Database {
         .transpose()
     }
 
-    pub async fn create_owner(&self, o: Owner) -> Result<()> {
+    async fn create_owner(&self, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `owners` (`id`, `name`, `group`)
             VALUES (?, ?, ?)
@@ -65,7 +77,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
+    async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
         let os_len = os.len();
         if os_len == 0 {
             return Ok(());
@@ -85,7 +97,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
+    async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `owners`
             SET `id` = ?, `name` = ?, `group` = ?
@@ -100,7 +112,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_owner(&self, id: &Uuid) -> Result<()> {
+    async fn delete_owner(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `owners`
             WHERE `id` = ?

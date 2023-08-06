@@ -1,12 +1,13 @@
 use std::iter;
 
+use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
 
-use super::{parse_col_str2uuid, Database};
+use super::{parse_col_str2uuid, DatabaseImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GroupMember {
@@ -23,8 +24,21 @@ impl<'r> FromRow<'r, MySqlRow> for GroupMember {
     }
 }
 
-impl Database {
-    pub async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
+#[async_trait]
+pub trait GroupMemberDb {
+    async fn read_group_members(&self) -> Result<Vec<GroupMember>>;
+    async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>>;
+    async fn filter_group_member_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>>;
+    async fn filter_group_member_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>>;
+    async fn create_group_member(&self, gm: GroupMember) -> Result<()>;
+    async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()>;
+    async fn update_group_member(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()>;
+    async fn delete_group_membed(&self, gm: GroupMember) -> Result<()>;
+}
+
+#[async_trait]
+impl GroupMemberDb for DatabaseImpl {
+    async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -36,7 +50,7 @@ impl Database {
         .collect::<Result<_>>()
     }
 
-    pub async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
+    async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -51,7 +65,7 @@ impl Database {
         .transpose()
     }
 
-    pub async fn filter_group_member_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
+    async fn filter_group_member_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -65,7 +79,7 @@ impl Database {
         .collect()
     }
 
-    pub async fn filter_group_member_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
+    async fn filter_group_member_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -79,7 +93,7 @@ impl Database {
         .collect()
     }
 
-    pub async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
+    async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT
             INTO `group_members` (`group_id`, `user_id`)
@@ -92,7 +106,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
+    async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
         let gms_len = gms.len();
         if gms_len == 0 {
             return Ok(());
@@ -112,7 +126,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn update_group_member(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()> {
+    async fn update_group_member(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `group_members`
             SET `group_id` = ?, `user_id` = ?
@@ -127,7 +141,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn delete_group_membed(&self, gm: GroupMember) -> Result<()> {
+    async fn delete_group_membed(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?
