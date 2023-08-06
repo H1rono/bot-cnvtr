@@ -22,7 +22,7 @@ pub use webhook::{Webhook, WebhookDb};
 pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
 
 #[async_trait]
-pub trait Database {
+pub trait Database: Sync + Send {
     // group_member
     async fn read_group_members(&self) -> Result<Vec<GroupMember>>;
     async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>>;
