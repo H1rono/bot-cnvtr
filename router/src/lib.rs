@@ -17,7 +17,6 @@ mod wh;
 
 use error::{Error, Result};
 
-#[allow(dead_code)]
 #[derive(Clone)]
 struct AppState {
     pub db: Arc<DatabaseImpl>,
