@@ -28,17 +28,17 @@ impl<'r> FromRow<'r, MySqlRow> for Owner {
 
 #[async_trait]
 pub trait OwnerDb {
-    async fn read_owners(&self) -> Result<Vec<Owner>>;
-    async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>>;
-    async fn create_owner(&self, o: Owner) -> Result<()>;
-    async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()>;
-    async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()>;
-    async fn delete_owner(&self, id: &Uuid) -> Result<()>;
+    async fn read(&self) -> Result<Vec<Owner>>;
+    async fn find(&self, id: &Uuid) -> Result<Option<Owner>>;
+    async fn create(&self, o: Owner) -> Result<()>;
+    async fn create_ignore(&self, os: &[Owner]) -> Result<()>;
+    async fn update(&self, id: &Uuid, o: Owner) -> Result<()>;
+    async fn delete(&self, id: &Uuid) -> Result<()>;
 }
 
 #[async_trait]
 impl OwnerDb for DatabaseImpl {
-    async fn read_owners(&self) -> Result<Vec<Owner>> {
+    async fn read(&self) -> Result<Vec<Owner>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -50,7 +50,7 @@ impl OwnerDb for DatabaseImpl {
         .collect::<Result<_>>()
     }
 
-    async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
+    async fn find(&self, id: &Uuid) -> Result<Option<Owner>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -64,7 +64,7 @@ impl OwnerDb for DatabaseImpl {
         .transpose()
     }
 
-    async fn create_owner(&self, o: Owner) -> Result<()> {
+    async fn create(&self, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `owners` (`id`, `name`, `group`)
             VALUES (?, ?, ?)
@@ -77,7 +77,7 @@ impl OwnerDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
+    async fn create_ignore(&self, os: &[Owner]) -> Result<()> {
         let os_len = os.len();
         if os_len == 0 {
             return Ok(());
@@ -97,7 +97,7 @@ impl OwnerDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
+    async fn update(&self, id: &Uuid, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `owners`
             SET `id` = ?, `name` = ?, `group` = ?
@@ -112,7 +112,7 @@ impl OwnerDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn delete_owner(&self, id: &Uuid) -> Result<()> {
+    async fn delete(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `owners`
             WHERE `id` = ?

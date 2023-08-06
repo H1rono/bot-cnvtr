@@ -95,151 +95,151 @@ impl AsRef<MySqlPool> for DatabaseImpl {
 impl Database for DatabaseImpl {
     // group_member
     async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
-        GroupMemberDb::read_group_members(self).await
+        GroupMemberDb::read(self).await
     }
 
     async fn find_group_member(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
-        GroupMemberDb::find_group_member(self, gid, uid).await
+        GroupMemberDb::find(self, gid, uid).await
     }
 
     async fn filter_group_member_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
-        GroupMemberDb::filter_group_member_by_gid(self, gid).await
+        GroupMemberDb::filter_by_gid(self, gid).await
     }
 
     async fn filter_group_member_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
-        GroupMemberDb::filter_group_member_by_uid(self, uid).await
+        GroupMemberDb::filter_by_uid(self, uid).await
     }
 
     async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
-        GroupMemberDb::create_group_member(self, gm).await
+        GroupMemberDb::create(self, gm).await
     }
 
     async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
-        GroupMemberDb::create_ignore_group_members(self, gms).await
+        GroupMemberDb::create_ignore(self, gms).await
     }
 
     async fn update_group_member(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()> {
-        GroupMemberDb::update_group_member(self, gid, uid, gm).await
+        GroupMemberDb::update(self, gid, uid, gm).await
     }
 
     async fn delete_group_membed(&self, gm: GroupMember) -> Result<()> {
-        GroupMemberDb::delete_group_membed(self, gm).await
+        GroupMemberDb::delete(self, gm).await
     }
 
     // group
     async fn read_groups(&self) -> Result<Vec<Group>> {
-        GroupDb::read_groups(self).await
+        GroupDb::read(self).await
     }
 
     async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
-        GroupDb::find_group(self, id).await
+        GroupDb::find(self, id).await
     }
 
     async fn create_group(&self, g: Group) -> Result<()> {
-        GroupDb::create_group(self, g).await
+        GroupDb::create(self, g).await
     }
 
     async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
-        GroupDb::create_ignore_groups(self, gs).await
+        GroupDb::create_ignore(self, gs).await
     }
 
     async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
-        GroupDb::update_group(self, id, g).await
+        GroupDb::update(self, id, g).await
     }
 
     async fn delete_group(&self, id: &Uuid) -> Result<()> {
-        GroupDb::delete_group(self, id).await
+        GroupDb::delete(self, id).await
     }
 
     // owner
     async fn read_owners(&self) -> Result<Vec<Owner>> {
-        OwnerDb::read_owners(self).await
+        OwnerDb::read(self).await
     }
 
     async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
-        OwnerDb::find_owner(self, id).await
+        OwnerDb::find(self, id).await
     }
 
     async fn create_owner(&self, o: Owner) -> Result<()> {
-        OwnerDb::create_owner(self, o).await
+        OwnerDb::create(self, o).await
     }
 
     async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
-        OwnerDb::create_ignore_owners(self, os).await
+        OwnerDb::create_ignore(self, os).await
     }
 
     async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
-        OwnerDb::update_owner(self, id, o).await
+        OwnerDb::update(self, id, o).await
     }
 
     async fn delete_owner(&self, id: &Uuid) -> Result<()> {
-        OwnerDb::delete_owner(self, id).await
+        OwnerDb::delete(self, id).await
     }
 
     // user
     async fn read_users(&self) -> Result<Vec<User>> {
-        UserDb::read_users(self).await
+        UserDb::read(self).await
     }
 
     async fn find_user(&self, id: &Uuid) -> Result<Option<User>> {
-        UserDb::find_user(self, id).await
+        UserDb::find(self, id).await
     }
 
     async fn create_user(&self, u: User) -> Result<()> {
-        UserDb::create_user(self, u).await
+        UserDb::create(self, u).await
     }
 
     async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
-        UserDb::create_ignore_users(self, us).await
+        UserDb::create_ignore(self, us).await
     }
 
     async fn update_user(&self, id: &Uuid, u: User) -> Result<()> {
-        UserDb::update_user(self, id, u).await
+        UserDb::update(self, id, u).await
     }
 
     async fn delete_user(&self, id: &Uuid) -> Result<()> {
-        UserDb::delete_user(self, id).await
+        UserDb::delete(self, id).await
     }
 
     // webhook
     async fn read_webhooks(&self) -> Result<Vec<Webhook>> {
-        WebhookDb::read_webhooks(self).await
+        WebhookDb::read(self).await
     }
 
     async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>> {
-        WebhookDb::find_webhook(self, id).await
+        WebhookDb::find(self, id).await
     }
 
     async fn filter_webhooks_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
-        WebhookDb::filter_webhooks_by_cid(self, channel_id).await
+        WebhookDb::filter_by_cid(self, channel_id).await
     }
 
     async fn filter_webhooks_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
-        WebhookDb::filter_webhooks_by_oid(self, owner_id).await
+        WebhookDb::filter_by_oid(self, owner_id).await
     }
 
     async fn filter_webhooks_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>> {
-        WebhookDb::filter_webhooks_by_cids(self, cids).await
+        WebhookDb::filter_by_cids(self, cids).await
     }
 
     async fn filter_webhooks_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>> {
-        WebhookDb::filter_webhooks_by_oids(self, oids).await
+        WebhookDb::filter_by_oids(self, oids).await
     }
 
     async fn create_webhook(&self, w: Webhook) -> Result<()> {
-        WebhookDb::create_webhook(self, w).await
+        WebhookDb::create(self, w).await
     }
 
     async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()> {
-        WebhookDb::create_ignore_webhooks(self, ws).await
+        WebhookDb::create_ignore(self, ws).await
     }
 
     async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()> {
-        WebhookDb::update_webhook(self, id, w).await
+        WebhookDb::update(self, id, w).await
     }
 
     async fn delete_webhook(&self, id: &Uuid) -> Result<()> {
-        WebhookDb::delete_webhook(self, id).await
+        WebhookDb::delete(self, id).await
     }
 }
 

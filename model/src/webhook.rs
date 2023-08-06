@@ -28,21 +28,21 @@ impl<'r> FromRow<'r, MySqlRow> for Webhook {
 
 #[async_trait]
 pub trait WebhookDb {
-    async fn read_webhooks(&self) -> Result<Vec<Webhook>>;
-    async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>>;
-    async fn filter_webhooks_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>>;
-    async fn filter_webhooks_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>>;
-    async fn filter_webhooks_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>>;
-    async fn filter_webhooks_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>>;
-    async fn create_webhook(&self, w: Webhook) -> Result<()>;
-    async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()>;
-    async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()>;
-    async fn delete_webhook(&self, id: &Uuid) -> Result<()>;
+    async fn read(&self) -> Result<Vec<Webhook>>;
+    async fn find(&self, id: &Uuid) -> Result<Option<Webhook>>;
+    async fn filter_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>>;
+    async fn filter_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>>;
+    async fn filter_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>>;
+    async fn filter_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>>;
+    async fn create(&self, w: Webhook) -> Result<()>;
+    async fn create_ignore(&self, ws: &[Webhook]) -> Result<()>;
+    async fn update(&self, id: &str, w: Webhook) -> Result<()>;
+    async fn delete(&self, id: &Uuid) -> Result<()>;
 }
 
 #[async_trait]
 impl WebhookDb for DatabaseImpl {
-    async fn read_webhooks(&self) -> Result<Vec<Webhook>> {
+    async fn read(&self) -> Result<Vec<Webhook>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `webhooks`
@@ -54,7 +54,7 @@ impl WebhookDb for DatabaseImpl {
         .collect::<Result<_>>()
     }
 
-    async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>> {
+    async fn find(&self, id: &Uuid) -> Result<Option<Webhook>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `webhooks`
@@ -68,7 +68,7 @@ impl WebhookDb for DatabaseImpl {
         .transpose()
     }
 
-    async fn filter_webhooks_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
+    async fn filter_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `webhooks`
@@ -82,7 +82,7 @@ impl WebhookDb for DatabaseImpl {
         .collect()
     }
 
-    async fn filter_webhooks_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
+    async fn filter_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
         sqlx::query(indoc! {r#"
             SELECT *
             FROM `webhooks`
@@ -96,7 +96,7 @@ impl WebhookDb for DatabaseImpl {
         .collect()
     }
 
-    async fn filter_webhooks_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>> {
+    async fn filter_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>> {
         let cid_len = cids.len();
         if cid_len == 0 {
             return Ok(vec![]);
@@ -117,7 +117,7 @@ impl WebhookDb for DatabaseImpl {
             .collect()
     }
 
-    async fn filter_webhooks_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>> {
+    async fn filter_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>> {
         let oid_len = oids.len();
         if oid_len == 0 {
             return Ok(vec![]);
@@ -140,7 +140,7 @@ impl WebhookDb for DatabaseImpl {
             .collect()
     }
 
-    async fn create_webhook(&self, w: Webhook) -> Result<()> {
+    async fn create(&self, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`)
             VALUES (?, ?, ?)
@@ -153,7 +153,7 @@ impl WebhookDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()> {
+    async fn create_ignore(&self, ws: &[Webhook]) -> Result<()> {
         let ws_len = ws.len();
         if ws_len == 0 {
             return Ok(());
@@ -175,7 +175,7 @@ impl WebhookDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()> {
+    async fn update(&self, id: &str, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
             SET `id` = ?, `channel_id` = ?, `owner_id` = ?
@@ -190,7 +190,7 @@ impl WebhookDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn delete_webhook(&self, id: &Uuid) -> Result<()> {
+    async fn delete(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `webhooks`
             WHERE `id` = ?
