@@ -17,8 +17,8 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
         .then(|| format!("@BOT_cnvtr {}", cmd))
         .unwrap_or(cmd)
         .replace('#', r"\#");
-    let args = shlex::split(&cmd).unwrap_or(vec![]);
-    Cli::try_parse_from(args.into_iter())
+    let args = shlex::split(&cmd).unwrap_or_default();
+    Cli::try_parse_from(args)
 }
 
 impl Bot {
