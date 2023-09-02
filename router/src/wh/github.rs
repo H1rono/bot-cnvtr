@@ -35,8 +35,8 @@ fn ping(_: Value) -> Result<Option<String>> {
 
 /// X-GitHub-Event: create
 fn create(payload: Value) -> Result<Option<String>> {
-    let ref_name = payload.get_or_err("ref")?;
-    let ref_type = payload.get_or_err("ref_type")?;
+    let ref_name = payload.get_or_err("ref")?.as_str_or_err()?;
+    let ref_type = payload.get_or_err("ref_type")?.as_str_or_err()?;
     let repo = payload.get_or_err("repository")?;
     let sender = payload.get_or_err("sender")?;
     let message = formatdoc! {
@@ -50,8 +50,8 @@ fn create(payload: Value) -> Result<Option<String>> {
 
 /// X-GitHub-Event: delete
 fn delete(payload: Value) -> Result<Option<String>> {
-    let ref_name = payload.get_or_err("ref")?;
-    let ref_type = payload.get_or_err("ref_type")?;
+    let ref_name = payload.get_or_err("ref")?.as_str_or_err()?;
+    let ref_type = payload.get_or_err("ref_type")?.as_str_or_err()?;
     let repo = payload.get_or_err("repository")?;
     let sender = payload.get_or_err("sender")?;
     let message = formatdoc! {
