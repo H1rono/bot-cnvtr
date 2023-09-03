@@ -15,25 +15,23 @@ mod github;
 mod utils;
 
 /// GET /wh/:id
-pub(super) async fn get_wh(
-    State(st): State<AppState>,
+pub(super) async fn get_wh<Db: Database>(
+    State(st): State<AppState<Db>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>> {
-    st.db
-        .find_webhook(&id)
-        .await?
-        .ok_or(Error::NotFound)
-        .map(Json)
+    let db = st.db.as_ref().lock().await;
+    db.find_webhook(&id).await?.ok_or(Error::NotFound).map(Json)
 }
 
 /// POST /wh/:id/github
-pub(super) async fn wh_github(
-    State(st): State<AppState>,
+pub(super) async fn wh_github<Db: Database>(
+    State(st): State<AppState<Db>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
+    let db = st.db.as_ref().lock().await;
+    let webhook = db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
     let message = github::handle(headers, payload)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
@@ -47,13 +45,14 @@ pub(super) async fn wh_github(
 }
 
 /// POST /wh/:id/gitea
-pub(super) async fn wh_gitea(
-    State(st): State<AppState>,
+pub(super) async fn wh_gitea<Db: Database>(
+    State(st): State<AppState<Db>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
+    let db = st.db.as_ref().lock().await;
+    let webhook = db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
     let message = gitea::handle(headers, payload)?;
     st.bot
         .send_message(&webhook.channel_id, message.trim(), false)
@@ -63,13 +62,14 @@ pub(super) async fn wh_gitea(
 }
 
 /// POST /wh/:id/clickup
-pub(super) async fn wh_clickup(
-    State(st): State<AppState>,
+pub(super) async fn wh_clickup<Db: Database>(
+    State(st): State<AppState<Db>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let webhook = st.db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
+    let db = st.db.as_ref().lock().await;
+    let webhook = db.find_webhook(&id).await?.ok_or(Error::NotFound)?;
     let message = clickup::handle(headers, payload)?;
     st.bot
         .send_message(&webhook.channel_id, message.trim(), false)
