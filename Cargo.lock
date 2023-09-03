@@ -1436,6 +1436,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "thiserror",
+ "tokio",
  "traq-bot-http",
  "uuid",
 ]
