@@ -7,17 +7,11 @@ use uuid::Uuid;
 
 use config::DbConfig;
 
-mod group;
-mod group_member;
-mod owner;
-mod user;
-mod webhook;
+pub mod model;
 
-pub use group::{Group, GroupDb};
-pub use group_member::{GroupMember, GroupMemberDb};
-pub use owner::{Owner, OwnerDb};
-pub use user::{User, UserDb};
-pub use webhook::{Webhook, WebhookDb};
+pub use model::{
+    Group, GroupDb, GroupMember, GroupMemberDb, Owner, OwnerDb, User, UserDb, Webhook, WebhookDb,
+};
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
 
