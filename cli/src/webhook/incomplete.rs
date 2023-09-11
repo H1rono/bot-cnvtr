@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use model::Owner;
+use repository::Owner;
 
 use super::complete;
 use crate::Incomplete;

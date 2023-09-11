@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 use traq_bot_http::RequestParser;
 
 use ::bot::Bot;
-use model::Database;
+use repository::Database;
 
 mod bot;
 mod error;

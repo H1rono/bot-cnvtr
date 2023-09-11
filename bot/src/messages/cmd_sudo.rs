@@ -5,7 +5,7 @@ use cli::sudo::{
     SudoCompleted,
 };
 use futures::{pin_mut, StreamExt};
-use model::Database;
+use repository::Database;
 
 impl Bot {
     pub(super) async fn handle_sudo_command<Db: Database>(

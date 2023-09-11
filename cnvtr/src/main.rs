@@ -5,7 +5,7 @@ use traq_bot_http::RequestParser;
 
 use bot::Bot;
 use config::Config;
-use model::DatabaseImpl;
+use repository::DatabaseImpl;
 use router::make_router;
 
 #[tokio::main]

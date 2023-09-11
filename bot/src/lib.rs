@@ -2,7 +2,7 @@ use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
 use config::BotConfig;
-use model::Database;
+use repository::Database;
 
 mod api;
 mod error;

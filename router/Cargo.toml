@@ -18,4 +18,4 @@ traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
 
 bot = { path = "../bot" }
-model = { path = "../model" }
+repository = { path = "../repository" }

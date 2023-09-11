@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::{Bot, Result};
 
 use cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
-use model::{self, Database};
+use repository::{self, Database};
 
 impl Bot {
     pub(super) async fn handle_webhook_command<Db: Database>(
@@ -48,7 +48,7 @@ impl Bot {
         // DBにユーザーとグループを追加
         let own_users = async_stream::stream! {
             for u in own_users {
-                yield self.get_user(&u).await.map(|user| model::User {
+                yield self.get_user(&u).await.map(|user| repository::User {
                     id: user.id,
                     name: user.name,
                 });
@@ -63,14 +63,14 @@ impl Bot {
         db.create_ignore_users(&own_users).await?;
         db.create_ignore_owners(&[owner.clone()]).await?;
         if owner.group {
-            db.create_ignore_groups(&[model::Group {
+            db.create_ignore_groups(&[repository::Group {
                 id: owner.id,
                 name: owner.name.clone(),
             }])
             .await?;
             let group_members = own_users
                 .iter()
-                .map(|u| model::GroupMember {
+                .map(|u| repository::GroupMember {
                     group_id: owner.id,
                     user_id: u.id,
                 })
@@ -84,7 +84,7 @@ impl Bot {
             // 重複しないようにする
             id = Uuid::new_v4();
         }
-        let webhook = model::Webhook {
+        let webhook = repository::Webhook {
             id,
             channel_id: create.channel_id,
             owner_id: owner.id,

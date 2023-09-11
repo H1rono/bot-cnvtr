@@ -1,6 +1,6 @@
 use traq_bot_http::payloads::{JoinedPayload, LeftPayload};
 
-use model::Database;
+use repository::Database;
 
 use super::{Bot, Result};
 

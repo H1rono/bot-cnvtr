@@ -7,7 +7,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use super::{AppState, Error, Result};
-use model::{Database, Webhook};
+use repository::{Database, Webhook};
 
 mod clickup;
 mod gitea;

@@ -260,7 +260,7 @@ dependencies = [
  "config",
  "futures",
  "indoc",
- "model",
+ "repository",
  "reqwest",
  "serde_json",
  "shlex",
@@ -349,7 +349,7 @@ name = "cli"
 version = "0.1.0"
 dependencies = [
  "clap",
- "model",
+ "repository",
  "serde",
  "traq-bot-http",
  "uuid",
@@ -362,7 +362,7 @@ dependencies = [
  "axum",
  "bot",
  "config",
- "model",
+ "repository",
  "router",
  "tokio",
  "traq-bot-http",
@@ -872,6 +872,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c785eefb63ebd0e33416dfcb8d6da0bf27ce752843a45632a67bf10d4d4b5c4"
 
 [[package]]
+name = "repository"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "config",
+ "indoc",
+ "itertools 0.11.0",
+ "serde",
+ "sqlx",
+ "uuid",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1014,19 +1027,6 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys",
-]
-
-[[package]]
-name = "model"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "config",
- "indoc",
- "itertools 0.11.0",
- "serde",
- "sqlx",
- "uuid",
 ]
 
 [[package]]
@@ -1432,7 +1432,7 @@ dependencies = [
  "bot",
  "hyper",
  "indoc",
- "model",
+ "repository",
  "serde_json",
  "sqlx",
  "thiserror",

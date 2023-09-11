@@ -3,7 +3,7 @@ use clap::Parser;
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
 use cli::{Cli, CompletedCmds, Incomplete};
-use model::Database;
+use repository::Database;
 use uuid::Uuid;
 
 use super::{Bot, Result};

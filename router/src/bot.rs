@@ -9,7 +9,7 @@ use axum::{
 use hyper::body::{to_bytes, Body};
 use traq_bot_http::Event;
 
-use model::Database;
+use repository::Database;
 
 use super::AppState;
 

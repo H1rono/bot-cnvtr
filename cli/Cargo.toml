@@ -12,4 +12,4 @@ clap = { workspace = true }
 
 traq-bot-http = { workspace = true }
 
-model = { path = "../model" }
+repository = { path = "../repository" }

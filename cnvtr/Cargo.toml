@@ -11,5 +11,5 @@ traq-bot-http = { workspace = true }
 
 bot = { path = "../bot" }
 config = { path = "../config" }
-model = { path = "../model" }
+repository = { path = "../repository" }
 router = { path = "../router" }
