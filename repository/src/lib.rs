@@ -9,9 +9,11 @@ use config::DbConfig;
 
 pub mod model;
 
-pub use model::{
-    Group, GroupDb, GroupMember, GroupMemberDb, Owner, OwnerDb, User, UserDb, Webhook, WebhookDb,
-};
+pub use model::group::{Group, GroupDb};
+pub use model::group_member::{GroupMember, GroupMemberDb};
+pub use model::owner::{Owner, OwnerDb};
+pub use model::user::{User, UserDb};
+pub use model::webhook::{Webhook, WebhookDb};
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
 
