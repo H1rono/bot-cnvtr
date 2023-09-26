@@ -56,7 +56,7 @@ pub trait Database: Sync + Send + 'static {
     async fn filter_webhooks_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>>;
     async fn create_webhook(&self, w: Webhook) -> Result<()>;
     async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()>;
-    async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()>;
+    async fn update_webhook(&self, id: &Uuid, w: Webhook) -> Result<()>;
     async fn delete_webhook(&self, id: &Uuid) -> Result<()>;
 }
 
@@ -228,7 +228,7 @@ impl Database for DatabaseImpl {
         WebhookDb::create_ignore(self, ws).await
     }
 
-    async fn update_webhook(&self, id: &str, w: Webhook) -> Result<()> {
+    async fn update_webhook(&self, id: &Uuid, w: Webhook) -> Result<()> {
         WebhookDb::update(self, id, w).await
     }
 

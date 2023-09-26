@@ -36,7 +36,7 @@ pub trait WebhookDb {
     async fn filter_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>>;
     async fn create(&self, w: Webhook) -> Result<()>;
     async fn create_ignore(&self, ws: &[Webhook]) -> Result<()>;
-    async fn update(&self, id: &str, w: Webhook) -> Result<()>;
+    async fn update(&self, id: &Uuid, w: Webhook) -> Result<()>;
     async fn delete(&self, id: &Uuid) -> Result<()>;
 }
 
@@ -175,7 +175,7 @@ impl WebhookDb for DatabaseImpl {
         Ok(())
     }
 
-    async fn update(&self, id: &str, w: Webhook) -> Result<()> {
+    async fn update(&self, id: &Uuid, w: Webhook) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
             SET `id` = ?, `channel_id` = ?, `owner_id` = ?
