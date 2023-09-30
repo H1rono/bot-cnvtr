@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 use traq_bot_http::RequestParser;
 
 use ::bot::Bot;
-use repository::Database;
+use repository::AllRepository;
 
 mod bot;
 mod error;
@@ -18,23 +18,13 @@ mod wh;
 
 use error::{Error, Result};
 
-struct AppState<Db: Database> {
-    pub db: Arc<Mutex<Db>>,
+struct AppState<Repo: AllRepository> {
+    pub db: Arc<Mutex<Repo>>,
     pub parser: RequestParser,
     pub bot: Bot,
 }
 
-impl<Db: Database> AppState<Db> {
-    pub fn new(db: Db, parser: RequestParser, bot: Bot) -> Self {
-        Self {
-            db: Arc::new(Mutex::new(db)),
-            parser,
-            bot,
-        }
-    }
-}
-
-impl<Db: Database> Clone for AppState<Db> {
+impl<Repo: AllRepository> Clone for AppState<Repo> {
     fn clone(&self) -> Self {
         Self {
             db: self.db.clone(),
@@ -44,19 +34,29 @@ impl<Db: Database> Clone for AppState<Db> {
     }
 }
 
-impl<Db: Database> AsRef<AppState<Db>> for State<AppState<Db>> {
-    fn as_ref(&self) -> &AppState<Db> {
+impl<Repo: AllRepository> AppState<Repo> {
+    pub fn new(db: Repo, parser: RequestParser, bot: Bot) -> Self {
+        Self {
+            db: Arc::new(Mutex::new(db)),
+            parser,
+            bot,
+        }
+    }
+}
+
+impl<Repo: AllRepository> AsRef<AppState<Repo>> for State<AppState<Repo>> {
+    fn as_ref(&self) -> &AppState<Repo> {
         &self.0
     }
 }
 
-pub fn make_router<Db: Database>(db: Db, parser: RequestParser, bot: Bot) -> Router {
+pub fn make_router<Repo: AllRepository>(db: Repo, parser: RequestParser, bot: Bot) -> Router {
     let state = AppState::new(db, parser, bot);
     Router::new()
-        .route("/bot", post(bot::event::<Db>))
-        .route("/wh/:id", get(wh::get_wh::<Db>))
-        .route("/wh/:id/github", post(wh::wh_github::<Db>))
-        .route("/wh/:id/gitea", post(wh::wh_gitea::<Db>))
-        .route("/wh/:id/clickup", post(wh::wh_clickup::<Db>))
+        .route("/bot", post(bot::event::<Repo>))
+        .route("/wh/:id", get(wh::get_wh::<Repo>))
+        .route("/wh/:id/github", post(wh::wh_github::<Repo>))
+        .route("/wh/:id/gitea", post(wh::wh_gitea::<Repo>))
+        .route("/wh/:id/clickup", post(wh::wh_clickup::<Repo>))
         .with_state(state)
 }

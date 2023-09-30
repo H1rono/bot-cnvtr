@@ -9,7 +9,7 @@ use axum::{
 use hyper::body::{to_bytes, Body};
 use traq_bot_http::Event;
 
-use repository::Database;
+use repository::AllRepository;
 
 use super::AppState;
 
@@ -17,12 +17,12 @@ use super::AppState;
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<Db: Database> FromRequest<AppState<Db>, Body> for BotEvent {
+impl<Repo: AllRepository> FromRequest<AppState<Repo>, Body> for BotEvent {
     type Rejection = StatusCode;
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppState<Db>,
+        state: &AppState<Repo>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -40,8 +40,8 @@ impl<Db: Database> FromRequest<AppState<Db>, Body> for BotEvent {
     }
 }
 
-pub(super) async fn event<Db: Database>(
-    State(st): State<AppState<Db>>,
+pub(super) async fn event<Repo: AllRepository>(
+    State(st): State<AppState<Repo>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode {
     let db = st.db.as_ref().lock().await;
@@ -50,7 +50,6 @@ pub(super) async fn event<Db: Database>(
         Err(err) => {
             eprintln!("ERROR: {err}");
             eprintln!("{err:?}");
-            eprintln!("{:?}", err.source());
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
