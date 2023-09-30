@@ -27,7 +27,7 @@ impl<'r> FromRow<'r, MySqlRow> for Webhook {
 }
 
 #[async_trait]
-pub trait WebhookDb {
+pub trait WebhookRepository {
     async fn read(&self) -> Result<Vec<Webhook>>;
     async fn find(&self, id: &Uuid) -> Result<Option<Webhook>>;
     async fn filter_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>>;
@@ -41,7 +41,7 @@ pub trait WebhookDb {
 }
 
 #[async_trait]
-impl WebhookDb for DatabaseImpl {
+impl WebhookRepository for DatabaseImpl {
     async fn read(&self) -> Result<Vec<Webhook>> {
         sqlx::query_as(indoc! {r#"
             SELECT *

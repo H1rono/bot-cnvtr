@@ -25,7 +25,7 @@ impl<'r> FromRow<'r, MySqlRow> for GroupMember {
 }
 
 #[async_trait]
-pub trait GroupMemberDb {
+pub trait GroupMemberRepository {
     async fn read(&self) -> Result<Vec<GroupMember>>;
     async fn find(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>>;
     async fn filter_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>>;
@@ -37,7 +37,7 @@ pub trait GroupMemberDb {
 }
 
 #[async_trait]
-impl GroupMemberDb for DatabaseImpl {
+impl GroupMemberRepository for DatabaseImpl {
     async fn read(&self) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *

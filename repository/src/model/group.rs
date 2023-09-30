@@ -25,7 +25,7 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
 }
 
 #[async_trait]
-pub trait GroupDb {
+pub trait GroupRepository {
     async fn read(&self) -> Result<Vec<Group>>;
     async fn find(&self, id: &Uuid) -> Result<Option<Group>>;
     async fn create(&self, g: Group) -> Result<()>;
@@ -35,7 +35,7 @@ pub trait GroupDb {
 }
 
 #[async_trait]
-impl GroupDb for DatabaseImpl {
+impl GroupRepository for DatabaseImpl {
     async fn read(&self) -> Result<Vec<Group>> {
         sqlx::query_as(indoc! {r#"
             SELECT *

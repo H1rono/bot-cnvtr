@@ -25,7 +25,7 @@ impl<'r> FromRow<'r, MySqlRow> for User {
 }
 
 #[async_trait]
-pub trait UserDb {
+pub trait UserRepository {
     async fn read(&self) -> Result<Vec<User>>;
     async fn find(&self, id: &Uuid) -> Result<Option<User>>;
     async fn create(&self, u: User) -> Result<()>;
@@ -35,7 +35,7 @@ pub trait UserDb {
 }
 
 #[async_trait]
-impl UserDb for DatabaseImpl {
+impl UserRepository for DatabaseImpl {
     async fn read(&self) -> Result<Vec<User>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
