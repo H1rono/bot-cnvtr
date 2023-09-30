@@ -24,12 +24,12 @@ fn parse_col_str2uuid(row: &MySqlRow, col: &str) -> sqlx::Result<Uuid> {
     })
 }
 
-pub trait AllRepository {
-    type GroupMemberRepository: GroupMemberRepository;
-    type GroupRepository: GroupRepository;
-    type OwnerRepository: OwnerRepository;
-    type UserRepository: UserRepository;
-    type WebhookRepository: WebhookRepository;
+pub trait AllRepository: Send + Sync + 'static {
+    type GroupMemberRepository: GroupMemberRepository + Send + Sync + 'static;
+    type GroupRepository: GroupRepository + Send + Sync + 'static;
+    type OwnerRepository: OwnerRepository + Send + Sync + 'static;
+    type UserRepository: UserRepository + Send + Sync + 'static;
+    type WebhookRepository: WebhookRepository + Send + Sync + 'static;
 
     fn group_member_repository(&self) -> &Self::GroupMemberRepository;
     fn group_repository(&self) -> &Self::GroupRepository;
