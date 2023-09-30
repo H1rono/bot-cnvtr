@@ -3,7 +3,7 @@ use clap::Parser;
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
 use cli::{Cli, CompletedCmds, Incomplete};
-use repository::Database;
+use repository::AllRepository;
 use uuid::Uuid;
 
 use super::{Bot, Result};
@@ -33,16 +33,16 @@ impl Bot {
         }
     }
 
-    async fn run_command<Db: Database>(
+    async fn run_command(
         &self,
         message_id: &Uuid,
         cmd: CompletedCmds,
-        db: &Db,
+        repo: &impl AllRepository,
     ) -> Result<()> {
         use CompletedCmds::*;
         let res = match cmd {
-            Webhook(w) => self.handle_webhook_command(w, db).await,
-            Sudo(s) => self.handle_sudo_command(s, db).await,
+            Webhook(w) => self.handle_webhook_command(w, repo).await,
+            Sudo(s) => self.handle_sudo_command(s, repo).await,
         };
         match res {
             Ok(_) => {
@@ -60,10 +60,10 @@ impl Bot {
         }
     }
 
-    pub async fn on_message_created<Db: Database>(
+    pub async fn on_message_created(
         &self,
         payload: MessageCreatedPayload,
-        db: &Db,
+        repo: &impl AllRepository,
     ) -> Result<()> {
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
@@ -75,13 +75,13 @@ impl Bot {
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(mid, cmd, db).await
+        self.run_command(mid, cmd, repo).await
     }
 
-    pub async fn on_direct_message_created<Db: Database>(
+    pub async fn on_direct_message_created(
         &self,
         payload: DirectMessageCreatedPayload,
-        db: &Db,
+        repo: &impl AllRepository,
     ) -> Result<()> {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
@@ -93,6 +93,6 @@ impl Bot {
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(mid, cmd, db).await
+        self.run_command(mid, cmd, repo).await
     }
 }

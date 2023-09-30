@@ -5,46 +5,46 @@ use cli::sudo::{
     SudoCompleted,
 };
 use futures::{pin_mut, StreamExt};
-use repository::Database;
+use repository::{AllRepository, OwnerRepository, WebhookRepository};
 
 impl Bot {
-    pub(super) async fn handle_sudo_command<Db: Database>(
+    pub(super) async fn handle_sudo_command(
         &self,
         sudo: SudoCompleted,
-        db: &Db,
+        repo: &impl AllRepository,
     ) -> Result<()> {
         use SudoCompleted::*;
         match sudo {
             Webhook(Completed::ListAll(list_all)) => {
-                self.handle_sudo_wh_list_all(list_all, db).await
+                self.handle_sudo_wh_list_all(list_all, repo).await
             }
-            Webhook(Completed::Delete(delete)) => self.handle_sudo_wh_delete(delete, db).await,
+            Webhook(Completed::Delete(delete)) => self.handle_sudo_wh_delete(delete, repo).await,
         }
     }
 
-    async fn handle_sudo_wh_list_all<Db: Database>(
+    async fn handle_sudo_wh_list_all(
         &self,
         list_all: ListAll,
-        db: &Db,
+        repo: &impl AllRepository,
     ) -> Result<()> {
         if !list_all.valid {
             let message = "Permission denied.";
             self.send_code(&list_all.talking_channel_id, "", message)
                 .await?;
         }
-        let webhooks = db.read_webhooks().await?;
+        let webhooks = repo.webhook_repository().read().await?;
         let code = serde_json::to_string_pretty(&webhooks)?;
         self.send_code_dm(&list_all.user_id, "json", &code).await?;
         Ok(())
     }
 
-    async fn handle_sudo_wh_delete<Db: Database>(&self, delete: Delete, db: &Db) -> Result<()> {
+    async fn handle_sudo_wh_delete(&self, delete: Delete, repo: &impl AllRepository) -> Result<()> {
         if !delete.valid {
             let message = "Permission denied.";
             self.send_code(&delete.talking_channel_id, "", message)
                 .await?;
         }
-        let webhook = match db.find_webhook(&delete.id).await? {
+        let webhook = match repo.webhook_repository().find(&delete.id).await? {
             Some(w) => w,
             None => {
                 let message = format!("エラー: webhook {} は存在しません", delete.id);
@@ -53,7 +53,11 @@ impl Bot {
                 return Ok(());
             }
         };
-        let owner = db.find_owner(&webhook.owner_id).await?.unwrap();
+        let owner = repo
+            .owner_repository()
+            .find(&webhook.owner_id)
+            .await?
+            .unwrap();
         let own_users = if owner.group {
             self.get_group_members(&owner.id)
                 .await?
@@ -63,7 +67,7 @@ impl Bot {
         } else {
             vec![owner.id]
         };
-        db.delete_webhook(&webhook.id).await?;
+        repo.webhook_repository().delete(&delete.id).await?;
         let it = async_stream::stream! {
             let message = format!("Webhook {} を削除しました", delete.id);
             for u in own_users {

@@ -2,7 +2,7 @@ use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
 use config::BotConfig;
-use repository::Database;
+use repository::AllRepository;
 
 mod api;
 mod error;
@@ -53,13 +53,13 @@ impl Bot {
         }
     }
 
-    pub async fn handle_event<Db: Database>(&self, db: &Db, event: Event) -> Result<(), Error> {
+    pub async fn handle_event(&self, repo: &impl AllRepository, event: Event) -> Result<(), Error> {
         use Event::*;
         match event {
-            Joined(payload) => self.on_joined(payload, db).await,
-            Left(payload) => self.on_left(payload, db).await,
-            MessageCreated(payload) => self.on_message_created(payload, db).await,
-            DirectMessageCreated(payload) => self.on_direct_message_created(payload, db).await,
+            Joined(payload) => self.on_joined(payload, repo).await,
+            Left(payload) => self.on_left(payload, repo).await,
+            MessageCreated(payload) => self.on_message_created(payload, repo).await,
+            DirectMessageCreated(payload) => self.on_direct_message_created(payload, repo).await,
             _ => Ok(()),
         }
     }
