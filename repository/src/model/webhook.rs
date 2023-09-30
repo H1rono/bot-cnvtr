@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
 
-use crate::{parse_col_str2uuid, DatabaseImpl};
+use crate::{parse_col_str2uuid, RepositoryImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Webhook {
@@ -41,7 +41,7 @@ pub trait WebhookRepository {
 }
 
 #[async_trait]
-impl WebhookRepository for DatabaseImpl {
+impl WebhookRepository for RepositoryImpl {
     async fn read(&self) -> Result<Vec<Webhook>> {
         sqlx::query_as(indoc! {r#"
             SELECT *

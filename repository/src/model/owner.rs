@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use crate::{parse_col_str2uuid, DatabaseImpl};
+use crate::{parse_col_str2uuid, RepositoryImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Owner {
@@ -37,7 +37,7 @@ pub trait OwnerRepository {
 }
 
 #[async_trait]
-impl OwnerRepository for DatabaseImpl {
+impl OwnerRepository for RepositoryImpl {
     async fn read(&self) -> Result<Vec<Owner>> {
         sqlx::query_as(indoc! {r#"
             SELECT *

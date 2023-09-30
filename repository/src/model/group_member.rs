@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result};
 use uuid::Uuid;
 
-use crate::{parse_col_str2uuid, DatabaseImpl};
+use crate::{parse_col_str2uuid, RepositoryImpl};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GroupMember {
@@ -37,7 +37,7 @@ pub trait GroupMemberRepository {
 }
 
 #[async_trait]
-impl GroupMemberRepository for DatabaseImpl {
+impl GroupMemberRepository for RepositoryImpl {
     async fn read(&self) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
