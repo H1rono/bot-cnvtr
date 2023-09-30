@@ -44,8 +44,8 @@ pub(super) async fn event<Repo: AllRepository>(
     State(st): State<AppState<Repo>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode {
-    let db = st.db.as_ref().lock().await;
-    match st.bot.handle_event(db.deref(), event).await {
+    let repo = st.repo.as_ref().lock().await;
+    match st.bot.handle_event(repo.deref(), event).await {
         Ok(_) => StatusCode::NO_CONTENT,
         Err(err) => {
             eprintln!("ERROR: {err}");

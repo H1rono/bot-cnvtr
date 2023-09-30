@@ -19,8 +19,8 @@ pub(super) async fn get_wh<Repo: AllRepository>(
     State(st): State<AppState<Repo>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>> {
-    let db = st.db.as_ref().lock().await;
-    db.webhook_repository()
+    let repo = st.repo.as_ref().lock().await;
+    repo.webhook_repository()
         .find(&id)
         .await?
         .ok_or(Error::NotFound)
@@ -34,8 +34,8 @@ pub(super) async fn wh_github<Db: AllRepository>(
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let db = st.db.as_ref().lock().await;
-    let webhook = db
+    let repo = st.repo.as_ref().lock().await;
+    let webhook = repo
         .webhook_repository()
         .find(&id)
         .await?
@@ -59,8 +59,8 @@ pub(super) async fn wh_gitea<Db: AllRepository>(
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let db = st.db.as_ref().lock().await;
-    let webhook = db
+    let repo = st.repo.as_ref().lock().await;
+    let webhook = repo
         .webhook_repository()
         .find(&id)
         .await?
@@ -80,8 +80,8 @@ pub(super) async fn wh_clickup<Db: AllRepository>(
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
-    let db = st.db.as_ref().lock().await;
-    let webhook = db
+    let repo = st.repo.as_ref().lock().await;
+    let webhook = repo
         .webhook_repository()
         .find(&id)
         .await?

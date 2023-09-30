@@ -19,7 +19,7 @@ mod wh;
 use error::{Error, Result};
 
 struct AppState<Repo: AllRepository> {
-    pub db: Arc<Mutex<Repo>>,
+    pub repo: Arc<Mutex<Repo>>,
     pub parser: RequestParser,
     pub bot: Bot,
 }
@@ -27,7 +27,7 @@ struct AppState<Repo: AllRepository> {
 impl<Repo: AllRepository> Clone for AppState<Repo> {
     fn clone(&self) -> Self {
         Self {
-            db: self.db.clone(),
+            repo: self.repo.clone(),
             parser: self.parser.clone(),
             bot: self.bot.clone(),
         }
@@ -35,9 +35,9 @@ impl<Repo: AllRepository> Clone for AppState<Repo> {
 }
 
 impl<Repo: AllRepository> AppState<Repo> {
-    pub fn new(db: Repo, parser: RequestParser, bot: Bot) -> Self {
+    pub fn new(repo: Repo, parser: RequestParser, bot: Bot) -> Self {
         Self {
-            db: Arc::new(Mutex::new(db)),
+            repo: Arc::new(Mutex::new(repo)),
             parser,
             bot,
         }
@@ -50,8 +50,8 @@ impl<Repo: AllRepository> AsRef<AppState<Repo>> for State<AppState<Repo>> {
     }
 }
 
-pub fn make_router<Repo: AllRepository>(db: Repo, parser: RequestParser, bot: Bot) -> Router {
-    let state = AppState::new(db, parser, bot);
+pub fn make_router<Repo: AllRepository>(repo: Repo, parser: RequestParser, bot: Bot) -> Router {
+    let state = AppState::new(repo, parser, bot);
     Router::new()
         .route("/bot", post(bot::event::<Repo>))
         .route("/wh/:id", get(wh::get_wh::<Repo>))
