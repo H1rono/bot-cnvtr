@@ -43,19 +43,16 @@ pub trait WebhookDb {
 #[async_trait]
 impl WebhookDb for DatabaseImpl {
     async fn read(&self) -> Result<Vec<Webhook>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `webhooks`
         "#})
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(Webhook::from_row)
-        .collect::<Result<_>>()
+        .await
     }
 
     async fn find(&self, id: &Uuid) -> Result<Option<Webhook>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `webhooks`
             WHERE `id` = ?
@@ -63,37 +60,29 @@ impl WebhookDb for DatabaseImpl {
         "#})
         .bind(id.to_string())
         .fetch_optional(&self.0)
-        .await?
-        .map(|w| Webhook::from_row(&w))
-        .transpose()
+        .await
     }
 
     async fn filter_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `webhooks`
             WHERE `channel_id` = ?
         "#})
         .bind(channel_id.to_string())
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(Webhook::from_row)
-        .collect()
+        .await
     }
 
     async fn filter_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `webhooks`
             WHERE `owner_id` = ?
         "#})
         .bind(owner_id.to_string())
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(Webhook::from_row)
-        .collect()
+        .await
     }
 
     async fn filter_by_cids(&self, cids: &[Uuid]) -> Result<Vec<Webhook>> {
@@ -108,13 +97,10 @@ impl WebhookDb for DatabaseImpl {
             "#,
             iter::repeat('?').take(cid_len).join(", ")
         };
-        let query = cids.iter().fold(sqlx::query(&query), |q, i| q.bind(i));
-        query
+        cids.iter()
+            .fold(sqlx::query_as(&query), |q, i| q.bind(i))
             .fetch_all(&self.0)
-            .await?
-            .iter()
-            .map(Webhook::from_row)
-            .collect()
+            .await
     }
 
     async fn filter_by_oids(&self, oids: &[Uuid]) -> Result<Vec<Webhook>> {
@@ -129,15 +115,10 @@ impl WebhookDb for DatabaseImpl {
             "#,
             iter::repeat('?').take(oid_len).join(", ")
         };
-        let query = oids
-            .iter()
-            .fold(sqlx::query(&query), |q, i| q.bind(i.to_string()));
-        query
+        oids.iter()
+            .fold(sqlx::query_as(&query), |q, i| q.bind(i.to_string()))
             .fetch_all(&self.0)
-            .await?
-            .iter()
-            .map(Webhook::from_row)
-            .collect()
+            .await
     }
 
     async fn create(&self, w: Webhook) -> Result<()> {

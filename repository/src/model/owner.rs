@@ -39,19 +39,16 @@ pub trait OwnerDb {
 #[async_trait]
 impl OwnerDb for DatabaseImpl {
     async fn read(&self) -> Result<Vec<Owner>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `owners`
         "#})
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(Owner::from_row)
-        .collect::<Result<_>>()
+        .await
     }
 
     async fn find(&self, id: &Uuid) -> Result<Option<Owner>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `owners`
             WHERE `id` = ?
@@ -59,9 +56,7 @@ impl OwnerDb for DatabaseImpl {
         "#})
         .bind(id.to_string())
         .fetch_optional(&self.0)
-        .await?
-        .map(|o| Owner::from_row(&o))
-        .transpose()
+        .await
     }
 
     async fn create(&self, o: Owner) -> Result<()> {

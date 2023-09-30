@@ -37,19 +37,16 @@ pub trait GroupDb {
 #[async_trait]
 impl GroupDb for DatabaseImpl {
     async fn read(&self) -> Result<Vec<Group>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `groups`
         "#})
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(Group::from_row)
-        .collect::<Result<_>>()
+        .await
     }
 
     async fn find(&self, id: &Uuid) -> Result<Option<Group>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `groups`
             WHERE `id` = ?
@@ -57,9 +54,7 @@ impl GroupDb for DatabaseImpl {
         "#})
         .bind(id.to_string())
         .fetch_optional(&self.0)
-        .await?
-        .map(|g| Group::from_row(&g))
-        .transpose()
+        .await
     }
 
     async fn create(&self, g: Group) -> Result<()> {

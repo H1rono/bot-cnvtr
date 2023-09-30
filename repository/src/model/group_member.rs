@@ -39,19 +39,16 @@ pub trait GroupMemberDb {
 #[async_trait]
 impl GroupMemberDb for DatabaseImpl {
     async fn read(&self) -> Result<Vec<GroupMember>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
         "#})
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(GroupMember::from_row)
-        .collect::<Result<_>>()
+        .await
     }
 
     async fn find(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?
@@ -60,37 +57,29 @@ impl GroupMemberDb for DatabaseImpl {
         .bind(gid.to_string())
         .bind(uid.to_string())
         .fetch_optional(&self.0)
-        .await?
-        .map(|gm| GroupMember::from_row(&gm))
-        .transpose()
+        .await
     }
 
     async fn filter_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
             WHERE `group_id` = ?
         "#})
         .bind(gid.to_string())
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(GroupMember::from_row)
-        .collect()
+        .await
     }
 
     async fn filter_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
             WHERE `user_id` = ?
         "#})
         .bind(uid.to_string())
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(GroupMember::from_row)
-        .collect()
+        .await
     }
 
     async fn create(&self, gm: GroupMember) -> Result<()> {

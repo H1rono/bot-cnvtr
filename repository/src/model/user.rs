@@ -37,19 +37,16 @@ pub trait UserDb {
 #[async_trait]
 impl UserDb for DatabaseImpl {
     async fn read(&self) -> Result<Vec<User>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `users`
         "#})
         .fetch_all(&self.0)
-        .await?
-        .iter()
-        .map(User::from_row)
-        .collect::<Result<_>>()
+        .await
     }
 
     async fn find(&self, id: &Uuid) -> Result<Option<User>> {
-        sqlx::query(indoc! {r#"
+        sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `users`
             WHERE `id` = ?
@@ -57,9 +54,7 @@ impl UserDb for DatabaseImpl {
         "#})
         .bind(id.to_string())
         .fetch_optional(&self.0)
-        .await?
-        .map(|u| User::from_row(&u))
-        .transpose()
+        .await
     }
 
     async fn create(&self, u: User) -> Result<()> {
