@@ -2,7 +2,6 @@ FROM rust:bullseye AS builder
 
 WORKDIR /app
 COPY . .
-RUN touch .env.dev
 RUN touch .env
 RUN cargo build
 
@@ -13,7 +12,6 @@ RUN apt-get -y update \
     && update-ca-certificates --fresh
 WORKDIR /app
 COPY --from=builder /app/target/debug/cnvtr ./main
-COPY --from=builder /app/.env.dev ./.env.dev
 COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/migrations/ ./migrations/
 CMD ["./main"]

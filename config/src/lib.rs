@@ -53,14 +53,9 @@ impl Config {
     }
 
     pub fn from_env() -> Result<Self> {
-        Self::load_env()
-            .or_else(|_| {
-                dotenvy::from_filename_override(".env")?;
-                Self::load_env()
-            })
-            .or_else(|_| {
-                dotenvy::from_filename_override(".env.dev")?;
-                Self::load_env()
-            })
+        Self::load_env().or_else(|_| {
+            dotenvy::from_filename_override(".env")?;
+            Self::load_env()
+        })
     }
 }
