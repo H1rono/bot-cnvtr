@@ -2,6 +2,7 @@ use reqwest::StatusCode;
 use thiserror::Error as ThisError;
 
 use traq::apis::Error as ApiError;
+use traq_client::Error as ClientError;
 
 #[derive(Debug, ThisError)]
 pub enum Error {
@@ -13,6 +14,8 @@ pub enum Error {
     Reqwest(#[from] reqwest::Error),
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
+    #[error("traq-client error: {0}")]
+    Client(#[from] ClientError),
     #[error("got response with error code")]
     BadResponse { status: StatusCode, content: String },
 }

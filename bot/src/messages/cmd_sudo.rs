@@ -29,26 +29,31 @@ impl Bot {
     ) -> Result<()> {
         if !list_all.valid {
             let message = "Permission denied.";
-            self.send_code(&list_all.talking_channel_id, "", message)
+            self.client
+                .send_code(&list_all.talking_channel_id, "", message)
                 .await?;
         }
         let webhooks = repo.webhook_repository().read().await?;
         let code = serde_json::to_string_pretty(&webhooks)?;
-        self.send_code_dm(&list_all.user_id, "json", &code).await?;
+        self.client
+            .send_code_dm(&list_all.user_id, "json", &code)
+            .await?;
         Ok(())
     }
 
     async fn handle_sudo_wh_delete(&self, delete: Delete, repo: &impl AllRepository) -> Result<()> {
         if !delete.valid {
             let message = "Permission denied.";
-            self.send_code(&delete.talking_channel_id, "", message)
+            self.client
+                .send_code(&delete.talking_channel_id, "", message)
                 .await?;
         }
         let webhook = match repo.webhook_repository().find(&delete.id).await? {
             Some(w) => w,
             None => {
                 let message = format!("エラー: webhook {} は存在しません", delete.id);
-                self.send_message(&delete.talking_channel_id, &message, false)
+                self.client
+                    .send_message(&delete.talking_channel_id, &message, false)
                     .await?;
                 return Ok(());
             }
@@ -59,7 +64,8 @@ impl Bot {
             .await?
             .unwrap();
         let own_users = if owner.group {
-            self.get_group_members(&owner.id)
+            self.client
+                .get_group_members(&owner.id)
                 .await?
                 .into_iter()
                 .map(|gm| gm.id)
@@ -71,7 +77,7 @@ impl Bot {
         let it = async_stream::stream! {
             let message = format!("Webhook {} を削除しました", delete.id);
             for u in own_users {
-                yield self.send_direct_message(&u, &message, false).await;
+                yield self.client.send_direct_message(&u, &message, false).await;
             }
         };
         pin_mut!(it);

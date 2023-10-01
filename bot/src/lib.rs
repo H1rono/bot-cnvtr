@@ -1,9 +1,8 @@
-use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
+use traq_client::Client;
 
 use repository::AllRepository;
 
-mod api;
 mod config;
 mod error;
 mod messages;
@@ -18,21 +17,18 @@ pub use error::{Error, Result};
 pub struct Bot {
     pub id: String,
     pub user_id: String,
-    pub config: Configuration,
+    pub client: Client,
 }
 
 impl Bot {
     pub fn new(id: &str, user_id: &str, access_token: &str) -> Self {
         let id = id.to_string();
         let user_id = user_id.to_string();
-        let config = Configuration {
-            bearer_access_token: Some(access_token.to_string()),
-            ..Default::default()
-        };
+        let client = Client::new(access_token);
         Self {
             id,
             user_id,
-            config,
+            client,
         }
     }
 
@@ -43,14 +39,12 @@ impl Bot {
             bot_access_token,
             ..
         } = bot_config;
-        let config = Configuration {
-            bearer_access_token: Some(bot_access_token),
-            ..Default::default()
-        };
+        let client_config = traq_client::Config { bot_access_token };
+        let client = Client::from_config(client_config);
         Self {
             id: bot_id,
             user_id: bot_user_id,
-            config,
+            client,
         }
     }
 

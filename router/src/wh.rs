@@ -46,6 +46,7 @@ pub(super) async fn wh_github<Db: AllRepository>(
     }
     let message = message.unwrap();
     st.bot
+        .client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;
@@ -67,6 +68,7 @@ pub(super) async fn wh_gitea<Db: AllRepository>(
         .ok_or(Error::NotFound)?;
     let message = gitea::handle(headers, payload)?;
     st.bot
+        .client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;
@@ -88,6 +90,7 @@ pub(super) async fn wh_clickup<Db: AllRepository>(
         .ok_or(Error::NotFound)?;
     let message = clickup::handle(headers, payload)?;
     st.bot
+        .client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;

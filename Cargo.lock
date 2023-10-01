@@ -1449,6 +1449,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "traq-bot-http",
+ "traq-client",
  "uuid",
 ]
 

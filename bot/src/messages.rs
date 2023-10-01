@@ -26,7 +26,8 @@ impl Bot {
         match parse_command(&message.plain_text) {
             Ok(c) => Ok(Some(c)),
             Err(e) => {
-                self.send_code(&message.channel_id, "", &e.to_string())
+                self.client
+                    .send_code(&message.channel_id, "", &e.to_string())
                     .await?;
                 Ok(None)
             }
@@ -48,13 +49,17 @@ impl Bot {
             Ok(_) => {
                 // :done:
                 const STAMP_ID: Uuid = uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d");
-                self.add_message_stamp(message_id, &STAMP_ID, 1).await?;
+                self.client
+                    .add_message_stamp(message_id, &STAMP_ID, 1)
+                    .await?;
                 Ok(())
             }
             Err(e) => {
                 // :melting_face:
                 const STAMP_ID: Uuid = uuid::uuid!("67c90d0e-18da-483e-9b2f-e6e50adec29d");
-                self.add_message_stamp(message_id, &STAMP_ID, 1).await?;
+                self.client
+                    .add_message_stamp(message_id, &STAMP_ID, 1)
+                    .await?;
                 Err(e)
             }
         }

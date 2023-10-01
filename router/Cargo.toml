@@ -19,3 +19,4 @@ sqlx = { workspace = true }
 
 bot = { path = "../bot" }
 repository = { path = "../repository" }
+traq-client = { path = "../traq-client" }
