@@ -15,3 +15,4 @@ traq-bot-http = { workspace = true }
 bot = { path = "../bot" }
 repository = { path = "../repository" }
 router = { path = "../router" }
+traq-client = { path = "../traq-client" }

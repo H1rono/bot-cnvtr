@@ -348,6 +348,7 @@ dependencies = [
  "router",
  "tokio",
  "traq-bot-http",
+ "traq-client",
 ]
 
 [[package]]
