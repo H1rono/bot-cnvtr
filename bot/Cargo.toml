@@ -17,12 +17,8 @@ shlex = { workspace = true }
 
 futures = { workspace = true }
 async-stream = { workspace = true }
-async-recursion = { workspace = true }
-
-reqwest = { workspace = true }
 
 traq-bot-http = { workspace = true }
-traq = { workspace = true }
 sqlx = { workspace = true }
 
 repository = { path = "../repository" }
