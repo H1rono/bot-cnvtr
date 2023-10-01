@@ -1,5 +1,8 @@
-use async_recursion::async_recursion;
+use std::vec;
+
+use async_trait::async_trait;
 use indoc::formatdoc;
+use itertools::Itertools;
 
 use traq::apis::channel_api::get_channel;
 use traq::apis::configuration::Configuration;
@@ -15,11 +18,11 @@ use uuid::Uuid;
 use crate::{Config, Result};
 
 #[derive(Debug, Clone)]
-pub struct Client {
+pub struct ClientImpl {
     pub config: Configuration,
 }
 
-impl Client {
+impl ClientImpl {
     pub fn new(bot_access_token: &str) -> Self {
         let config = Configuration {
             bearer_access_token: Some(bot_access_token.to_string()),
@@ -35,13 +38,11 @@ impl Client {
         };
         Self { config }
     }
+}
 
-    pub async fn send_message(
-        &self,
-        channel_id: &Uuid,
-        content: &str,
-        embed: bool,
-    ) -> Result<Message> {
+#[async_trait]
+impl crate::Client for ClientImpl {
+    async fn send_message(&self, channel_id: &Uuid, content: &str, embed: bool) -> Result<Message> {
         println!("send_message: {}", channel_id);
         let req = PostMessageRequest {
             content: content.to_string(),
@@ -52,7 +53,7 @@ impl Client {
         Ok(res)
     }
 
-    pub async fn send_code(&self, channel_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
+    async fn send_code(&self, channel_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
         let message = formatdoc! {
             r#"
             ```{}
@@ -64,7 +65,7 @@ impl Client {
         self.send_message(channel_id, message.trim(), false).await
     }
 
-    pub async fn send_direct_message(
+    async fn send_direct_message(
         &self,
         user_id: &Uuid,
         content: &str,
@@ -80,7 +81,7 @@ impl Client {
         Ok(res)
     }
 
-    pub async fn send_code_dm(&self, user_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
+    async fn send_code_dm(&self, user_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
         let message = formatdoc! {
             r#"
             ```{}
@@ -93,35 +94,33 @@ impl Client {
             .await
     }
 
-    pub async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {
+    async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {
         println!("get_group_members: {}", group_id);
         let group_id = group_id.to_string();
         let res = get_user_group_members(&self.config, &group_id).await?;
         Ok(res)
     }
 
-    pub async fn get_user(&self, user_id: &Uuid) -> Result<UserDetail> {
+    async fn get_user(&self, user_id: &Uuid) -> Result<UserDetail> {
         println!("get_user: {}", user_id);
         let user_id = user_id.to_string();
         let res = get_user(&self.config, &user_id).await?;
         Ok(res)
     }
 
-    #[async_recursion]
-    pub async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
+    async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
         println!("get_channel_path: {}", channel_id);
-        let channel_id = channel_id.to_string();
-        let channel = get_channel(&self.config, &channel_id).await?;
-        match channel.parent_id {
-            Some(pid) => {
-                let ppath = self.get_channel_path(&pid).await?;
-                Ok(format!("{}/{}", ppath, channel.name))
-            }
-            None => Ok(format!("#{}", channel.name)),
+        let mut channel_names: Vec<String> = vec![];
+        let mut channel_id = Some(*channel_id);
+        while let Some(id) = channel_id {
+            let channel = get_channel(&self.config, &id.to_string()).await?;
+            channel_names.push(channel.name);
+            channel_id = channel.parent_id;
         }
+        Ok(format!("#{}", channel_names.into_iter().rev().join("/")))
     }
 
-    pub async fn add_message_stamp(
+    async fn add_message_stamp(
         &self,
         message_id: &Uuid,
         stamp_id: &Uuid,
