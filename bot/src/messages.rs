@@ -1,10 +1,10 @@
 use clap::Parser;
-
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use uuid::Uuid;
 
 use cli::{Cli, CompletedCmds, Incomplete};
 use repository::AllRepository;
-use uuid::Uuid;
+use traq_client::Client;
 
 use super::{Bot, Result};
 
@@ -22,11 +22,11 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
 }
 
 impl Bot {
-    async fn parse(&self, message: &Message) -> Result<Option<Cli>> {
+    async fn parse(&self, client: &impl Client, message: &Message) -> Result<Option<Cli>> {
         match parse_command(&message.plain_text) {
             Ok(c) => Ok(Some(c)),
             Err(e) => {
-                self.client
+                client
                     .send_code(&message.channel_id, "", &e.to_string())
                     .await?;
                 Ok(None)
@@ -36,30 +36,27 @@ impl Bot {
 
     async fn run_command(
         &self,
+        client: &impl Client,
+        repo: &impl AllRepository,
         message_id: &Uuid,
         cmd: CompletedCmds,
-        repo: &impl AllRepository,
     ) -> Result<()> {
         use CompletedCmds::*;
         let res = match cmd {
-            Webhook(w) => self.handle_webhook_command(w, repo).await,
-            Sudo(s) => self.handle_sudo_command(s, repo).await,
+            Webhook(w) => self.handle_webhook_command(client, repo, w).await,
+            Sudo(s) => self.handle_sudo_command(client, repo, s).await,
         };
         match res {
             Ok(_) => {
                 // :done:
                 const STAMP_ID: Uuid = uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d");
-                self.client
-                    .add_message_stamp(message_id, &STAMP_ID, 1)
-                    .await?;
+                client.add_message_stamp(message_id, &STAMP_ID, 1).await?;
                 Ok(())
             }
             Err(e) => {
                 // :melting_face:
                 const STAMP_ID: Uuid = uuid::uuid!("67c90d0e-18da-483e-9b2f-e6e50adec29d");
-                self.client
-                    .add_message_stamp(message_id, &STAMP_ID, 1)
-                    .await?;
+                client.add_message_stamp(message_id, &STAMP_ID, 1).await?;
                 Err(e)
             }
         }
@@ -67,37 +64,39 @@ impl Bot {
 
     pub async fn on_message_created(
         &self,
-        payload: MessageCreatedPayload,
+        client: &impl Client,
         repo: &impl AllRepository,
+        payload: MessageCreatedPayload,
     ) -> Result<()> {
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let cli = match self.parse(&payload.message).await? {
+        let cli = match self.parse(client, &payload.message).await? {
             Some(c) => c,
             None => return Ok(()),
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(mid, cmd, repo).await
+        self.run_command(client, repo, mid, cmd).await
     }
 
     pub async fn on_direct_message_created(
         &self,
-        payload: DirectMessageCreatedPayload,
+        client: &impl Client,
         repo: &impl AllRepository,
+        payload: DirectMessageCreatedPayload,
     ) -> Result<()> {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let cli = match self.parse(&payload.message).await? {
+        let cli = match self.parse(client, &payload.message).await? {
             Some(c) => c,
             None => return Ok(()),
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(mid, cmd, repo).await
+        self.run_command(client, repo, mid, cmd).await
     }
 }

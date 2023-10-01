@@ -2,38 +2,41 @@ use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use super::{Bot, Result};
-
 use cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
 use repository::{
     self, AllRepository, GroupMemberRepository, GroupRepository, OwnerRepository, UserRepository,
     WebhookRepository,
 };
+use traq_client::Client;
+
+use super::{Bot, Result};
 
 impl Bot {
     pub(super) async fn handle_webhook_command(
         &self,
-        wh: Webhook,
+        client: &impl Client,
         repo: &impl AllRepository,
+        wh: Webhook,
     ) -> Result<()> {
         use Webhook::*;
         match wh {
-            Create(create) => self.handle_webhook_create(create, repo).await,
-            Delete(delete) => self.handle_webhook_delete(delete, repo).await,
-            List(list) => self.handle_webhook_list(list, repo).await,
+            Create(create) => self.handle_webhook_create(client, repo, create).await,
+            Delete(delete) => self.handle_webhook_delete(client, repo, delete).await,
+            List(list) => self.handle_webhook_list(client, repo, list).await,
         }
     }
 
     async fn handle_webhook_create(
         &self,
-        create: WebhookCreate,
+        client: &impl Client,
         repo: &impl AllRepository,
+        create: WebhookCreate,
     ) -> Result<()> {
         let owner = create.owner;
 
         // ownerには投稿者自身が含まれている必要がある
         let own_users = if owner.group {
-            self.client
+            client
                 .get_group_members(&owner.id)
                 .await?
                 .into_iter()
@@ -44,7 +47,7 @@ impl Bot {
         };
         if !own_users.contains(&create.user_id) {
             let message = format!("エラー: --ownerに @{} が含まれていません", create.user_name);
-            self.client
+            client
                 .send_message(&create.talking_channel_id, &message, true)
                 .await?;
             return Ok(());
@@ -53,7 +56,7 @@ impl Bot {
         // DBにユーザーとグループを追加
         let own_users = async_stream::stream! {
             for u in own_users {
-                yield self.client.get_user(&u).await.map(|user| repository::User {
+                yield client.get_user(&u).await.map(|user| repository::User {
                     id: user.id,
                     name: user.name,
                 });
@@ -107,7 +110,7 @@ impl Bot {
             String::new()
         };
         let channel_path = if !create.channel_dm {
-            self.client.get_channel_path(&webhook.channel_id).await?
+            client.get_channel_path(&webhook.channel_id).await?
         } else {
             "DM".to_string()
         };
@@ -127,7 +130,7 @@ impl Bot {
         let msg = message.trim();
         let it = async_stream::stream! {
             for u in own_users {
-                yield self.client.send_direct_message(&u.id, msg, true).await;
+                yield client.send_direct_message(&u.id, msg, true).await;
             }
         };
         pin_mut!(it);
@@ -139,8 +142,9 @@ impl Bot {
 
     async fn handle_webhook_list(
         &self,
-        list: WebhookList,
+        client: &impl Client,
         repo: &impl AllRepository,
+        list: WebhookList,
     ) -> Result<()> {
         let user_id = list.user_id;
         let groups = repo
@@ -154,19 +158,20 @@ impl Bot {
             .collect();
         let webhooks = repo.webhook_repository().filter_by_oids(&owners).await?;
         let code = serde_json::to_string_pretty(&webhooks)?;
-        self.client.send_code_dm(&user_id, "json", &code).await?;
+        client.send_code_dm(&user_id, "json", &code).await?;
         Ok(())
     }
 
     async fn handle_webhook_delete(
         &self,
-        delete: WebhookDelete,
+        client: &impl Client,
         repo: &impl AllRepository,
+        delete: WebhookDelete,
     ) -> Result<()> {
         let webhook = repo.webhook_repository().find(&delete.webhook_id).await?;
         if webhook.is_none() {
             let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);
-            self.client
+            client
                 .send_message(&delete.talking_channel_id, &message, true)
                 .await?;
             return Ok(());
@@ -178,7 +183,7 @@ impl Bot {
             .await?
             .unwrap();
         let own_users = if owner.group {
-            self.client
+            client
                 .get_group_members(&owner.id)
                 .await?
                 .into_iter()
@@ -192,7 +197,7 @@ impl Bot {
                 "エラー: webhook所有者に @{} が含まれていません",
                 delete.user_name
             );
-            self.client
+            client
                 .send_message(&delete.talking_channel_id, &message, true)
                 .await?;
             return Ok(());
@@ -201,7 +206,7 @@ impl Bot {
         let it = async_stream::stream! {
             let message = format!("Webhook {} を削除しました", delete.webhook_id);
             for u in own_users {
-                yield self.client.send_direct_message(&u, &message, false).await;
+                yield client.send_direct_message(&u, &message, false).await;
             }
         };
         pin_mut!(it);
