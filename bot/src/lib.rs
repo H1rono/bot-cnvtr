@@ -1,14 +1,15 @@
 use traq::apis::configuration::Configuration;
 use traq_bot_http::Event;
 
-use config::BotConfig;
 use repository::AllRepository;
 
 mod api;
+mod config;
 mod error;
 mod messages;
 mod system;
 
+pub use config::Config;
 pub use error::{Error, Result};
 
 // pub trait Bot
@@ -35,8 +36,8 @@ impl Bot {
         }
     }
 
-    pub fn from_config(bot_config: BotConfig) -> Self {
-        let BotConfig {
+    pub fn from_config(bot_config: Config) -> Self {
+        let Config {
             bot_id,
             bot_user_id,
             bot_access_token,

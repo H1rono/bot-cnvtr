@@ -7,8 +7,10 @@ publish = false
 [dependencies]
 indoc = { workspace = true }
 thiserror = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
+envy = { workspace = true }
 
 clap = { workspace = true }
 shlex = { workspace = true }
@@ -24,5 +26,4 @@ traq = { workspace = true }
 sqlx = { workspace = true }
 
 repository = { path = "../repository" }
-config = { path = "../config" }
 cli = { path = "../cli" }

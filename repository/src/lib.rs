@@ -3,9 +3,10 @@ use sqlx::mysql::MySqlRow;
 use sqlx::{MySqlPool, Row};
 use uuid::Uuid;
 
-use config::DbConfig as Config;
-
+mod config;
 pub mod model;
+
+pub use config::Config;
 
 pub use model::group::{Group, GroupRepository};
 pub use model::group_member::{GroupMember, GroupMemberRepository};

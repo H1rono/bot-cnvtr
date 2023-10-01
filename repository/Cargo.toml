@@ -9,8 +9,7 @@ itertools = { workspace = true }
 indoc = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
+envy = { workspace = true }
 
 async-trait = { workspace = true }
 sqlx = { workspace = true }
-
-config = { path = "../config" }
