@@ -11,6 +11,7 @@ use traq_bot_http::RequestParser;
 
 use ::bot::Bot;
 use repository::AllRepository;
+use traq_client::Client;
 
 mod bot;
 mod error;
@@ -18,15 +19,17 @@ mod wh;
 
 use error::{Error, Result};
 
-struct AppState<Repo: AllRepository> {
+struct AppState<C: Client, Repo: AllRepository> {
+    pub client: Arc<Mutex<C>>,
     pub repo: Arc<Mutex<Repo>>,
     pub parser: RequestParser,
     pub bot: Bot,
 }
 
-impl<Repo: AllRepository> Clone for AppState<Repo> {
+impl<C: Client, Repo: AllRepository> Clone for AppState<C, Repo> {
     fn clone(&self) -> Self {
         Self {
+            client: self.client.clone(),
             repo: self.repo.clone(),
             parser: self.parser.clone(),
             bot: self.bot.clone(),
@@ -34,9 +37,10 @@ impl<Repo: AllRepository> Clone for AppState<Repo> {
     }
 }
 
-impl<Repo: AllRepository> AppState<Repo> {
-    pub fn new(repo: Repo, parser: RequestParser, bot: Bot) -> Self {
+impl<C: Client, Repo: AllRepository> AppState<C, Repo> {
+    pub fn new(client: C, repo: Repo, parser: RequestParser, bot: Bot) -> Self {
         Self {
+            client: Arc::new(Mutex::new(client)),
             repo: Arc::new(Mutex::new(repo)),
             parser,
             bot,
@@ -44,19 +48,19 @@ impl<Repo: AllRepository> AppState<Repo> {
     }
 }
 
-impl<Repo: AllRepository> AsRef<AppState<Repo>> for State<AppState<Repo>> {
-    fn as_ref(&self) -> &AppState<Repo> {
+impl<C: Client, Repo: AllRepository> AsRef<AppState<C, Repo>> for State<AppState<C, Repo>> {
+    fn as_ref(&self) -> &AppState<C, Repo> {
         &self.0
     }
 }
 
-pub fn make_router<Repo: AllRepository>(repo: Repo, parser: RequestParser, bot: Bot) -> Router {
-    let state = AppState::new(repo, parser, bot);
+pub fn make_router<C: Client, Repo: AllRepository>(client: C, repo: Repo, parser: RequestParser, bot: Bot) -> Router {
+    let state = AppState::new(client, repo, parser, bot);
     Router::new()
-        .route("/bot", post(bot::event::<Repo>))
-        .route("/wh/:id", get(wh::get_wh::<Repo>))
-        .route("/wh/:id/github", post(wh::wh_github::<Repo>))
-        .route("/wh/:id/gitea", post(wh::wh_gitea::<Repo>))
-        .route("/wh/:id/clickup", post(wh::wh_clickup::<Repo>))
+        .route("/bot", post(bot::event::<C, Repo>))
+        .route("/wh/:id", get(wh::get_wh::<C, Repo>))
+        .route("/wh/:id/github", post(wh::wh_github::<C, Repo>))
+        .route("/wh/:id/gitea", post(wh::wh_gitea::<C, Repo>))
+        .route("/wh/:id/clickup", post(wh::wh_clickup::<C, Repo>))
         .with_state(state)
 }

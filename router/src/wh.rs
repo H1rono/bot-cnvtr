@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use super::{AppState, Error, Result};
 use repository::{AllRepository, Webhook, WebhookRepository};
+use traq_client::Client;
 
 mod clickup;
 mod gitea;
@@ -15,8 +16,8 @@ mod github;
 mod utils;
 
 /// GET /wh/:id
-pub(super) async fn get_wh<Repo: AllRepository>(
-    State(st): State<AppState<Repo>>,
+pub(super) async fn get_wh<C: Client, Repo: AllRepository>(
+    State(st): State<AppState<C, Repo>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>> {
     let repo = st.repo.as_ref().lock().await;
@@ -28,12 +29,13 @@ pub(super) async fn get_wh<Repo: AllRepository>(
 }
 
 /// POST /wh/:id/github
-pub(super) async fn wh_github<Db: AllRepository>(
-    State(st): State<AppState<Db>>,
+pub(super) async fn wh_github<C: Client, Repo: AllRepository>(
+    State(st): State<AppState<C, Repo>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
+    let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;
     let webhook = repo
         .webhook_repository()
@@ -45,8 +47,7 @@ pub(super) async fn wh_github<Db: AllRepository>(
         return Ok(StatusCode::NO_CONTENT);
     }
     let message = message.unwrap();
-    st.bot
-        .client
+    client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;
@@ -54,12 +55,13 @@ pub(super) async fn wh_github<Db: AllRepository>(
 }
 
 /// POST /wh/:id/gitea
-pub(super) async fn wh_gitea<Db: AllRepository>(
-    State(st): State<AppState<Db>>,
+pub(super) async fn wh_gitea<C: Client, Repo: AllRepository>(
+    State(st): State<AppState<C, Repo>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
+    let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;
     let webhook = repo
         .webhook_repository()
@@ -67,8 +69,7 @@ pub(super) async fn wh_gitea<Db: AllRepository>(
         .await?
         .ok_or(Error::NotFound)?;
     let message = gitea::handle(headers, payload)?;
-    st.bot
-        .client
+    client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;
@@ -76,12 +77,13 @@ pub(super) async fn wh_gitea<Db: AllRepository>(
 }
 
 /// POST /wh/:id/clickup
-pub(super) async fn wh_clickup<Db: AllRepository>(
-    State(st): State<AppState<Db>>,
+pub(super) async fn wh_clickup<C: Client, Db: AllRepository>(
+    State(st): State<AppState<C, Db>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode> {
+    let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;
     let webhook = repo
         .webhook_repository()
@@ -89,8 +91,7 @@ pub(super) async fn wh_clickup<Db: AllRepository>(
         .await?
         .ok_or(Error::NotFound)?;
     let message = clickup::handle(headers, payload)?;
-    st.bot
-        .client
+    client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
         .map_err(Error::from)?;
