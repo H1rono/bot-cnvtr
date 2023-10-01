@@ -12,6 +12,7 @@ envy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+async-trait = { workspace = true }
 async-recursion = { workspace = true }
 reqwest = { workspace = true }
 traq = { workspace = true }
