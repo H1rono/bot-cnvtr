@@ -2,7 +2,7 @@ use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
+use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
 use repository::{
     self, AllRepository, GroupMemberRepository, GroupRepository, OwnerRepository, UserRepository,
     WebhookRepository,

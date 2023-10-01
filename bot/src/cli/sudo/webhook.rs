@@ -15,7 +15,7 @@ pub enum Incomplete {
     },
 }
 
-impl<'a> crate::Incomplete<&'a Message> for Incomplete {
+impl<'a> crate::cli::Incomplete<&'a Message> for Incomplete {
     type Completed = Completed;
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
@@ -40,7 +40,7 @@ pub enum Completed {
     Delete(Delete),
 }
 
-impl crate::Completed for Completed {
+impl crate::cli::Completed for Completed {
     type Incomplete = Incomplete;
 
     fn incomplete(&self) -> Self::Incomplete {

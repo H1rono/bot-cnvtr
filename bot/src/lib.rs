@@ -3,6 +3,7 @@ use traq_bot_http::Event;
 use repository::AllRepository;
 use traq_client::Client;
 
+pub(crate) mod cli;
 mod config;
 mod error;
 mod messages;

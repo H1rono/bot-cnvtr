@@ -22,5 +22,4 @@ traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
 
 repository = { path = "../repository" }
-cli = { path = "../cli" }
 traq-client = { path = "../traq-client" }

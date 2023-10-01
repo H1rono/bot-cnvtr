@@ -1,4 +1,4 @@
-use cli::sudo::{
+use crate::cli::sudo::{
     webhook::{Completed, Delete, ListAll},
     SudoCompleted,
 };

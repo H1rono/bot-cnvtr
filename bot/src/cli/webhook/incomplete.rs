@@ -6,7 +6,7 @@ use uuid::Uuid;
 use repository::Owner;
 
 use super::complete;
-use crate::Incomplete;
+use crate::cli::Incomplete;
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Webhook {
