@@ -262,6 +262,7 @@ dependencies = [
  "thiserror",
  "traq",
  "traq-bot-http",
+ "traq-client",
  "uuid",
 ]
 
@@ -2179,6 +2180,17 @@ dependencies = [
 [[package]]
 name = "traq-client"
 version = "0.1.0"
+dependencies = [
+ "async-recursion",
+ "envy",
+ "indoc",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "traq",
+ "uuid",
+]
 
 [[package]]
 name = "try-lock"
