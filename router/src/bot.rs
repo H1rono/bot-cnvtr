@@ -47,7 +47,11 @@ pub(super) async fn event<C: Client, Repo: AllRepository>(
 ) -> StatusCode {
     let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;
-    match st.bot.handle_event(client.deref(), repo.deref(), event).await {
+    match st
+        .bot
+        .handle_event(client.deref(), repo.deref(), event)
+        .await
+    {
         Ok(_) => StatusCode::NO_CONTENT,
         Err(err) => {
             eprintln!("ERROR: {err}");

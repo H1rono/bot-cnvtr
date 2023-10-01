@@ -54,7 +54,12 @@ impl<C: Client, Repo: AllRepository> AsRef<AppState<C, Repo>> for State<AppState
     }
 }
 
-pub fn make_router<C: Client, Repo: AllRepository>(client: C, repo: Repo, parser: RequestParser, bot: Bot) -> Router {
+pub fn make_router<C: Client, Repo: AllRepository>(
+    client: C,
+    repo: Repo,
+    parser: RequestParser,
+    bot: Bot,
+) -> Router {
     let state = AppState::new(client, repo, parser, bot);
     Router::new()
         .route("/bot", post(bot::event::<C, Repo>))
