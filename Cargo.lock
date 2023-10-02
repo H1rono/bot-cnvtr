@@ -335,7 +335,6 @@ dependencies = [
  "repository",
  "router",
  "tokio",
- "traq-bot-http",
  "traq-client",
 ]
 
@@ -1415,9 +1414,11 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "bot",
+ "envy",
  "hyper",
  "indoc",
  "repository",
+ "serde",
  "serde_json",
  "sqlx",
  "thiserror",
