@@ -14,9 +14,11 @@ use repository::AllRepository;
 use traq_client::Client;
 
 mod bot;
+mod config;
 mod error;
 mod wh;
 
+pub use config::Config;
 use error::{Error, Result};
 
 struct AppState<C: Client, Repo: AllRepository> {
@@ -55,11 +57,12 @@ impl<C: Client, Repo: AllRepository> AsRef<AppState<C, Repo>> for State<AppState
 }
 
 pub fn make_router<C: Client, Repo: AllRepository>(
+    config: Config,
     client: C,
     repo: Repo,
-    parser: RequestParser,
     bot: Bot,
 ) -> Router {
+    let parser = config.into();
     let state = AppState::new(client, repo, parser, bot);
     Router::new()
         .route("/bot", post(bot::event::<C, Repo>))
