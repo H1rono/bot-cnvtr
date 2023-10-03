@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub bot_id: String,
     pub bot_user_id: String,
-    pub verification_token: String,
 }
 
 impl Config {

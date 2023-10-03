@@ -31,7 +31,6 @@ impl Bot {
         let Config {
             bot_id,
             bot_user_id,
-            ..
         } = bot_config;
         Self {
             id: bot_id,
