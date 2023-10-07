@@ -14,7 +14,7 @@ pub enum Error {
     #[error("traq-client error: {0}")]
     Client(#[from] ClientError),
     #[error("processing error")]
-    Process(#[from] ::bot::Error),
+    Process(#[from] usecases::Error),
     #[error("unexpected error")]
     Unexpected,
 }

@@ -11,7 +11,7 @@ dotenvy = { workspace = true }
 tokio = { workspace = true }
 axum = { workspace = true }
 
-bot = { path = "../bot" }
+usecases = { path = "../usecases" }
 repository = { path = "../repository" }
 router = { path = "../router" }
 traq-client = { path = "../traq-client" }

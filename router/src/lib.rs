@@ -9,9 +9,9 @@ use tokio::sync::Mutex;
 
 use traq_bot_http::RequestParser;
 
-use ::bot::Bot;
 use repository::AllRepository;
 use traq_client::Client;
+use usecases::Bot;
 use wh_handler::WebhookHandler;
 
 mod bot;

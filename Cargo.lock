@@ -232,26 +232,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bot"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "clap",
- "envy",
- "futures",
- "indoc",
- "repository",
- "serde",
- "serde_json",
- "shlex",
- "sqlx",
- "thiserror",
- "traq-bot-http",
- "traq-client",
- "uuid",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -329,13 +309,13 @@ name = "cnvtr"
 version = "0.1.0"
 dependencies = [
  "axum",
- "bot",
  "dotenvy",
  "envy",
  "repository",
  "router",
  "tokio",
  "traq-client",
+ "usecases",
  "wh-handler",
 ]
 
@@ -1422,7 +1402,6 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "axum",
- "bot",
  "envy",
  "hyper",
  "indoc",
@@ -1434,6 +1413,7 @@ dependencies = [
  "tokio",
  "traq-bot-http",
  "traq-client",
+ "usecases",
  "uuid",
  "wh-handler",
 ]
@@ -2242,6 +2222,26 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+]
+
+[[package]]
+name = "usecases"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "clap",
+ "envy",
+ "futures",
+ "indoc",
+ "repository",
+ "serde",
+ "serde_json",
+ "shlex",
+ "sqlx",
+ "thiserror",
+ "traq-bot-http",
+ "traq-client",
+ "uuid",
 ]
 
 [[package]]
