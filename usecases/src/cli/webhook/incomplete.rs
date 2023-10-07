@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
+use entity::User;
+
 use super::complete;
 use crate::cli::Incomplete;
 
@@ -67,14 +69,14 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             .and_then(|c| embeds.iter().find(|e| e.raw == c))
             .map(|e| e.id)
             .unwrap_or(context.channel_id);
-        let owner_name = self.owner.unwrap_or_else(|| user.name.clone());
+        let owner_name = self.owner.clone().unwrap_or_else(|| user.name.clone());
         let embed = embeds.iter().find(|e| e.raw == owner_name);
         let owner_id = embed.map(|e| e.id).unwrap_or(user.id);
-        let owner_kind = embed
-            .map(|e| e.type_ == "group")
-            .unwrap_or_default()
-            .then_some(OwnerKind::Group)
-            .unwrap_or(OwnerKind::SingleUser);
+        let owner_kind = if embed.map(|e| e.type_ == "group").unwrap_or_default() {
+            OwnerKind::Group
+        } else {
+            OwnerKind::SingleUser
+        };
         complete::WebhookCreate {
             user_id: context.user.id,
             user_name: context.user.name.clone(),
@@ -113,9 +115,11 @@ impl<'a> Incomplete<&'a Message> for WebhookList {
     type Completed = complete::WebhookList;
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
-        complete::WebhookList {
-            user_id: context.user.id,
-        }
+        let user = User {
+            id: context.user.id,
+            name: context.user.name.clone(),
+        };
+        complete::WebhookList { user }
     }
 }
 
@@ -128,9 +132,12 @@ impl<'a> Incomplete<&'a Message> for WebhookDelete {
     type Completed = complete::WebhookDelete;
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
+        let user = User {
+            id: context.user.id,
+            name: context.user.name.clone(),
+        };
         complete::WebhookDelete {
-            user_id: context.user.id,
-            user_name: context.user.name.clone(),
+            user,
             talking_channel_id: context.channel_id,
             webhook_id: self.id,
         }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use entity::OwnerKind;
+use entity::{OwnerKind, User};
 
 use super::incomplete;
 use crate::cli::Completed;
@@ -54,14 +54,16 @@ impl Completed for WebhookCreate {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookList {
-    pub user_id: Uuid,
+    pub user: User,
 }
 
 impl From<Message> for WebhookList {
     fn from(value: Message) -> Self {
-        Self {
-            user_id: value.user.id,
-        }
+        let user = User {
+            id: value.user.id,
+            name: value.user.name,
+        };
+        Self { user }
     }
 }
 
@@ -87,8 +89,7 @@ impl Completed for WebhookList {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
-    pub user_id: Uuid,
-    pub user_name: String,
+    pub user: User,
     pub talking_channel_id: Uuid,
     pub webhook_id: Uuid,
 }
