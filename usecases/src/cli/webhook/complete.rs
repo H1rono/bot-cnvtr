@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use repository::Owner;
+use entity::OwnerKind;
 
 use super::incomplete;
 use crate::cli::Completed;
@@ -36,7 +36,9 @@ pub struct WebhookCreate {
     pub channel_name: Option<String>,
     pub channel_id: Uuid,
     pub channel_dm: bool,
-    pub owner: Owner,
+    pub owner_id: Uuid,
+    pub owner_name: String,
+    pub owner_kind: OwnerKind,
 }
 
 impl Completed for WebhookCreate {
@@ -45,7 +47,7 @@ impl Completed for WebhookCreate {
     fn incomplete(&self) -> Self::Incomplete {
         incomplete::WebhookCreate {
             channel: self.channel_name.clone(),
-            owner: Some(self.owner.name.clone()),
+            owner: Some(self.owner_name.clone()),
         }
     }
 }

@@ -1,9 +1,8 @@
 use clap::{Args, Subcommand};
+use entity::OwnerKind;
 use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
-
-use repository::Owner;
 
 use super::complete;
 use crate::cli::Incomplete;
@@ -68,24 +67,14 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             .and_then(|c| embeds.iter().find(|e| e.raw == c))
             .map(|e| e.id)
             .unwrap_or(context.channel_id);
-        let owner = self
-            .owner
-            .as_deref()
-            .and_then(|o| embeds.iter().find(|e| e.raw == o))
-            .map(|e| Owner {
-                id: e.id,
-                name: e
-                    .raw
-                    .starts_with('@')
-                    .then(|| e.raw.replacen('@', "", 1))
-                    .unwrap_or(e.raw.clone()),
-                group: e.type_ == "group",
-            })
-            .unwrap_or(Owner {
-                id: user.id,
-                name: user.name.clone(),
-                group: false,
-            });
+        let owner_name = self.owner.unwrap_or_else(|| user.name.clone());
+        let embed = embeds.iter().find(|e| e.raw == owner_name);
+        let owner_id = embed.map(|e| e.id).unwrap_or(user.id);
+        let owner_kind = embed
+            .map(|e| e.type_ == "group")
+            .unwrap_or_default()
+            .then_some(OwnerKind::Group)
+            .unwrap_or(OwnerKind::SingleUser);
         complete::WebhookCreate {
             user_id: context.user.id,
             user_name: context.user.name.clone(),
@@ -94,7 +83,9 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             channel_name: self.channel.clone(),
             channel_id,
             channel_dm: self.channel.is_none() && in_dm,
-            owner,
+            owner_id,
+            owner_name,
+            owner_kind,
         }
     }
 }
