@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["cnvtr", "entity", "repository", "router", "bot", "traq-client"]
+members = ["cnvtr", "entity", "repository", "router", "bot", "traq-client", "wh-handler"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

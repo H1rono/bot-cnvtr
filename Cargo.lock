@@ -1434,6 +1434,7 @@ dependencies = [
  "traq-bot-http",
  "traq-client",
  "uuid",
+ "wh-handler",
 ]
 
 [[package]]
@@ -2359,6 +2360,18 @@ checksum = "9b85cbef8c220a6abc02aefd892dfc0fc23afb1c6a426316ec33253a3877249b"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "wh-handler"
+version = "0.1.0"
+dependencies = [
+ "hyper",
+ "indoc",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]

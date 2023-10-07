@@ -1,6 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error as ThisError;
 use traq_client::Error as ClientError;
+use wh_handler::Error as WebhookHandlerError;
 
 #[derive(Debug, ThisError)]
 pub enum Error {
@@ -14,6 +15,19 @@ pub enum Error {
     Client(#[from] ClientError),
     #[error("processing error")]
     Process(#[from] ::bot::Error),
+    #[error("unexpected error")]
+    Unexpected,
+}
+
+impl From<WebhookHandlerError> for Error {
+    fn from(value: WebhookHandlerError) -> Self {
+        use WebhookHandlerError::*;
+        match value {
+            MissingField => Error::BadRequest,
+            WrongType => Error::BadRequest,
+            SerdeJson(_) => Error::Unexpected,
+        }
+    }
 }
 
 impl IntoResponse for Error {
@@ -31,6 +45,10 @@ impl IntoResponse for Error {
             }
             Self::Client(e) => {
                 eprintln!("client error: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+            Self::Unexpected => {
+                eprintln!("unexpected error");
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }

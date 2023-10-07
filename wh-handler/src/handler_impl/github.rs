@@ -1,4 +1,4 @@
-use axum::http::HeaderMap;
+use hyper::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
 
@@ -8,9 +8,9 @@ use crate::{Error, Result};
 pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String>> {
     let event_type = headers
         .get("X-GitHub-Event")
-        .ok_or(Error::BadRequest)?
+        .ok_or(Error::MissingField)?
         .to_str()
-        .map_err(|_| Error::BadRequest)?;
+        .map_err(|_| Error::WrongType)?;
     match event_type {
         "create" => create(payload),
         "delete" => delete(payload),

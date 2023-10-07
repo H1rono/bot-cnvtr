@@ -11,6 +11,7 @@ use traq_bot_http::Event;
 
 use repository::AllRepository;
 use traq_client::Client;
+use wh_handler::WebhookHandler;
 
 use super::AppState;
 
@@ -18,12 +19,14 @@ use super::AppState;
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<C: Client, Repo: AllRepository> FromRequest<AppState<C, Repo>, Body> for BotEvent {
+impl<C: Client, Repo: AllRepository, WH: WebhookHandler> FromRequest<AppState<C, Repo, WH>, Body>
+    for BotEvent
+{
     type Rejection = StatusCode;
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppState<C, Repo>,
+        state: &AppState<C, Repo, WH>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -41,8 +44,8 @@ impl<C: Client, Repo: AllRepository> FromRequest<AppState<C, Repo>, Body> for Bo
     }
 }
 
-pub(super) async fn event<C: Client, Repo: AllRepository>(
-    State(st): State<AppState<C, Repo>>,
+pub(super) async fn event<C: Client, Repo: AllRepository, WH: WebhookHandler>(
+    State(st): State<AppState<C, Repo, WH>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode {
     let client = st.client.as_ref().lock().await;
