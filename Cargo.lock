@@ -2229,18 +2229,18 @@ name = "usecases"
 version = "0.1.0"
 dependencies = [
  "async-stream",
+ "async-trait",
  "clap",
+ "entity",
  "envy",
  "futures",
  "indoc",
- "repository",
  "serde",
  "serde_json",
  "shlex",
  "sqlx",
  "thiserror",
  "traq-bot-http",
- "traq-client",
  "uuid",
 ]
 

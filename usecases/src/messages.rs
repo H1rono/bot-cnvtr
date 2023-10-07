@@ -1,12 +1,10 @@
 use clap::Parser;
-use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use repository::AllRepository;
-use traq_client::Client;
-
-use super::{Bot, Result};
+use super::{Bot, Error, Result};
 use crate::cli::{Cli, CompletedCmds, Incomplete};
+use crate::traits::{Repository, TraqClient};
 
 mod cmd_sudo;
 mod cmd_webhook;
@@ -22,29 +20,20 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
 }
 
 impl Bot {
-    async fn parse(&self, client: &impl Client, message: &Message) -> Result<Option<Cli>> {
-        match parse_command(&message.plain_text) {
-            Ok(c) => Ok(Some(c)),
-            Err(e) => {
-                client
-                    .send_code(&message.channel_id, "", &e.to_string())
-                    .await?;
-                Ok(None)
-            }
-        }
-    }
-
-    async fn run_command(
+    async fn run_command2<E1, E2>(
         &self,
-        client: &impl Client,
-        repo: &impl AllRepository,
+        repo: &impl Repository<Error = E1>,
+        client: &impl TraqClient<Error = E2>,
         message_id: &Uuid,
         cmd: CompletedCmds,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Error: From<E1> + From<E2>,
+    {
         use CompletedCmds::*;
         let res = match cmd {
-            Webhook(w) => self.handle_webhook_command(client, repo, w).await,
-            Sudo(s) => self.handle_sudo_command(client, repo, s).await,
+            Webhook(w) => self.handle_webhook_command(repo, client, w).await,
+            Sudo(s) => self.handle_sudo_command(repo, client, s).await,
         };
         match res {
             Ok(_) => {
@@ -62,41 +51,59 @@ impl Bot {
         }
     }
 
-    pub async fn on_message_created(
+    pub(super) async fn on_message_created<E1, E2>(
         &self,
-        client: &impl Client,
-        repo: &impl AllRepository,
+        repo: &impl Repository<Error = E1>,
+        client: &impl TraqClient<Error = E2>,
         payload: MessageCreatedPayload,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Error: From<E1> + From<E2>,
+    {
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let cli = match self.parse(client, &payload.message).await? {
-            Some(c) => c,
-            None => return Ok(()),
+        let message = &payload.message;
+        let cli = match parse_command(&message.plain_text) {
+            Ok(c) => c,
+            Err(e) => {
+                client
+                    .send_code(&message.channel_id, "", &e.to_string())
+                    .await?;
+                return Ok(());
+            }
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(client, repo, mid, cmd).await
+        self.run_command2(repo, client, mid, cmd).await
     }
 
-    pub async fn on_direct_message_created(
+    pub(super) async fn on_direct_message_created<E1, E2>(
         &self,
-        client: &impl Client,
-        repo: &impl AllRepository,
+        repo: &impl Repository<Error = E1>,
+        client: &impl TraqClient<Error = E2>,
         payload: DirectMessageCreatedPayload,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Error: From<E1> + From<E2>,
+    {
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
         );
-        let cli = match self.parse(client, &payload.message).await? {
-            Some(c) => c,
-            None => return Ok(()),
+        let message = &payload.message;
+        let cli = match parse_command(&message.plain_text) {
+            Ok(c) => c,
+            Err(e) => {
+                client
+                    .send_code(&message.channel_id, "", &e.to_string())
+                    .await?;
+                return Ok(());
+            }
         };
         let mid = &payload.message.id;
         let cmd = cli.cmd.complete(&payload);
-        self.run_command(client, repo, mid, cmd).await
+        self.run_command2(repo, client, mid, cmd).await
     }
 }

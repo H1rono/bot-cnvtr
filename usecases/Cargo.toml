@@ -17,9 +17,9 @@ shlex = { workspace = true }
 
 futures = { workspace = true }
 async-stream = { workspace = true }
+async-trait = { workspace = true }
 
 traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
 
-repository = { path = "../repository" }
-traq-client = { path = "../traq-client" }
+entity = { path = "../entity" }
