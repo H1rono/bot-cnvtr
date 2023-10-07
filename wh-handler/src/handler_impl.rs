@@ -11,6 +11,18 @@ mod utils;
 #[derive(Debug, Clone)]
 pub struct WebhookHandlerImpl;
 
+impl WebhookHandlerImpl {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Default for WebhookHandlerImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WebhookHandler for WebhookHandlerImpl {
     fn github_webhook(&self, headers: HeaderMap, payload: Value) -> Result<Option<String>> {
         github::handle(headers, payload)

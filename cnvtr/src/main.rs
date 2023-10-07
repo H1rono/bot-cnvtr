@@ -5,6 +5,7 @@ use bot::Bot;
 use repository::RepositoryImpl;
 use router::make_router;
 use traq_client::ClientImpl;
+use wh_handler::WebhookHandlerImpl;
 
 mod config;
 
@@ -25,7 +26,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
     let bot = Bot::from_config(bot_config);
-    let app = make_router(router_config, client, repo, bot);
+    let wh = WebhookHandlerImpl::new();
+    let app = make_router(router_config, client, wh, repo, bot);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let server = axum::Server::bind(&addr).serve(app.into_make_service());
     println!("listening on {} ...", addr);

@@ -336,6 +336,7 @@ dependencies = [
  "router",
  "tokio",
  "traq-client",
+ "wh-handler",
 ]
 
 [[package]]
