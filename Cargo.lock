@@ -1351,11 +1351,13 @@ name = "repository"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "entity",
  "envy",
  "indoc",
  "itertools",
  "serde",
  "sqlx",
+ "usecases",
  "uuid",
 ]
 
@@ -1402,17 +1404,16 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "entity",
  "envy",
  "hyper",
  "indoc",
- "repository",
  "serde",
  "serde_json",
  "sqlx",
  "thiserror",
  "tokio",
  "traq-bot-http",
- "traq-client",
  "usecases",
  "uuid",
  "wh-handler",
@@ -2148,6 +2149,7 @@ name = "traq-client"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "entity",
  "envy",
  "indoc",
  "itertools",
@@ -2156,6 +2158,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "traq",
+ "usecases",
  "uuid",
 ]
 
