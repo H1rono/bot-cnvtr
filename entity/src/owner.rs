@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{Group, User};
 
@@ -15,6 +16,27 @@ impl Owner {
             Self::SigleUser(_) => OwnerKind::SingleUser,
         }
     }
+
+    pub fn id(&self) -> Uuid {
+        match self {
+            Self::Group(g) => g.id,
+            Self::SigleUser(u) => u.id,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Group(g) => &g.name,
+            Self::SigleUser(u) => &u.name,
+        }
+    }
+
+    pub fn users(&self) -> Vec<&User> {
+        match self {
+            Self::Group(g) => g.members.iter().collect(),
+            Self::SigleUser(u) => vec![u],
+        }
+    }
 }
 
 impl From<Group> for Owner {
@@ -29,7 +51,7 @@ impl From<User> for Owner {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum OwnerKind {
     Group,
     SingleUser,
