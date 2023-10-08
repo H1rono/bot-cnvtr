@@ -5,7 +5,7 @@ mod config;
 mod error;
 mod messages;
 mod system;
-mod traits;
+pub mod traits;
 
 pub use config::Config;
 pub use error::{Error, Result};
