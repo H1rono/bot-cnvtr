@@ -7,7 +7,7 @@ pub enum Error {
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
     #[error("other")]
-    Other(Box<dyn std::error::Error>),
+    Other(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

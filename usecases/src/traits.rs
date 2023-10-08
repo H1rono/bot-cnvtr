@@ -6,7 +6,7 @@ use entity::{Group, Owner, User, Webhook};
 
 #[async_trait]
 pub trait Repository: Send + Sync + 'static {
-    type Error;
+    type Error: Send + Sync + 'static;
 
     async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error>;
     async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error>;
@@ -22,7 +22,7 @@ pub trait Repository: Send + Sync + 'static {
 
 #[async_trait]
 pub trait TraqClient: Send + Sync + 'static {
-    type Error;
+    type Error: Send + Sync + 'static;
 
     async fn send_message(
         &self,
