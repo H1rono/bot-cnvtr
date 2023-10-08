@@ -16,3 +16,6 @@ serde_json = { workspace = true }
 async-trait = { workspace = true }
 reqwest = { workspace = true }
 traq = { workspace = true }
+
+entity = { path = "../entity" }
+usecases = { path = "../usecases" }

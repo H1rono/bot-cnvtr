@@ -3,19 +3,13 @@ use std::vec;
 use async_trait::async_trait;
 use indoc::formatdoc;
 use itertools::Itertools;
-
-use traq::apis::channel_api::get_channel;
 use traq::apis::configuration::Configuration;
-use traq::apis::group_api::get_user_group_members;
-use traq::apis::message_api::post_message;
-use traq::apis::stamp_api::add_message_stamp;
-use traq::apis::user_api::{get_user, post_direct_message};
-use traq::models::{
-    Message, PostMessageRequest, PostMessageStampRequest, UserDetail, UserGroupMember,
-};
 use uuid::Uuid;
 
-use crate::{Config, Result};
+use entity::{Group, User};
+use usecases::traits::TraqClient;
+
+use crate::{Config, Error, Result};
 
 #[derive(Debug, Clone)]
 pub struct ClientImpl {
@@ -41,19 +35,33 @@ impl ClientImpl {
 }
 
 #[async_trait]
-impl crate::Client for ClientImpl {
-    async fn send_message(&self, channel_id: &Uuid, content: &str, embed: bool) -> Result<Message> {
+impl TraqClient for ClientImpl {
+    type Error = Error;
+
+    async fn send_message(
+        &self,
+        channel_id: &Uuid,
+        content: &str,
+        embed: bool,
+    ) -> Result<(), Self::Error> {
+        use traq::apis::message_api::post_message;
+        use traq::models::PostMessageRequest;
         println!("send_message: {}", channel_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
         };
         let channel_id = channel_id.to_string();
-        let res = post_message(&self.config, &channel_id, Some(req)).await?;
-        Ok(res)
+        post_message(&self.config, &channel_id, Some(req)).await?;
+        Ok(())
     }
 
-    async fn send_code(&self, channel_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
+    async fn send_code(
+        &self,
+        channel_id: &Uuid,
+        lang: &str,
+        code: &str,
+    ) -> Result<(), Self::Error> {
         let message = formatdoc! {
             r#"
             ```{}
@@ -70,18 +78,25 @@ impl crate::Client for ClientImpl {
         user_id: &Uuid,
         content: &str,
         embed: bool,
-    ) -> Result<Message> {
+    ) -> Result<(), Self::Error> {
+        use traq::apis::user_api::post_direct_message;
+        use traq::models::PostMessageRequest;
         println!("send_dm: {}", user_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
         };
         let user_id = user_id.to_string();
-        let res = post_direct_message(&self.config, &user_id, Some(req)).await?;
-        Ok(res)
+        post_direct_message(&self.config, &user_id, Some(req)).await?;
+        Ok(())
     }
 
-    async fn send_code_dm(&self, user_id: &Uuid, lang: &str, code: &str) -> Result<Message> {
+    async fn send_code_dm(
+        &self,
+        user_id: &Uuid,
+        lang: &str,
+        code: &str,
+    ) -> Result<(), Self::Error> {
         let message = formatdoc! {
             r#"
             ```{}
@@ -94,21 +109,38 @@ impl crate::Client for ClientImpl {
             .await
     }
 
-    async fn get_group_members(&self, group_id: &Uuid) -> Result<Vec<UserGroupMember>> {
-        println!("get_group_members: {}", group_id);
-        let group_id = group_id.to_string();
-        let res = get_user_group_members(&self.config, &group_id).await?;
-        Ok(res)
+    async fn get_group(&self, group_id: &Uuid) -> Result<Group, Self::Error> {
+        use traq::apis::group_api::get_user_group;
+        println!("get_group: {}", group_id);
+        let gid = group_id.to_string();
+        let g = get_user_group(&self.config, &gid).await?;
+        let mut members = vec![];
+        for gm in g.members {
+            let user = self.get_user(&gm.id).await?;
+            members.push(user);
+        }
+        let group = Group {
+            id: *group_id,
+            name: g.name,
+            members,
+        };
+        Ok(group)
     }
 
-    async fn get_user(&self, user_id: &Uuid) -> Result<UserDetail> {
+    async fn get_user(&self, user_id: &Uuid) -> Result<User, Self::Error> {
+        use traq::apis::user_api::get_user;
         println!("get_user: {}", user_id);
-        let user_id = user_id.to_string();
-        let res = get_user(&self.config, &user_id).await?;
-        Ok(res)
+        let uid = user_id.to_string();
+        let u = get_user(&self.config, &uid).await?;
+        let user = User {
+            id: u.id,
+            name: u.name,
+        };
+        Ok(user)
     }
 
-    async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String> {
+    async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String, Self::Error> {
+        use traq::apis::channel_api::get_channel;
         println!("get_channel_path: {}", channel_id);
         let mut channel_names: Vec<String> = vec![];
         let mut channel_id = Some(*channel_id);
@@ -125,7 +157,9 @@ impl crate::Client for ClientImpl {
         message_id: &Uuid,
         stamp_id: &Uuid,
         count: i32,
-    ) -> Result<()> {
+    ) -> Result<(), Self::Error> {
+        use traq::apis::stamp_api::add_message_stamp;
+        use traq::models::PostMessageStampRequest;
         println!("add_message_stamp: {}, {}", message_id, stamp_id);
         let req = PostMessageStampRequest { count };
         let message_id = message_id.to_string();

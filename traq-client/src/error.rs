@@ -29,4 +29,10 @@ impl<T> From<ApiError<T>> for Error {
     }
 }
 
+impl From<Error> for usecases::Error {
+    fn from(value: Error) -> Self {
+        usecases::Error::Other(value.into())
+    }
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;
