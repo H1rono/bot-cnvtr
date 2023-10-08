@@ -1,5 +1,11 @@
-pub mod group;
-pub mod group_member;
-pub mod owner;
-pub mod user;
-pub mod webhook;
+mod group;
+mod group_member;
+mod owner;
+mod user;
+mod webhook;
+
+pub use group::Group;
+pub use group_member::GroupMember;
+pub use owner::Owner;
+pub use user::User;
+pub use webhook::Webhook;

@@ -26,10 +26,7 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    async fn complete_webhook(
-        &self,
-        w: &crate::model::webhook::Webhook,
-    ) -> Result<Webhook, sqlx::Error> {
+    async fn complete_webhook(&self, w: &crate::model::Webhook) -> Result<Webhook, sqlx::Error> {
         let o = self.find_owner(&w.owner_id).await?.unwrap();
         let owner = if o.group {
             let g = self.find_group(&o.id).await?.unwrap();
@@ -65,7 +62,7 @@ impl RepositoryImpl {
 
     async fn complete_webhooks(
         &self,
-        ws: &[crate::model::webhook::Webhook],
+        ws: &[crate::model::Webhook],
     ) -> Result<Vec<Webhook>, sqlx::Error> {
         let mut webhooks = vec![];
         for w in ws {
@@ -87,13 +84,13 @@ impl Repository for RepositoryImpl {
     type Error = sqlx::Error;
 
     async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
-        let w = crate::model::webhook::Webhook {
+        let w = crate::model::Webhook {
             id: webhook.id,
             channel_id: webhook.channel_id,
             owner_id: webhook.owner.id(),
         };
         self.create_webhook(w).await?;
-        let o = crate::model::owner::Owner {
+        let o = crate::model::Owner {
             id: webhook.owner.id(),
             name: webhook.owner.name().to_string(),
             group: webhook.owner.kind() == OwnerKind::Group,
@@ -102,9 +99,9 @@ impl Repository for RepositoryImpl {
         self.create_ignore_owners(&[o]).await?;
         match &webhook.owner {
             Owner::Group(group) => {
-                use crate::model::group::Group;
-                use crate::model::group_member::GroupMember;
-                use crate::model::user::User;
+                use crate::model::Group;
+                use crate::model::GroupMember;
+                use crate::model::User;
                 let g = Group {
                     id: group.id,
                     name: group.name.clone(),
@@ -130,7 +127,7 @@ impl Repository for RepositoryImpl {
                 self.create_ignore_users(&us).await?;
             }
             Owner::SigleUser(user) => {
-                let u = crate::model::user::User {
+                let u = crate::model::User {
                     id: user.id,
                     name: user.name.clone(),
                 };

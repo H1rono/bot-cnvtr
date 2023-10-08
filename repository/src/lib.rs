@@ -4,17 +4,10 @@ use sqlx::Row;
 use uuid::Uuid;
 
 mod config;
-pub mod model;
+pub(crate) mod model;
 mod repo_impl;
 
 pub use config::Config;
-
-pub use model::group::Group;
-pub use model::group_member::GroupMember;
-pub use model::owner::Owner;
-pub use model::user::User;
-pub use model::webhook::Webhook;
-
 pub use repo_impl::RepositoryImpl;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
