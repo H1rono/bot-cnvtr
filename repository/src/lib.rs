@@ -9,11 +9,11 @@ mod repo_impl;
 
 pub use config::Config;
 
-pub use model::group::{Group, GroupRepository};
-pub use model::group_member::{GroupMember, GroupMemberRepository};
-pub use model::owner::{Owner, OwnerRepository};
-pub use model::user::{User, UserRepository};
-pub use model::webhook::{Webhook, WebhookRepository};
+pub use model::group::Group;
+pub use model::group_member::GroupMember;
+pub use model::owner::Owner;
+pub use model::user::User;
+pub use model::webhook::Webhook;
 
 pub use repo_impl::RepositoryImpl;
 

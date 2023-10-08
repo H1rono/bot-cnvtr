@@ -1,6 +1,5 @@
 use std::iter;
 
-use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -24,19 +23,9 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
     }
 }
 
-#[async_trait]
-pub trait GroupRepository {
-    async fn read(&self) -> Result<Vec<Group>>;
-    async fn find(&self, id: &Uuid) -> Result<Option<Group>>;
-    async fn create(&self, g: Group) -> Result<()>;
-    async fn create_ignore(&self, gs: &[Group]) -> Result<()>;
-    async fn update(&self, id: &Uuid, g: Group) -> Result<()>;
-    async fn delete(&self, id: &Uuid) -> Result<()>;
-}
-
-#[async_trait]
-impl GroupRepository for RepositoryImpl {
-    async fn read(&self) -> Result<Vec<Group>> {
+#[allow(dead_code)]
+impl RepositoryImpl {
+    pub(crate) async fn read_groups(&self) -> Result<Vec<Group>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `groups`
@@ -45,7 +34,7 @@ impl GroupRepository for RepositoryImpl {
         .await
     }
 
-    async fn find(&self, id: &Uuid) -> Result<Option<Group>> {
+    pub(crate) async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `groups`
@@ -57,7 +46,7 @@ impl GroupRepository for RepositoryImpl {
         .await
     }
 
-    async fn create(&self, g: Group) -> Result<()> {
+    pub(crate) async fn create_group(&self, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `groups` (`id`, `name`)
             VALUES (?, ?)
@@ -69,7 +58,7 @@ impl GroupRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn create_ignore(&self, gs: &[Group]) -> Result<()> {
+    pub(crate) async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
         let gs_len = gs.len();
         if gs_len == 0 {
             return Ok(());
@@ -89,7 +78,7 @@ impl GroupRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn update(&self, id: &Uuid, g: Group) -> Result<()> {
+    pub(crate) async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `groups`
             SET `id` = ?, `name` = ?
@@ -103,7 +92,7 @@ impl GroupRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn delete(&self, id: &Uuid) -> Result<()> {
+    pub(crate) async fn delete_group(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `groups`
             WHERE `id` = ?

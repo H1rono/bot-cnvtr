@@ -7,9 +7,6 @@ use usecases::traits::Repository;
 
 use crate::config::Config;
 use crate::MIGRATOR;
-use crate::{
-    GroupMemberRepository, GroupRepository, OwnerRepository, UserRepository, WebhookRepository,
-};
 
 pub struct RepositoryImpl(pub(crate) MySqlPool);
 
@@ -33,17 +30,13 @@ impl RepositoryImpl {
         &self,
         w: &crate::model::webhook::Webhook,
     ) -> Result<Webhook, sqlx::Error> {
-        let o = <Self as OwnerRepository>::find(self, &w.owner_id)
-            .await?
-            .unwrap();
+        let o = self.find_owner(&w.owner_id).await?.unwrap();
         let owner = if o.group {
-            let g = <Self as GroupRepository>::find(self, &o.id).await?.unwrap();
-            let gms = <Self as GroupMemberRepository>::filter_by_gid(self, &g.id).await?;
+            let g = self.find_group(&o.id).await?.unwrap();
+            let gms = self.filter_group_members_by_gid(&g.id).await?;
             let mut members = vec![];
             for gm in gms {
-                let u = <Self as UserRepository>::find(self, &gm.user_id)
-                    .await?
-                    .unwrap();
+                let u = self.find_user(&gm.user_id).await?.unwrap();
                 members.push(User {
                     id: u.id,
                     name: u.name,
@@ -56,7 +49,7 @@ impl RepositoryImpl {
             };
             Owner::Group(group)
         } else {
-            let u = <Self as UserRepository>::find(self, &o.id).await?.unwrap();
+            let u = self.find_user(&o.id).await?.unwrap();
             let user = User {
                 id: u.id,
                 name: u.name,
@@ -99,14 +92,14 @@ impl Repository for RepositoryImpl {
             channel_id: webhook.channel_id,
             owner_id: webhook.owner.id(),
         };
-        <Self as WebhookRepository>::create(self, w).await?;
+        self.create_webhook(w).await?;
         let o = crate::model::owner::Owner {
             id: webhook.owner.id(),
             name: webhook.owner.name().to_string(),
             group: webhook.owner.kind() == OwnerKind::Group,
         };
         // 既に存在するかもしれないのでcreate_ignoreで
-        <Self as OwnerRepository>::create_ignore(self, &[o]).await?;
+        self.create_ignore_owners(&[o]).await?;
         match &webhook.owner {
             Owner::Group(group) => {
                 use crate::model::group::Group;
@@ -116,7 +109,7 @@ impl Repository for RepositoryImpl {
                     id: group.id,
                     name: group.name.clone(),
                 };
-                <Self as GroupRepository>::create_ignore(self, &[g]).await?;
+                self.create_ignore_groups(&[g]).await?;
                 let gms = group
                     .members
                     .iter()
@@ -125,7 +118,7 @@ impl Repository for RepositoryImpl {
                         group_id: group.id,
                     })
                     .collect::<Vec<_>>();
-                <Self as GroupMemberRepository>::create_ignore(self, &gms).await?;
+                self.create_ignore_group_members(&gms).await?;
                 let us = group
                     .members
                     .iter()
@@ -134,25 +127,25 @@ impl Repository for RepositoryImpl {
                         name: u.name.clone(),
                     })
                     .collect::<Vec<_>>();
-                <Self as UserRepository>::create_ignore(self, &us).await?;
+                self.create_ignore_users(&us).await?;
             }
             Owner::SigleUser(user) => {
                 let u = crate::model::user::User {
                     id: user.id,
                     name: user.name.clone(),
                 };
-                <Self as UserRepository>::create_ignore(self, &[u]).await?;
+                self.create_ignore_users(&[u]).await?;
             }
         }
         Ok(())
     }
 
     async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
-        <Self as WebhookRepository>::delete(self, &webhook.id).await
+        self.delete_webhook(&webhook.id).await
     }
 
     async fn list_webhooks(&self) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = <Self as WebhookRepository>::read(self).await?;
+        let ws = self.read_webhooks().await?;
         let mut webhooks = vec![];
         for w in ws {
             let webhook = self.complete_webhook(&w).await?;
@@ -162,7 +155,7 @@ impl Repository for RepositoryImpl {
     }
 
     async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>, Self::Error> {
-        let w = <Self as WebhookRepository>::find(self, id).await?;
+        let w = self.find_webhook(id).await?;
         if let Some(w) = w {
             let webhook = self.complete_webhook(&w).await?;
             Ok(Some(webhook))
@@ -172,7 +165,7 @@ impl Repository for RepositoryImpl {
     }
 
     async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = <Self as WebhookRepository>::filter_by_oid(self, owner.id()).await?;
+        let ws = self.filter_webhooks_by_oid(owner.id()).await?;
         self.complete_webhooks(&ws).await
     }
 
@@ -180,15 +173,15 @@ impl Repository for RepositoryImpl {
         &self,
         channel_id: &Uuid,
     ) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = <Self as WebhookRepository>::filter_by_cid(self, *channel_id).await?;
+        let ws = self.filter_webhooks_by_cid(*channel_id).await?;
         self.complete_webhooks(&ws).await
     }
 
     async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error> {
-        let gms = <Self as GroupMemberRepository>::filter_by_uid(self, &user.id).await?;
+        let gms = self.filter_group_members_by_uid(&user.id).await?;
         let mut oids = gms.into_iter().map(|gm| gm.group_id).collect::<Vec<_>>();
         oids.push(user.id);
-        let ws = <Self as WebhookRepository>::filter_by_oids(self, &oids).await?;
+        let ws = self.filter_webhooks_by_oids(&oids).await?;
         self.complete_webhooks(&ws).await
     }
 }

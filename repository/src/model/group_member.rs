@@ -1,6 +1,5 @@
 use std::iter;
 
-use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -24,21 +23,9 @@ impl<'r> FromRow<'r, MySqlRow> for GroupMember {
     }
 }
 
-#[async_trait]
-pub trait GroupMemberRepository {
-    async fn read(&self) -> Result<Vec<GroupMember>>;
-    async fn find(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>>;
-    async fn filter_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>>;
-    async fn filter_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>>;
-    async fn create(&self, gm: GroupMember) -> Result<()>;
-    async fn create_ignore(&self, gms: &[GroupMember]) -> Result<()>;
-    async fn update(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()>;
-    async fn delete(&self, gm: GroupMember) -> Result<()>;
-}
-
-#[async_trait]
-impl GroupMemberRepository for RepositoryImpl {
-    async fn read(&self) -> Result<Vec<GroupMember>> {
+#[allow(dead_code)]
+impl RepositoryImpl {
+    pub(crate) async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -47,7 +34,11 @@ impl GroupMemberRepository for RepositoryImpl {
         .await
     }
 
-    async fn find(&self, gid: &Uuid, uid: &Uuid) -> Result<Option<GroupMember>> {
+    pub(crate) async fn find_group_member(
+        &self,
+        gid: &Uuid,
+        uid: &Uuid,
+    ) -> Result<Option<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -60,7 +51,7 @@ impl GroupMemberRepository for RepositoryImpl {
         .await
     }
 
-    async fn filter_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
+    pub(crate) async fn filter_group_members_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -71,7 +62,7 @@ impl GroupMemberRepository for RepositoryImpl {
         .await
     }
 
-    async fn filter_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
+    pub(crate) async fn filter_group_members_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `group_members`
@@ -82,7 +73,7 @@ impl GroupMemberRepository for RepositoryImpl {
         .await
     }
 
-    async fn create(&self, gm: GroupMember) -> Result<()> {
+    pub(crate) async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT
             INTO `group_members` (`group_id`, `user_id`)
@@ -95,7 +86,7 @@ impl GroupMemberRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn create_ignore(&self, gms: &[GroupMember]) -> Result<()> {
+    pub(crate) async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
         let gms_len = gms.len();
         if gms_len == 0 {
             return Ok(());
@@ -115,7 +106,12 @@ impl GroupMemberRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn update(&self, gid: &Uuid, uid: &Uuid, gm: GroupMember) -> Result<()> {
+    pub(crate) async fn update_group_member(
+        &self,
+        gid: &Uuid,
+        uid: &Uuid,
+        gm: GroupMember,
+    ) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `group_members`
             SET `group_id` = ?, `user_id` = ?
@@ -130,7 +126,7 @@ impl GroupMemberRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn delete(&self, gm: GroupMember) -> Result<()> {
+    pub(crate) async fn delete_group_member(&self, gm: GroupMember) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?

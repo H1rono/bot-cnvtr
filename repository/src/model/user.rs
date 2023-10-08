@@ -1,6 +1,5 @@
 use std::iter;
 
-use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -24,19 +23,9 @@ impl<'r> FromRow<'r, MySqlRow> for User {
     }
 }
 
-#[async_trait]
-pub trait UserRepository {
-    async fn read(&self) -> Result<Vec<User>>;
-    async fn find(&self, id: &Uuid) -> Result<Option<User>>;
-    async fn create(&self, u: User) -> Result<()>;
-    async fn create_ignore(&self, us: &[User]) -> Result<()>;
-    async fn update(&self, id: &Uuid, u: User) -> Result<()>;
-    async fn delete(&self, id: &Uuid) -> Result<()>;
-}
-
-#[async_trait]
-impl UserRepository for RepositoryImpl {
-    async fn read(&self) -> Result<Vec<User>> {
+#[allow(dead_code)]
+impl RepositoryImpl {
+    pub(crate) async fn read_users(&self) -> Result<Vec<User>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `users`
@@ -45,7 +34,7 @@ impl UserRepository for RepositoryImpl {
         .await
     }
 
-    async fn find(&self, id: &Uuid) -> Result<Option<User>> {
+    pub(crate) async fn find_user(&self, id: &Uuid) -> Result<Option<User>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `users`
@@ -57,7 +46,7 @@ impl UserRepository for RepositoryImpl {
         .await
     }
 
-    async fn create(&self, u: User) -> Result<()> {
+    pub(crate) async fn create_user(&self, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `users` (`id`, `name`)
             VALUES (?, ?)
@@ -69,7 +58,7 @@ impl UserRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn create_ignore(&self, us: &[User]) -> Result<()> {
+    pub(crate) async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
         let us_len = us.len();
         if us_len == 0 {
             return Ok(());
@@ -89,7 +78,7 @@ impl UserRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn update(&self, id: &Uuid, u: User) -> Result<()> {
+    pub(crate) async fn update_user(&self, id: &Uuid, u: User) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `users`
             SET `id` = ?, `name` = ?
@@ -103,7 +92,7 @@ impl UserRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn delete(&self, id: &Uuid) -> Result<()> {
+    pub(crate) async fn delete_user(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `users`
             WHERE `id` = ?

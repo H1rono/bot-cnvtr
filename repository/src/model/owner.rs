@@ -1,6 +1,5 @@
 use std::iter;
 
-use async_trait::async_trait;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -26,19 +25,9 @@ impl<'r> FromRow<'r, MySqlRow> for Owner {
     }
 }
 
-#[async_trait]
-pub trait OwnerRepository {
-    async fn read(&self) -> Result<Vec<Owner>>;
-    async fn find(&self, id: &Uuid) -> Result<Option<Owner>>;
-    async fn create(&self, o: Owner) -> Result<()>;
-    async fn create_ignore(&self, os: &[Owner]) -> Result<()>;
-    async fn update(&self, id: &Uuid, o: Owner) -> Result<()>;
-    async fn delete(&self, id: &Uuid) -> Result<()>;
-}
-
-#[async_trait]
-impl OwnerRepository for RepositoryImpl {
-    async fn read(&self) -> Result<Vec<Owner>> {
+#[allow(dead_code)]
+impl RepositoryImpl {
+    pub(crate) async fn read_owners(&self) -> Result<Vec<Owner>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -47,7 +36,7 @@ impl OwnerRepository for RepositoryImpl {
         .await
     }
 
-    async fn find(&self, id: &Uuid) -> Result<Option<Owner>> {
+    pub(crate) async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
         sqlx::query_as(indoc! {r#"
             SELECT *
             FROM `owners`
@@ -59,7 +48,7 @@ impl OwnerRepository for RepositoryImpl {
         .await
     }
 
-    async fn create(&self, o: Owner) -> Result<()> {
+    pub(crate) async fn create_owner(&self, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             INSERT INTO `owners` (`id`, `name`, `group`)
             VALUES (?, ?, ?)
@@ -72,7 +61,7 @@ impl OwnerRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn create_ignore(&self, os: &[Owner]) -> Result<()> {
+    pub(crate) async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
         let os_len = os.len();
         if os_len == 0 {
             return Ok(());
@@ -92,7 +81,7 @@ impl OwnerRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn update(&self, id: &Uuid, o: Owner) -> Result<()> {
+    pub(crate) async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r#"
             UPDATE `owners`
             SET `id` = ?, `name` = ?, `group` = ?
@@ -107,7 +96,7 @@ impl OwnerRepository for RepositoryImpl {
         Ok(())
     }
 
-    async fn delete(&self, id: &Uuid) -> Result<()> {
+    pub(crate) async fn delete_owner(&self, id: &Uuid) -> Result<()> {
         sqlx::query(indoc! {r#"
             DELETE FROM `owners`
             WHERE `id` = ?
