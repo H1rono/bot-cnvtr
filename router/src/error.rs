@@ -1,6 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error as ThisError;
-use traq_client::Error as ClientError;
 use wh_handler::Error as WebhookHandlerError;
 
 #[derive(Debug, ThisError)]
@@ -11,8 +10,6 @@ pub enum Error {
     BadRequest,
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
-    #[error("traq-client error: {0}")]
-    Client(#[from] ClientError),
     #[error("processing error")]
     Process(#[from] usecases::Error),
     #[error("unexpected error")]
@@ -41,10 +38,6 @@ impl IntoResponse for Error {
             }
             Self::Process(e) => {
                 eprintln!("processing error: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-            Self::Client(e) => {
-                eprintln!("client error: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
             Self::Unexpected => {

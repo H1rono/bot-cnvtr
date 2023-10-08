@@ -19,7 +19,6 @@ hyper = { workspace = true }
 traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
 
+entity = { path = "../entity" }
 usecases = { path = "../usecases" }
-repository = { path = "../repository" }
-traq-client = { path = "../traq-client" }
 wh-handler = { path = "../wh-handler" }

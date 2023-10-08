@@ -9,8 +9,7 @@ use axum::{
 use hyper::body::{to_bytes, Body};
 use traq_bot_http::Event;
 
-use repository::AllRepository;
-use traq_client::Client;
+use usecases::traits::{Repository, TraqClient};
 use wh_handler::WebhookHandler;
 
 use super::AppState;
@@ -19,14 +18,18 @@ use super::AppState;
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<C: Client, Repo: AllRepository, WH: WebhookHandler> FromRequest<AppState<C, Repo, WH>, Body>
-    for BotEvent
+impl<Repo, C, WH, E1, E2> FromRequest<AppState<Repo, C, WH, E1, E2>, Body> for BotEvent
+where
+    Repo: Repository<Error = E1>,
+    C: TraqClient<Error = E2>,
+    WH: WebhookHandler,
+    usecases::Error: From<E1> + From<E2>,
 {
     type Rejection = StatusCode;
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppState<C, Repo, WH>,
+        state: &AppState<Repo, C, WH, E1, E2>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -44,15 +47,23 @@ impl<C: Client, Repo: AllRepository, WH: WebhookHandler> FromRequest<AppState<C,
     }
 }
 
-pub(super) async fn event<C: Client, Repo: AllRepository, WH: WebhookHandler>(
-    State(st): State<AppState<C, Repo, WH>>,
+pub(super) async fn event<Repo, C, WH, E1, E2>(
+    State(st): State<AppState<Repo, C, WH, E1, E2>>,
     BotEvent(event): BotEvent,
-) -> StatusCode {
+) -> StatusCode
+where
+    Repo: Repository<Error = E1>,
+    C: TraqClient<Error = E2>,
+    WH: WebhookHandler,
+    usecases::Error: From<E1> + From<E2>,
+    E1: Send + Sync + 'static,
+    E2: Send + Sync + 'static,
+{
     let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;
     match st
         .bot
-        .handle_event(client.deref(), repo.deref(), event)
+        .handle_event(repo.deref(), client.deref(), event)
         .await
     {
         Ok(_) => StatusCode::NO_CONTENT,
@@ -62,4 +73,5 @@ pub(super) async fn event<C: Client, Repo: AllRepository, WH: WebhookHandler>(
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
+    // StatusCode::INTERNAL_SERVER_ERROR
 }
