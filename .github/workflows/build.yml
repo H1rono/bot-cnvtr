@@ -39,7 +39,7 @@ jobs:
     needs:
       - rust
       - docker
-    if: ${{ success() }}
+    if: ${{ github.ref_name == 'main' && success() }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
