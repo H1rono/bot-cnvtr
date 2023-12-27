@@ -75,6 +75,7 @@
           # Check formatting
           fmt = craneLib.cargoFmt commonArgs;
         };
+        packages.deps = cargoArtifacts;
         packages.default = build;
 
         apps.default = flake-utils.lib.mkApp {
