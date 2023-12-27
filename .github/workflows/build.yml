@@ -39,8 +39,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
       - name: Build docker image
-        run: docker build -t bot-cnvtr .
+        run: |
+          docker build -t bot-cnvtr \
+            --cache-to type=gha \
+            --cache-from type=gha .
 
   ghcr:
     runs-on: ubuntu-latest
@@ -54,6 +58,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
       - name: Collect metadata
         id: meta
         uses: docker/metadata-action@v4
@@ -74,3 +79,5 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha
