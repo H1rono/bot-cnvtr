@@ -17,12 +17,10 @@ RUN nix build .
 RUN mkdir /tmp/nix-store-closure
 RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 
-ENTRYPOINT [ "/bin/sh" ]
-
 FROM debian:bookworm-slim
 WORKDIR /app
 
 COPY --from=builder /tmp/nix-store-closure /nix/store
 COPY --from=builder /app/result /app
 
-CMD ["/app/bin/todo-app-backend"]
+CMD [ "/app/bin/cnvtr" ]
