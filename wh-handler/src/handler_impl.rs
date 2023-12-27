@@ -1,4 +1,3 @@
-use hyper::http::HeaderMap;
 use serde_json::Value;
 
 use crate::{Result, WebhookHandler};
@@ -24,15 +23,30 @@ impl Default for WebhookHandlerImpl {
 }
 
 impl WebhookHandler for WebhookHandlerImpl {
-    fn github_webhook(&self, headers: HeaderMap, payload: Value) -> Result<Option<String>> {
+    fn github_webhook<'a, H, K, V>(&self, headers: H, payload: Value) -> Result<Option<String>>
+    where
+        H: Iterator<Item = (&'a K, &'a V)>,
+        K: AsRef<[u8]> + ?Sized + 'static,
+        V: AsRef<[u8]> + ?Sized + 'static,
+    {
         github::handle(headers, payload)
     }
 
-    fn gitea_webhook(&self, headers: HeaderMap, payload: Value) -> Result<Option<String>> {
+    fn gitea_webhook<'a, H, K, V>(&self, headers: H, payload: Value) -> Result<Option<String>>
+    where
+        H: Iterator<Item = (&'a K, &'a V)>,
+        K: AsRef<[u8]> + ?Sized + 'static,
+        V: AsRef<[u8]> + ?Sized + 'static,
+    {
         gitea::handle(headers, payload)
     }
 
-    fn clickup_webhook(&self, headers: HeaderMap, payload: Value) -> Result<Option<String>> {
+    fn clickup_webhook<'a, H, K, V>(&self, headers: H, payload: Value) -> Result<Option<String>>
+    where
+        H: Iterator<Item = (&'a K, &'a V)>,
+        K: AsRef<[u8]> + ?Sized + 'static,
+        V: AsRef<[u8]> + ?Sized + 'static,
+    {
         clickup::handle(headers, payload)
     }
 }

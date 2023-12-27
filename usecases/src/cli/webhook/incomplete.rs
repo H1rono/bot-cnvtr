@@ -72,7 +72,7 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
         let owner_name = self.owner.clone().unwrap_or_else(|| user.name.clone());
         let embed = embeds.iter().find(|e| e.raw == owner_name);
         let owner_id = embed.map(|e| e.id).unwrap_or(user.id);
-        let owner_kind = if embed.map(|e| e.type_ == "group").unwrap_or_default() {
+        let owner_kind = if embed.map(|e| e.r#type == "group").unwrap_or_default() {
             OwnerKind::Group
         } else {
             OwnerKind::SingleUser

@@ -51,7 +51,7 @@ where
         .await
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
-    let message = st.wh.github_webhook(headers, payload)?;
+    let message = st.wh.github_webhook(headers.iter(), payload)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -83,7 +83,7 @@ where
         .await
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
-    let message = st.wh.gitea_webhook(headers, payload)?;
+    let message = st.wh.gitea_webhook(headers.iter(), payload)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -115,7 +115,7 @@ where
         .await
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
-    let message = st.wh.clickup_webhook(headers, payload)?;
+    let message = st.wh.clickup_webhook(headers.iter(), payload)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }

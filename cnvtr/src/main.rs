@@ -29,8 +29,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let wh = WebhookHandlerImpl::new();
     let app = make_router(router_config, client, wh, repo, usecases);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    let server = axum::Server::bind(&addr).serve(app.into_make_service());
+    let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("listening on {} ...", addr);
-    server.await?;
+    axum::serve(listener, app).await?;
     Ok(())
 }

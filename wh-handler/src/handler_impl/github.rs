@@ -1,16 +1,19 @@
-use hyper::HeaderMap;
+use std::str::from_utf8;
+
 use indoc::formatdoc;
 use serde_json::Value;
 
-use super::utils::ValueExt;
+use super::utils::{extract_header_value, ValueExt};
 use crate::{Error, Result};
 
-pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String>> {
-    let event_type = headers
-        .get("X-GitHub-Event")
-        .ok_or(Error::MissingField)?
-        .to_str()
-        .map_err(|_| Error::WrongType)?;
+pub(super) fn handle<'a, H, K, V>(headers: H, payload: Value) -> Result<Option<String>>
+where
+    H: Iterator<Item = (&'a K, &'a V)>,
+    K: AsRef<[u8]> + ?Sized + 'static,
+    V: AsRef<[u8]> + ?Sized + 'static,
+{
+    let event_type = extract_header_value(headers, "X-GitHub-Event")
+        .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
     match event_type {
         "create" => create(payload),
         "delete" => delete(payload),

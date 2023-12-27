@@ -3,10 +3,10 @@ use std::ops::Deref;
 
 use axum::{
     async_trait,
+    body::{to_bytes, Body},
     extract::{FromRequest, State},
     http::{Request, StatusCode},
 };
-use hyper::body::{to_bytes, Body};
 use traq_bot_http::Event;
 
 use usecases::traits::{Repository, TraqClient};
@@ -18,7 +18,7 @@ use super::AppState;
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<Repo, C, WH, E1, E2> FromRequest<AppState<Repo, C, WH, E1, E2>, Body> for BotEvent
+impl<Repo, C, WH, E1, E2> FromRequest<AppState<Repo, C, WH, E1, E2>> for BotEvent
 where
     Repo: Repository<Error = E1>,
     C: TraqClient<Error = E2>,
@@ -34,8 +34,10 @@ where
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
         let headers = parts.headers;
-        let body = to_bytes(body).await.map_err(|_| StatusCode::BAD_REQUEST)?;
-        match parser.parse(headers, &body) {
+        let body = to_bytes(body, usize::MAX)
+            .await
+            .map_err(|_| StatusCode::BAD_REQUEST)?;
+        match parser.parse(headers.iter(), &body) {
             Ok(event) => Ok(Self(event)),
             Err(err) => {
                 eprintln!("ERROR: {err}");
