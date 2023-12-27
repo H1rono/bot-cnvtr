@@ -34,18 +34,6 @@ jobs:
       - run: nix build
       - run: nix flake check
 
-  docker:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
-      - name: Build docker image
-        run: |
-          docker build -t bot-cnvtr \
-            --cache-to type=gha \
-            --cache-from type=gha .
-
   ghcr:
     runs-on: ubuntu-latest
     permissions:
@@ -53,8 +41,8 @@ jobs:
       packages: write
     needs:
       - rust
-      - docker
-    if: ${{ github.ref_name == 'main' && success() }}
+      - nix
+    if: ${{ success() }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -77,7 +65,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
+          push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
-          cache-to: type=gha
+          cache-to: type=gha,mode=max
