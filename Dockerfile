@@ -19,7 +19,7 @@ RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 
 ENTRYPOINT [ "/bin/sh" ]
 
-FROM scratch
+FROM debian:bookworm-slim
 WORKDIR /app
 
 COPY --from=builder /tmp/nix-store-closure /nix/store
