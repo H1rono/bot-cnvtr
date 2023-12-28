@@ -1,7 +1,8 @@
 use traq_bot_http::payloads::{JoinedPayload, LeftPayload};
 
+use domain::{Repository, TraqClient};
+
 use super::{Bot, Result};
-use crate::traits::{Repository, TraqClient};
 
 impl Bot {
     pub(super) async fn on_joined(

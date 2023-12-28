@@ -9,7 +9,7 @@ use axum::{
 };
 use traq_bot_http::Event;
 
-use usecases::traits::{Repository, TraqClient};
+use domain::{Repository, TraqClient};
 use wh_handler::WebhookHandler;
 
 use super::AppState;

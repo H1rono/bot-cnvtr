@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 serde.workspace = true
 uuid.workspace = true
+async-trait.workspace = true

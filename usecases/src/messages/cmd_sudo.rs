@@ -4,8 +4,9 @@ use crate::cli::sudo::{
 };
 use futures::{pin_mut, StreamExt};
 
+use domain::{Repository, TraqClient};
+
 use super::{Bot, Error, Result};
-use crate::traits::{Repository, TraqClient};
 
 impl Bot {
     pub(super) async fn handle_sudo_command<E1, E2>(

@@ -2,9 +2,10 @@ use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
+use domain::{Repository, TraqClient};
+
 use super::{Bot, Error, Result};
 use crate::cli::{Cli, CompletedCmds, Incomplete};
-use crate::traits::{Repository, TraqClient};
 
 mod cmd_sudo;
 mod cmd_webhook;

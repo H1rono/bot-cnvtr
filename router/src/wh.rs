@@ -7,7 +7,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use domain::Webhook;
-use usecases::traits::{Repository, TraqClient};
+use domain::{Repository, TraqClient};
 use wh_handler::WebhookHandler;
 
 use super::{AppState, Error, Result};

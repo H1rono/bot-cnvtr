@@ -2,8 +2,7 @@ use async_trait::async_trait;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
-use domain::{Group, Owner, OwnerKind, User, Webhook};
-use usecases::traits::Repository;
+use domain::{Group, Owner, OwnerKind, Repository, User, Webhook};
 
 use crate::config::Config;
 use crate::MIGRATOR;

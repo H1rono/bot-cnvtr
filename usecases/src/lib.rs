@@ -5,7 +5,6 @@ mod config;
 mod error;
 mod messages;
 mod system;
-pub mod traits;
 
 pub use config::Config;
 pub use error::{Error, Result};
@@ -38,8 +37,8 @@ impl Bot {
 
     pub async fn handle_event<E1, E2>(
         &self,
-        repo: &impl traits::Repository<Error = E1>,
-        client: &impl traits::TraqClient<Error = E2>,
+        repo: &impl domain::Repository<Error = E1>,
+        client: &impl domain::TraqClient<Error = E2>,
         event: Event,
     ) -> Result<(), Error>
     where

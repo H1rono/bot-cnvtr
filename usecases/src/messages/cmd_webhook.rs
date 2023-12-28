@@ -2,11 +2,10 @@ use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use domain::{Owner, OwnerKind, User};
+use domain::{Owner, OwnerKind, Repository, TraqClient, User};
 
 use super::{Bot, Error, Result};
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
-use crate::traits::{Repository, TraqClient};
 
 impl Bot {
     pub(super) async fn handle_webhook_command<E1, E2>(

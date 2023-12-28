@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 
 use traq_bot_http::RequestParser;
 
-use usecases::traits::{Repository, TraqClient};
+use domain::{Repository, TraqClient};
 use usecases::Bot;
 use wh_handler::WebhookHandler;
 
