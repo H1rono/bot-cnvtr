@@ -2552,7 +2552,6 @@ checksum = "1778a42e8b3b90bff8d0f5032bf22250792889a5cdc752aa0020c84abe3aaf10"
 name = "wh-handler"
 version = "0.1.0"
 dependencies = [
- "hyper 1.1.0",
  "indoc",
  "serde",
  "serde_json",
