@@ -72,8 +72,8 @@ impl Bot {
         };
         let owner = &webhook.owner;
         let own_users = match owner {
-            entity::Owner::Group(g) => g.members.iter().collect(),
-            entity::Owner::SigleUser(u) => vec![u],
+            domain::Owner::Group(g) => g.members.iter().collect(),
+            domain::Owner::SigleUser(u) => vec![u],
         };
         repo.remove_webhook(&webhook).await?;
         let it = async_stream::stream! {

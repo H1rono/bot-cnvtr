@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde_json::value::Value;
 use uuid::Uuid;
 
-use entity::{Group, Owner, User, Webhook};
+use domain::{Group, Owner, User, Webhook};
 
 #[async_trait]
 pub trait Repository: Send + Sync + 'static {

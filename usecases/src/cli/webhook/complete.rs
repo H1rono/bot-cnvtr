@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use entity::{OwnerKind, User};
+use domain::{OwnerKind, User};
 
 use super::incomplete;
 use crate::cli::Completed;

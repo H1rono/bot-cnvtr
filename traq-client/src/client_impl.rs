@@ -6,7 +6,7 @@ use itertools::Itertools;
 use traq::apis::configuration::Configuration;
 use uuid::Uuid;
 
-use entity::{Group, User};
+use domain::{Group, User};
 use usecases::traits::TraqClient;
 
 use crate::{Config, Error, Result};

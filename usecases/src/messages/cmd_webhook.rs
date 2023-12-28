@@ -2,7 +2,7 @@ use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use entity::{Owner, OwnerKind, User};
+use domain::{Owner, OwnerKind, User};
 
 use super::{Bot, Error, Result};
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
@@ -69,7 +69,7 @@ impl Bot {
             id = Uuid::new_v4();
         }
         let channel_id = create.channel_id;
-        let webhook = entity::Webhook::new(id, channel_id, owner);
+        let webhook = domain::Webhook::new(id, channel_id, owner);
         repo.add_webhook(&webhook).await?;
 
         let message_title = match webhook.owner.kind() {

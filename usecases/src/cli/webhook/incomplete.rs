@@ -1,10 +1,10 @@
 use clap::{Args, Subcommand};
-use entity::OwnerKind;
+use domain::OwnerKind;
 use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 use uuid::Uuid;
 
-use entity::User;
+use domain::User;
 
 use super::complete;
 use crate::cli::Incomplete;

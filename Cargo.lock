@@ -439,6 +439,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "uuid",
+]
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -460,14 +468,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "entity"
-version = "0.1.0"
-dependencies = [
- "serde",
- "uuid",
 ]
 
 [[package]]
@@ -1449,7 +1449,7 @@ name = "repository"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "entity",
+ "domain",
  "envy",
  "indoc",
  "itertools 0.11.0",
@@ -1517,7 +1517,7 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "axum",
- "entity",
+ "domain",
  "envy",
  "indoc",
  "serde",
@@ -2313,7 +2313,7 @@ name = "traq-client"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "entity",
+ "domain",
  "envy",
  "indoc",
  "itertools 0.11.0",
@@ -2410,7 +2410,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "clap",
- "entity",
+ "domain",
  "envy",
  "futures",
  "indoc",

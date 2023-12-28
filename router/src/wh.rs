@@ -6,7 +6,7 @@ use axum::{
 use serde_json::Value;
 use uuid::Uuid;
 
-use entity::Webhook;
+use domain::Webhook;
 use usecases::traits::{Repository, TraqClient};
 use wh_handler::WebhookHandler;
 

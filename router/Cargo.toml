@@ -18,6 +18,6 @@ axum = { workspace = true }
 traq-bot-http = { workspace = true }
 sqlx = { workspace = true }
 
-entity = { path = "../entity" }
+domain = { path = "../domain" }
 usecases = { path = "../usecases" }
 wh-handler = { path = "../wh-handler" }
