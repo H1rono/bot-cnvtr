@@ -11,8 +11,6 @@ pub use config::Config;
 pub use error::{Error, Result};
 pub use wh_handler::WebhookHandler;
 
-// pub trait Bot
-
 #[derive(Debug, Clone)]
 pub struct Bot {
     pub id: String,

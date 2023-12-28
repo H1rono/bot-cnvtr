@@ -20,7 +20,6 @@ mod wh;
 pub use config::Config;
 use error::{Error, Result};
 
-// #[derive(Clone)]
 struct AppState<I, WH, E1, E2, E3>
 where
     I: Infra,

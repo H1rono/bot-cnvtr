@@ -20,13 +20,3 @@ pub trait Repository: Send + Sync + 'static {
     ) -> Result<Vec<Webhook>, Self::Error>;
     async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error>;
 }
-
-// pub trait WebhookHandler: Clone + Send + Sync + 'static {
-//     type Error;
-
-//     fn handle<'a>(
-//         &self,
-//         headers: impl Iterator<Item = (&'a str, &'a str)>,
-//         payload: Value,
-//     ) -> Result<Option<String>, Self::Error>;
-// }
