@@ -2557,6 +2557,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "usecases",
  "uuid",
 ]
 

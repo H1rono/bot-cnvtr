@@ -5,9 +5,11 @@ mod config;
 mod error;
 mod messages;
 mod system;
+mod wh_handler;
 
 pub use config::Config;
 pub use error::{Error, Result};
+pub use wh_handler::WebhookHandler;
 
 // pub trait Bot
 

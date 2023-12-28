@@ -10,7 +10,7 @@ use axum::{
 use traq_bot_http::Event;
 
 use domain::{Repository, TraqClient};
-use wh_handler::WebhookHandler;
+use usecases::WebhookHandler;
 
 use super::AppState;
 
@@ -18,18 +18,18 @@ use super::AppState;
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<Repo, C, WH, E1, E2> FromRequest<AppState<Repo, C, WH, E1, E2>> for BotEvent
+impl<Repo, C, WH, E1, E2, E3> FromRequest<AppState<Repo, C, WH, E1, E2, E3>> for BotEvent
 where
     Repo: Repository<Error = E1>,
     C: TraqClient<Error = E2>,
-    WH: WebhookHandler,
-    usecases::Error: From<E1> + From<E2>,
+    WH: WebhookHandler<Error = E3>,
+    usecases::Error: From<E1> + From<E2> + From<E3>,
 {
     type Rejection = StatusCode;
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppState<Repo, C, WH, E1, E2>,
+        state: &AppState<Repo, C, WH, E1, E2, E3>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -49,17 +49,15 @@ where
     }
 }
 
-pub(super) async fn event<Repo, C, WH, E1, E2>(
-    State(st): State<AppState<Repo, C, WH, E1, E2>>,
+pub(super) async fn event<Repo, C, WH, E1, E2, E3>(
+    State(st): State<AppState<Repo, C, WH, E1, E2, E3>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode
 where
     Repo: Repository<Error = E1>,
     C: TraqClient<Error = E2>,
-    WH: WebhookHandler,
-    usecases::Error: From<E1> + From<E2>,
-    E1: Send + Sync + 'static,
-    E2: Send + Sync + 'static,
+    WH: WebhookHandler<Error = E3>,
+    usecases::Error: From<E1> + From<E2> + From<E3>,
 {
     let client = st.client.as_ref().lock().await;
     let repo = st.repo.as_ref().lock().await;

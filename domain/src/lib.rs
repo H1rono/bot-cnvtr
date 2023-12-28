@@ -1,3 +1,4 @@
+mod app;
 mod group;
 mod owner;
 mod repository;

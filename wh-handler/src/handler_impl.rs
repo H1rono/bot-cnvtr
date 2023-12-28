@@ -1,6 +1,8 @@
 use serde_json::Value;
 
-use crate::{Result, WebhookHandler};
+use usecases::WebhookHandler;
+
+use crate::{Error, Result};
 
 mod clickup;
 mod gitea;
@@ -23,6 +25,8 @@ impl Default for WebhookHandlerImpl {
 }
 
 impl WebhookHandler for WebhookHandlerImpl {
+    type Error = Error;
+
     fn github_webhook<'a, H, K, V>(&self, headers: H, payload: Value) -> Result<Option<String>>
     where
         H: Iterator<Item = (&'a K, &'a V)>,
