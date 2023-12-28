@@ -11,9 +11,9 @@ dotenvy.workspace = true
 tokio.workspace = true
 axum.workspace = true
 
-domain.path = "../domain"
-usecases.path = "../usecases"
-repository.path = "../repository"
-router.path = "../router"
-traq-client.path = "../traq-client"
-wh-handler.path = "../wh-handler"
+domain.workspace = true
+usecases.workspace = true
+repository.workspace = true
+router.workspace = true
+traq-client.workspace = true
+wh-handler.workspace = true

@@ -18,5 +18,5 @@ axum.workspace = true
 traq-bot-http.workspace = true
 sqlx.workspace = true
 
-domain.path = "../domain"
-usecases.path = "../usecases"
+domain.workspace = true
+usecases.workspace = true

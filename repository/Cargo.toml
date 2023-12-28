@@ -14,5 +14,5 @@ envy.workspace = true
 async-trait.workspace = true
 sqlx.workspace = true
 
-domain.path = "../domain"
-usecases.path = "../usecases"
+domain.workspace = true
+usecases.workspace = true

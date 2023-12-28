@@ -11,4 +11,4 @@ serde.workspace = true
 serde_json.workspace = true
 uuid.workspace = true
 
-usecases.path = "../usecases"
+usecases.workspace = true

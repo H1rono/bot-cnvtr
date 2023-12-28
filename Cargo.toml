@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["cnvtr", "domain", "repository", "router", "usecases", "traq-client", "wh-handler"]
+members = ["cnvtr"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -29,6 +29,13 @@ hyper = "1.1"
 
 traq-bot-http = { version = "0.8", features = ["uuid"] }
 traq = "0.1"
+
+domain.path = "./domain"
+usecases.path = "./usecases"
+repository.path = "./repository"
+traq-client.path = "./traq-client"
+wh-handler.path = "./wh-handler"
+router.path = "./router"
 
 [workspace.dependencies.sqlx]
 version = "0.7"

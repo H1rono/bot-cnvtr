@@ -22,4 +22,4 @@ async-trait.workspace = true
 traq-bot-http.workspace = true
 sqlx.workspace = true
 
-domain.path = "../domain"
+domain.workspace = true
