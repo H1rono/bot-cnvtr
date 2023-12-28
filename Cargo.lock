@@ -1529,7 +1529,6 @@ dependencies = [
  "traq-bot-http",
  "usecases",
  "uuid",
- "wh-handler",
 ]
 
 [[package]]

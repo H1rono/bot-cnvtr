@@ -1,6 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error as ThisError;
-use wh_handler::Error as WebhookHandlerError;
 
 #[derive(Debug, ThisError)]
 pub enum Error {
@@ -27,17 +26,6 @@ impl From<usecases::Error> for Error {
                 eprintln!("unexpected error: {}", e);
                 Error::Unexpected
             }
-        }
-    }
-}
-
-impl From<WebhookHandlerError> for Error {
-    fn from(value: WebhookHandlerError) -> Self {
-        use WebhookHandlerError::*;
-        match value {
-            MissingField => Error::BadRequest,
-            WrongType => Error::BadRequest,
-            SerdeJson(_) => Error::Unexpected,
         }
     }
 }

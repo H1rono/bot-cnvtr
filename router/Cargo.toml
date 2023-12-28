@@ -20,4 +20,3 @@ sqlx.workspace = true
 
 domain.path = "../domain"
 usecases.path = "../usecases"
-wh-handler.path = "../wh-handler"
