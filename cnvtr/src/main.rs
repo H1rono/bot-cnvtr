@@ -7,7 +7,8 @@ use traq_client::ClientImpl;
 use usecases::Bot;
 use wh_handler::WebhookHandlerImpl;
 
-mod config;
+pub mod config;
+pub mod infra;
 
 use config::ConfigComposite;
 
@@ -25,9 +26,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let client = ClientImpl::from_config(client_config);
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
+    let infra = infra::InfraImpl(repo, client);
     let usecases = Bot::from_config(usecases_config);
     let wh = WebhookHandlerImpl::new();
-    let app = make_router(router_config, client, wh, repo, usecases);
+    let app = make_router(router_config, infra, wh, usecases);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("listening on {} ...", addr);

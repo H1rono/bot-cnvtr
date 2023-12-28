@@ -7,23 +7,24 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use domain::Webhook;
-use domain::{Repository, TraqClient};
+use domain::{Infra, Repository, TraqClient};
 use usecases::WebhookHandler;
 
 use super::{AppState, Error, Result};
 
 /// GET /wh/:id
-pub(super) async fn get_wh<Repo, C, WH, E1, E2, E3>(
-    State(st): State<AppState<Repo, C, WH, E1, E2, E3>>,
+pub(super) async fn get_wh<I, WH, E1, E2, E3>(
+    State(st): State<AppState<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>>
 where
-    Repo: Repository<Error = E1>,
-    C: TraqClient<Error = E2>,
+    I: Infra,
+    I::Repo: Repository<Error = E1>,
+    I::TClient: TraqClient<Error = E2>,
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    let repo = st.repo.as_ref().lock().await;
+    let repo = st.infra.repo();
     repo.find_webhook(&id)
         .await
         .map_err(usecases::Error::from)?
@@ -32,20 +33,21 @@ where
 }
 
 /// POST /wh/:id/github
-pub(super) async fn wh_github<Repo, C, WH, E1, E2, E3>(
-    State(st): State<AppState<Repo, C, WH, E1, E2, E3>>,
+pub(super) async fn wh_github<I, WH, E1, E2, E3>(
+    State(st): State<AppState<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    Repo: Repository<Error = E1>,
-    C: TraqClient<Error = E2>,
+    I: Infra,
+    I::Repo: Repository<Error = E1>,
+    I::TClient: TraqClient<Error = E2>,
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    let client = st.client.as_ref().lock().await;
-    let repo = st.repo.as_ref().lock().await;
+    let client = st.infra.traq_client();
+    let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await
@@ -67,20 +69,21 @@ where
 }
 
 /// POST /wh/:id/gitea
-pub(super) async fn wh_gitea<Repo, C, WH, E1, E2, E3>(
-    State(st): State<AppState<Repo, C, WH, E1, E2, E3>>,
+pub(super) async fn wh_gitea<I, WH, E1, E2, E3>(
+    State(st): State<AppState<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    Repo: Repository<Error = E1>,
-    C: TraqClient<Error = E2>,
+    I: Infra,
+    I::Repo: Repository<Error = E1>,
+    I::TClient: TraqClient<Error = E2>,
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    let client = st.client.as_ref().lock().await;
-    let repo = st.repo.as_ref().lock().await;
+    let client = st.infra.traq_client();
+    let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await
@@ -102,20 +105,21 @@ where
 }
 
 /// POST /wh/:id/clickup
-pub(super) async fn wh_clickup<Repo, C, WH, E1, E2, E3>(
-    State(st): State<AppState<Repo, C, WH, E1, E2, E3>>,
+pub(super) async fn wh_clickup<I, WH, E1, E2, E3>(
+    State(st): State<AppState<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    Repo: Repository<Error = E1>,
-    C: TraqClient<Error = E2>,
+    I: Infra,
+    I::Repo: Repository<Error = E1>,
+    I::TClient: TraqClient<Error = E2>,
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    let client = st.client.as_ref().lock().await;
-    let repo = st.repo.as_ref().lock().await;
+    let client = st.infra.traq_client();
+    let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await

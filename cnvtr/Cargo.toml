@@ -11,6 +11,7 @@ dotenvy.workspace = true
 tokio.workspace = true
 axum.workspace = true
 
+domain.path = "../domain"
 usecases.path = "../usecases"
 repository.path = "../repository"
 router.path = "../router"
