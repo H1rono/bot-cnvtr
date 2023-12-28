@@ -5,14 +5,14 @@ edition = "2021"
 publish = false
 
 [dependencies]
-envy = { workspace = true }
-dotenvy = { workspace = true }
+envy.workspace = true
+dotenvy.workspace = true
 
-tokio = { workspace = true }
-axum = { workspace = true }
+tokio.workspace = true
+axum.workspace = true
 
-usecases = { path = "../usecases" }
-repository = { path = "../repository" }
-router = { path = "../router" }
-traq-client = { path = "../traq-client" }
-wh-handler = { path = "../wh-handler" }
+usecases.path = "../usecases"
+repository.path = "../repository"
+router.path = "../router"
+traq-client.path = "../traq-client"
+wh-handler.path = "../wh-handler"

@@ -5,19 +5,19 @@ edition = "2021"
 publish = false
 
 [dependencies]
-envy = { workspace = true }
-indoc = { workspace = true }
-thiserror = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-uuid = { workspace = true }
+envy.workspace = true
+indoc.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
 
-tokio = { workspace = true }
-axum = { workspace = true }
+tokio.workspace = true
+axum.workspace = true
 
-traq-bot-http = { workspace = true }
-sqlx = { workspace = true }
+traq-bot-http.workspace = true
+sqlx.workspace = true
 
-domain = { path = "../domain" }
-usecases = { path = "../usecases" }
-wh-handler = { path = "../wh-handler" }
+domain.path = "../domain"
+usecases.path = "../usecases"
+wh-handler.path = "../wh-handler"
