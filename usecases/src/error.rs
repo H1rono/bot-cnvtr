@@ -6,6 +6,8 @@ pub enum Error {
     Serde(#[from] serde_json::Error),
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
+    #[error("bad request")]
+    BadRequest(Option<String>),
     #[error("other")]
     Other(Box<dyn std::error::Error + Send + Sync + 'static>),
 }

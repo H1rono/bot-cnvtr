@@ -10,10 +10,25 @@ pub enum Error {
     BadRequest,
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
-    #[error("processing error")]
-    Process(#[from] usecases::Error),
     #[error("unexpected error")]
-    Unexpected,
+    Unexpected, // TODO: anyhow
+}
+
+impl From<usecases::Error> for Error {
+    fn from(value: usecases::Error) -> Self {
+        match value {
+            usecases::Error::BadRequest(_) => Error::BadRequest,
+            usecases::Error::Sqlx(e) => Error::Sqlx(e),
+            usecases::Error::Serde(e) => {
+                eprintln!("serde error: {}", e);
+                Error::Unexpected
+            }
+            usecases::Error::Other(e) => {
+                eprintln!("unexpected error: {}", e);
+                Error::Unexpected
+            }
+        }
+    }
 }
 
 impl From<WebhookHandlerError> for Error {
@@ -34,10 +49,6 @@ impl IntoResponse for Error {
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request").into_response(),
             Self::Sqlx(e) => {
                 eprintln!("sqlx error: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-            Self::Process(e) => {
-                eprintln!("processing error: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
             Self::Unexpected => {
