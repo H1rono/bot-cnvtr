@@ -8,28 +8,25 @@ use axum::{
 };
 use traq_bot_http::Event;
 
-use domain::{Infra, Repository, TraqClient};
-use usecases::WebhookHandler;
+use domain::Infra;
+use usecases::{App, Bot};
 
-use super::AppStateImpl;
+use super::{AppState, AppStateImpl};
 
 #[derive(Debug, Clone)]
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<I, WH, E1, E2, E3> FromRequest<AppStateImpl<I, WH, E1, E2, E3>> for BotEvent
+impl<I, A> FromRequest<AppStateImpl<I, A>> for BotEvent
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
     type Rejection = StatusCode;
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppStateImpl<I, WH, E1, E2, E3>,
+        state: &AppStateImpl<I, A>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -49,20 +46,15 @@ where
     }
 }
 
-pub(super) async fn event<I, WH, E1, E2, E3>(
-    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
+pub(super) async fn event<I, A>(
+    State(st): State<AppStateImpl<I, A>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
-    let client = st.infra.traq_client();
-    let repo = st.infra.repo();
-    match st.bot.handle_event(repo, client, event).await {
+    match st.bot().handle_event(st.infra(), event).await {
         Ok(_) => StatusCode::NO_CONTENT,
         Err(err) => {
             eprintln!("ERROR: {err}");

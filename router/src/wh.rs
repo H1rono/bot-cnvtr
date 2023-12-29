@@ -8,21 +8,18 @@ use uuid::Uuid;
 
 use domain::Webhook;
 use domain::{Infra, Repository, TraqClient};
-use usecases::WebhookHandler;
+use usecases::{App, WebhookHandler};
 
-use super::{AppStateImpl, Error, Result};
+use super::{AppState, AppStateImpl, Error, Result};
 
 /// GET /wh/:id
-pub(super) async fn get_wh<I, WH, E1, E2, E3>(
-    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
+pub(super) async fn get_wh<I, A>(
+    State(st): State<AppStateImpl<I, A>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>>
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
     let repo = st.infra.repo();
     repo.find_webhook(&id)
@@ -33,18 +30,15 @@ where
 }
 
 /// POST /wh/:id/github
-pub(super) async fn wh_github<I, WH, E1, E2, E3>(
-    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
+pub(super) async fn wh_github<I, A>(
+    State(st): State<AppStateImpl<I, A>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
@@ -54,7 +48,7 @@ where
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
     let message = st
-        .wh
+        .webhook_handler()
         .github_webhook(headers.iter(), payload)
         .map_err(usecases::Error::from)?;
     if message.is_none() {
@@ -69,18 +63,15 @@ where
 }
 
 /// POST /wh/:id/gitea
-pub(super) async fn wh_gitea<I, WH, E1, E2, E3>(
-    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
+pub(super) async fn wh_gitea<I, A>(
+    State(st): State<AppStateImpl<I, A>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
@@ -90,7 +81,7 @@ where
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
     let message = st
-        .wh
+        .webhook_handler()
         .gitea_webhook(headers.iter(), payload)
         .map_err(usecases::Error::from)?;
     if message.is_none() {
@@ -105,18 +96,15 @@ where
 }
 
 /// POST /wh/:id/clickup
-pub(super) async fn wh_clickup<I, WH, E1, E2, E3>(
-    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
+pub(super) async fn wh_clickup<I, A>(
+    State(st): State<AppStateImpl<I, A>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra,
-    I::Repo: Repository<Error = E1>,
-    I::TClient: TraqClient<Error = E2>,
-    WH: WebhookHandler<Error = E3>,
-    usecases::Error: From<E1> + From<E2> + From<E3>,
+    I: Infra<Error = usecases::Error>,
+    A: App<I, Error = usecases::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
@@ -126,7 +114,7 @@ where
         .map_err(usecases::Error::from)?
         .ok_or(Error::NotFound)?;
     let message = st
-        .wh
+        .webhook_handler()
         .clickup_webhook(headers.iter(), payload)
         .map_err(usecases::Error::from)?;
     if message.is_none() {
