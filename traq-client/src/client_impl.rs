@@ -1,6 +1,5 @@
 use std::vec;
 
-use async_trait::async_trait;
 use indoc::formatdoc;
 use itertools::Itertools;
 use traq::apis::configuration::Configuration;
@@ -33,7 +32,6 @@ impl ClientImpl {
     }
 }
 
-#[async_trait]
 impl TraqClient for ClientImpl {
     type Error = Error;
 

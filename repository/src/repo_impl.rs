@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
@@ -78,7 +77,6 @@ impl AsRef<MySqlPool> for RepositoryImpl {
     }
 }
 
-#[async_trait]
 impl Repository for RepositoryImpl {
     type Error = sqlx::Error;
 

@@ -1,22 +1,37 @@
-use async_trait::async_trait;
+use std::future::Future;
+
 use uuid::Uuid;
 
 use crate::owner::Owner;
 use crate::user::User;
 use crate::webhook::Webhook;
 
-#[async_trait]
 pub trait Repository: Send + Sync + 'static {
     type Error: Send + Sync + 'static;
 
-    async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error>;
-    async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error>;
-    async fn list_webhooks(&self) -> Result<Vec<Webhook>, Self::Error>;
-    async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>, Self::Error>;
-    async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Self::Error>;
-    async fn filter_webhook_by_channel(
+    fn add_webhook(
+        &self,
+        webhook: &Webhook,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    fn remove_webhook(
+        &self,
+        webhook: &Webhook,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    fn list_webhooks(&self) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
+    fn find_webhook(
+        &self,
+        id: &Uuid,
+    ) -> impl Future<Output = Result<Option<Webhook>, Self::Error>> + Send;
+    fn filter_webhook_by_owner(
+        &self,
+        owner: &Owner,
+    ) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
+    fn filter_webhook_by_channel(
         &self,
         channel_id: &Uuid,
-    ) -> Result<Vec<Webhook>, Self::Error>;
-    async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error>;
+    ) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
+    fn filter_webhook_by_user(
+        &self,
+        user: &User,
+    ) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
 }
