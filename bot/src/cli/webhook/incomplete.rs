@@ -78,14 +78,16 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             OwnerKind::SingleUser
         };
         complete::WebhookCreate {
-            user_id: context.user.id,
-            user_name: context.user.name.clone(),
+            user: User {
+                id: context.user.id.into(),
+                name: context.user.name.clone(),
+            },
             in_dm,
-            talking_channel_id: context.channel_id,
+            talking_channel_id: context.channel_id.into(),
             channel_name: self.channel.clone(),
-            channel_id,
+            channel_id: channel_id.into(),
             channel_dm: self.channel.is_none() && in_dm,
-            owner_id,
+            owner_id: owner_id.into(),
             owner_name,
             owner_kind,
         }
@@ -116,7 +118,7 @@ impl<'a> Incomplete<&'a Message> for WebhookList {
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
         let user = User {
-            id: context.user.id,
+            id: context.user.id.into(),
             name: context.user.name.clone(),
         };
         complete::WebhookList { user }
@@ -133,13 +135,13 @@ impl<'a> Incomplete<&'a Message> for WebhookDelete {
 
     fn complete(&self, context: &'a Message) -> Self::Completed {
         let user = User {
-            id: context.user.id,
+            id: context.user.id.into(),
             name: context.user.name.clone(),
         };
         complete::WebhookDelete {
             user,
-            talking_channel_id: context.channel_id,
-            webhook_id: self.id,
+            talking_channel_id: context.channel_id.into(),
+            webhook_id: self.id.into(),
         }
     }
 }

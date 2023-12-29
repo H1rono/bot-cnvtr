@@ -1,8 +1,7 @@
 use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
-use uuid::Uuid;
 
-use domain::{Repository, TraqClient};
+use domain::{MessageId, Repository, StampId, TraqClient};
 use usecases::{Error, Result};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
@@ -26,7 +25,7 @@ impl BotImpl {
         &self,
         repo: &impl Repository<Error = E1>,
         client: &impl TraqClient<Error = E2>,
-        message_id: &Uuid,
+        message_id: &MessageId,
         cmd: CompletedCmds,
     ) -> Result<()>
     where
@@ -40,13 +39,15 @@ impl BotImpl {
         match res {
             Ok(_) => {
                 // :done:
-                const STAMP_ID: Uuid = uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d");
+                const STAMP_ID: StampId =
+                    StampId(uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d"));
                 client.add_message_stamp(message_id, &STAMP_ID, 1).await?;
                 Ok(())
             }
             Err(e) => {
                 // :melting_face:
-                const STAMP_ID: Uuid = uuid::uuid!("67c90d0e-18da-483e-9b2f-e6e50adec29d");
+                const STAMP_ID: StampId =
+                    StampId(uuid::uuid!("67c90d0e-18da-483e-9b2f-e6e50adec29d"));
                 client.add_message_stamp(message_id, &STAMP_ID, 1).await?;
                 Err(e)
             }
@@ -70,15 +71,14 @@ impl BotImpl {
         let cli = match parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
-                client
-                    .send_code(&message.channel_id, "", &e.to_string())
-                    .await?;
+                let channel_id = message.channel_id.into();
+                client.send_code(&channel_id, "", &e.to_string()).await?;
                 return Ok(());
             }
         };
-        let mid = &payload.message.id;
+        let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(repo, client, mid, cmd).await
+        self.run_command2(repo, client, &mid, cmd).await
     }
 
     pub(super) async fn on_direct_message_created<E1, E2>(
@@ -98,14 +98,13 @@ impl BotImpl {
         let cli = match parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
-                client
-                    .send_code(&message.channel_id, "", &e.to_string())
-                    .await?;
+                let channel_id = message.channel_id.into();
+                client.send_code(&channel_id, "", &e.to_string()).await?;
                 return Ok(());
             }
         };
-        let mid = &payload.message.id;
+        let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(repo, client, mid, cmd).await
+        self.run_command2(repo, client, &mid, cmd).await
     }
 }

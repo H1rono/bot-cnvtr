@@ -355,7 +355,6 @@ dependencies = [
  "traq-bot-http",
  "traq-client",
  "usecases",
- "uuid",
  "wh-handler",
 ]
 
@@ -1552,7 +1551,6 @@ dependencies = [
  "tokio",
  "traq-bot-http",
  "usecases",
- "uuid",
 ]
 
 [[package]]
@@ -2346,7 +2344,6 @@ dependencies = [
  "thiserror",
  "traq",
  "usecases",
- "uuid",
 ]
 
 [[package]]

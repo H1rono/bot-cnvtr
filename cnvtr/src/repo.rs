@@ -1,6 +1,4 @@
-use uuid::Uuid;
-
-use domain::Repository;
+use domain::{ChannelId, Repository, WebhookId};
 
 pub struct RepoWrapper<R: Repository>(pub R);
 
@@ -22,7 +20,7 @@ where
         Ok(self.0.list_webhooks().await?)
     }
 
-    async fn find_webhook(&self, id: &Uuid) -> Result<Option<domain::Webhook>, Self::Error> {
+    async fn find_webhook(&self, id: &WebhookId) -> Result<Option<domain::Webhook>, Self::Error> {
         Ok(self.0.find_webhook(id).await?)
     }
 
@@ -35,7 +33,7 @@ where
 
     async fn filter_webhook_by_channel(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
     ) -> Result<Vec<domain::Webhook>, Self::Error> {
         Ok(self.0.filter_webhook_by_channel(channel_id).await?)
     }

@@ -36,12 +36,14 @@ impl BotImpl {
     {
         let owner = match create.owner_kind {
             OwnerKind::Group => {
-                let group = client.get_group(&create.owner_id).await?;
+                let group_id = create.owner_id.0.into();
+                let group = client.get_group(&group_id).await?;
                 Owner::Group(group)
             }
             OwnerKind::SingleUser => {
+                let user_id = create.owner_id.0.into();
                 let user = User {
-                    id: create.owner_id,
+                    id: user_id,
                     name: create.owner_name,
                 };
                 Owner::SigleUser(user)
@@ -50,11 +52,11 @@ impl BotImpl {
 
         // ownerには投稿者自身が含まれている必要がある
         let owner_contain_self = match &owner {
-            Owner::Group(g) => g.members.iter().any(|u| u.id == create.user_id),
-            Owner::SigleUser(u) => u.id == create.user_id,
+            Owner::Group(g) => g.members.iter().any(|u| u.id == create.user.id),
+            Owner::SigleUser(u) => u.id == create.user.id,
         };
         if !owner_contain_self {
-            let message = format!("エラー: --ownerに @{} が含まれていません", create.user_name);
+            let message = format!("エラー: --ownerに @{} が含まれていません", create.user.name);
             client
                 .send_message(&create.talking_channel_id, &message, true)
                 .await?;
@@ -62,17 +64,17 @@ impl BotImpl {
         }
 
         // webhook生成してDBに追加
-        let mut id = Uuid::new_v4();
+        let mut id = Uuid::new_v4().into();
         while repo.find_webhook(&id).await?.is_some() {
             // 重複しないようにする
-            id = Uuid::new_v4();
+            id = Uuid::new_v4().into();
         }
         let channel_id = create.channel_id;
         let webhook = domain::Webhook::new(id, channel_id, owner);
         repo.add_webhook(&webhook).await?;
 
         let message_title = match webhook.owner.kind() {
-            OwnerKind::Group => format!(":@{}:によってWebhookが作成されました", create.user_name),
+            OwnerKind::Group => format!(":@{}:によってWebhookが作成されました", create.user.name),
             OwnerKind::SingleUser => String::new(),
         };
         let channel_path = if !create.channel_dm {

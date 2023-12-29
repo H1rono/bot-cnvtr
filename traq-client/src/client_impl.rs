@@ -3,9 +3,8 @@ use std::vec;
 use indoc::formatdoc;
 use itertools::Itertools;
 use traq::apis::configuration::Configuration;
-use uuid::Uuid;
 
-use domain::{Group, TraqClient, User};
+use domain::{ChannelId, Group, GroupId, MessageId, StampId, TraqClient, User, UserId};
 
 use crate::{Config, Error, Result};
 
@@ -37,7 +36,7 @@ impl TraqClient for ClientImpl {
 
     async fn send_message(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
         content: &str,
         embed: bool,
     ) -> Result<(), Self::Error> {
@@ -55,7 +54,7 @@ impl TraqClient for ClientImpl {
 
     async fn send_code(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
         lang: &str,
         code: &str,
     ) -> Result<(), Self::Error> {
@@ -72,7 +71,7 @@ impl TraqClient for ClientImpl {
 
     async fn send_direct_message(
         &self,
-        user_id: &Uuid,
+        user_id: &UserId,
         content: &str,
         embed: bool,
     ) -> Result<(), Self::Error> {
@@ -90,7 +89,7 @@ impl TraqClient for ClientImpl {
 
     async fn send_code_dm(
         &self,
-        user_id: &Uuid,
+        user_id: &UserId,
         lang: &str,
         code: &str,
     ) -> Result<(), Self::Error> {
@@ -106,14 +105,15 @@ impl TraqClient for ClientImpl {
             .await
     }
 
-    async fn get_group(&self, group_id: &Uuid) -> Result<Group, Self::Error> {
+    async fn get_group(&self, group_id: &GroupId) -> Result<Group, Self::Error> {
         use traq::apis::group_api::get_user_group;
         println!("get_group: {}", group_id);
         let gid = group_id.to_string();
         let g = get_user_group(&self.config, &gid).await?;
         let mut members = vec![];
-        for gm in g.members {
-            let user = self.get_user(&gm.id).await?;
+        for member in g.members {
+            let member_id = member.id.into();
+            let user = self.get_user(&member_id).await?;
             members.push(user);
         }
         let group = Group {
@@ -124,19 +124,19 @@ impl TraqClient for ClientImpl {
         Ok(group)
     }
 
-    async fn get_user(&self, user_id: &Uuid) -> Result<User, Self::Error> {
+    async fn get_user(&self, user_id: &UserId) -> Result<User, Self::Error> {
         use traq::apis::user_api::get_user;
         println!("get_user: {}", user_id);
         let uid = user_id.to_string();
         let u = get_user(&self.config, &uid).await?;
         let user = User {
-            id: u.id,
+            id: u.id.into(),
             name: u.name,
         };
         Ok(user)
     }
 
-    async fn get_channel_path(&self, channel_id: &Uuid) -> Result<String, Self::Error> {
+    async fn get_channel_path(&self, channel_id: &ChannelId) -> Result<String, Self::Error> {
         use traq::apis::channel_api::get_channel;
         println!("get_channel_path: {}", channel_id);
         let mut channel_names: Vec<String> = vec![];
@@ -144,15 +144,15 @@ impl TraqClient for ClientImpl {
         while let Some(id) = channel_id {
             let channel = get_channel(&self.config, &id.to_string()).await?;
             channel_names.push(channel.name);
-            channel_id = channel.parent_id;
+            channel_id = channel.parent_id.map(ChannelId::from);
         }
         Ok(format!("#{}", channel_names.into_iter().rev().join("/")))
     }
 
     async fn add_message_stamp(
         &self,
-        message_id: &Uuid,
-        stamp_id: &Uuid,
+        message_id: &MessageId,
+        stamp_id: &StampId,
         count: i32,
     ) -> Result<(), Self::Error> {
         use traq::apis::stamp_api::add_message_stamp;

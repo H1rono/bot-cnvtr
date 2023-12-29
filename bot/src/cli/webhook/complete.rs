@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
-use uuid::Uuid;
 
-use domain::{OwnerKind, User};
+use domain::{ChannelId, OwnerId, OwnerKind, User, WebhookId};
 
 use super::incomplete;
 use crate::cli::Completed;
@@ -29,14 +28,13 @@ impl Completed for Webhook {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookCreate {
-    pub user_id: Uuid,
-    pub user_name: String,
+    pub user: User,
     pub in_dm: bool,
-    pub talking_channel_id: Uuid,
+    pub talking_channel_id: ChannelId,
     pub channel_name: Option<String>,
-    pub channel_id: Uuid,
+    pub channel_id: ChannelId,
     pub channel_dm: bool,
-    pub owner_id: Uuid,
+    pub owner_id: OwnerId,
     pub owner_name: String,
     pub owner_kind: OwnerKind,
 }
@@ -60,7 +58,7 @@ pub struct WebhookList {
 impl From<Message> for WebhookList {
     fn from(value: Message) -> Self {
         let user = User {
-            id: value.user.id,
+            id: value.user.id.into(),
             name: value.user.name,
         };
         Self { user }
@@ -90,8 +88,8 @@ impl Completed for WebhookList {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub user: User,
-    pub talking_channel_id: Uuid,
-    pub webhook_id: Uuid,
+    pub talking_channel_id: ChannelId,
+    pub webhook_id: WebhookId,
 }
 
 impl Completed for WebhookDelete {
@@ -99,7 +97,7 @@ impl Completed for WebhookDelete {
 
     fn incomplete(&self) -> Self::Incomplete {
         incomplete::WebhookDelete {
-            id: self.webhook_id,
+            id: self.webhook_id.into(),
         }
     }
 }

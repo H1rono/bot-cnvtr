@@ -4,10 +4,9 @@ use axum::{
     Json,
 };
 use serde_json::Value;
-use uuid::Uuid;
 
-use domain::Webhook;
 use domain::{Infra, Repository, TraqClient};
+use domain::{Webhook, WebhookId};
 use usecases::{App, WebhookHandler};
 
 use super::{AppState, AppStateImpl, Error, Result};
@@ -15,7 +14,7 @@ use super::{AppState, AppStateImpl, Error, Result};
 /// GET /wh/:id
 pub(super) async fn get_wh<I, A>(
     State(st): State<AppStateImpl<I, A>>,
-    Path(id): Path<Uuid>,
+    Path(id): Path<WebhookId>,
 ) -> Result<Json<Webhook>>
 where
     I: Infra<Error = usecases::Error>,
@@ -32,7 +31,7 @@ where
 /// POST /wh/:id/github
 pub(super) async fn wh_github<I, A>(
     State(st): State<AppStateImpl<I, A>>,
-    Path(id): Path<Uuid>,
+    Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
@@ -65,7 +64,7 @@ where
 /// POST /wh/:id/gitea
 pub(super) async fn wh_gitea<I, A>(
     State(st): State<AppStateImpl<I, A>>,
-    Path(id): Path<Uuid>,
+    Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
@@ -98,7 +97,7 @@ where
 /// POST /wh/:id/clickup
 pub(super) async fn wh_clickup<I, A>(
     State(st): State<AppStateImpl<I, A>>,
-    Path(id): Path<Uuid>,
+    Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>

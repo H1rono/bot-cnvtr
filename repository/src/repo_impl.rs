@@ -1,7 +1,6 @@
 use sqlx::MySqlPool;
-use uuid::Uuid;
 
-use domain::{Group, Owner, OwnerKind, Repository, User, Webhook};
+use domain::{ChannelId, Group, Owner, OwnerKind, Repository, User, Webhook, WebhookId};
 
 use crate::config::Config;
 use crate::MIGRATOR;
@@ -33,12 +32,12 @@ impl RepositoryImpl {
             for gm in gms {
                 let u = self.find_user(&gm.user_id).await?.unwrap();
                 members.push(User {
-                    id: u.id,
+                    id: u.id.into(),
                     name: u.name,
                 });
             }
             let group = Group {
-                id: g.id,
+                id: g.id.into(),
                 name: g.name,
                 members,
             };
@@ -46,14 +45,14 @@ impl RepositoryImpl {
         } else {
             let u = self.find_user(&o.id).await?.unwrap();
             let user = User {
-                id: u.id,
+                id: u.id.into(),
                 name: u.name,
             };
             Owner::SigleUser(user)
         };
         Ok(Webhook {
-            id: w.id,
-            channel_id: w.channel_id,
+            id: w.id.into(),
+            channel_id: w.channel_id.into(),
             owner,
         })
     }
@@ -82,13 +81,13 @@ impl Repository for RepositoryImpl {
 
     async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
         let w = crate::model::Webhook {
-            id: webhook.id,
-            channel_id: webhook.channel_id,
-            owner_id: webhook.owner.id(),
+            id: webhook.id.into(),
+            channel_id: webhook.channel_id.into(),
+            owner_id: webhook.owner.id().into(),
         };
         self.create_webhook(w).await?;
         let o = crate::model::Owner {
-            id: webhook.owner.id(),
+            id: webhook.owner.id().into(),
             name: webhook.owner.name().to_string(),
             group: webhook.owner.kind() == OwnerKind::Group,
         };
@@ -100,7 +99,7 @@ impl Repository for RepositoryImpl {
                 use crate::model::GroupMember;
                 use crate::model::User;
                 let g = Group {
-                    id: group.id,
+                    id: group.id.into(),
                     name: group.name.clone(),
                 };
                 self.create_ignore_groups(&[g]).await?;
@@ -108,8 +107,8 @@ impl Repository for RepositoryImpl {
                     .members
                     .iter()
                     .map(|u| GroupMember {
-                        user_id: u.id,
-                        group_id: group.id,
+                        user_id: u.id.into(),
+                        group_id: group.id.into(),
                     })
                     .collect::<Vec<_>>();
                 self.create_ignore_group_members(&gms).await?;
@@ -117,7 +116,7 @@ impl Repository for RepositoryImpl {
                     .members
                     .iter()
                     .map(|u| User {
-                        id: u.id,
+                        id: u.id.into(),
                         name: u.name.clone(),
                     })
                     .collect::<Vec<_>>();
@@ -125,7 +124,7 @@ impl Repository for RepositoryImpl {
             }
             Owner::SigleUser(user) => {
                 let u = crate::model::User {
-                    id: user.id,
+                    id: user.id.into(),
                     name: user.name.clone(),
                 };
                 self.create_ignore_users(&[u]).await?;
@@ -135,7 +134,8 @@ impl Repository for RepositoryImpl {
     }
 
     async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
-        self.delete_webhook(&webhook.id).await
+        let webhook_id = webhook.id.into();
+        self.delete_webhook(&webhook_id).await
     }
 
     async fn list_webhooks(&self) -> Result<Vec<Webhook>, Self::Error> {
@@ -148,8 +148,8 @@ impl Repository for RepositoryImpl {
         Ok(webhooks)
     }
 
-    async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>, Self::Error> {
-        let w = self.find_webhook(id).await?;
+    async fn find_webhook(&self, id: &WebhookId) -> Result<Option<Webhook>, Self::Error> {
+        let w = self.find_webhook(&id.0).await?;
         if let Some(w) = w {
             let webhook = self.complete_webhook(&w).await?;
             Ok(Some(webhook))
@@ -159,22 +159,22 @@ impl Repository for RepositoryImpl {
     }
 
     async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = self.filter_webhooks_by_oid(owner.id()).await?;
+        let ws = self.filter_webhooks_by_oid(owner.id().0).await?;
         self.complete_webhooks(&ws).await
     }
 
     async fn filter_webhook_by_channel(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
     ) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = self.filter_webhooks_by_cid(*channel_id).await?;
+        let ws = self.filter_webhooks_by_cid(channel_id.0).await?;
         self.complete_webhooks(&ws).await
     }
 
     async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error> {
-        let gms = self.filter_group_members_by_uid(&user.id).await?;
+        let gms = self.filter_group_members_by_uid(&user.id.0).await?;
         let mut oids = gms.into_iter().map(|gm| gm.group_id).collect::<Vec<_>>();
-        oids.push(user.id);
+        oids.push(user.id.0);
         let ws = self.filter_webhooks_by_oids(&oids).await?;
         self.complete_webhooks(&ws).await
     }
