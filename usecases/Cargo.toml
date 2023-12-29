@@ -12,11 +12,11 @@ serde_json.workspace = true
 uuid.workspace = true
 envy.workspace = true
 
-clap.workspace = true
-shlex.workspace = true
+clap = { version = "4.3", features = ["derive"] }
+shlex = "1.1"
 
 futures.workspace = true
-async-stream.workspace = true
+async-stream = "0.3"
 
 traq-bot-http.workspace = true
 sqlx.workspace = true

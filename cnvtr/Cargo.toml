@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 envy.workspace = true
-dotenvy.workspace = true
+dotenvy = "0.15"
 
 tokio.workspace = true
 axum.workspace = true

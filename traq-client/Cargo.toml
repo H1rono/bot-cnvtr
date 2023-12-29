@@ -14,7 +14,7 @@ serde.workspace = true
 serde_json.workspace = true
 
 reqwest.workspace = true
-traq.workspace = true
+traq = "0.1"
 
 domain.workspace = true
 usecases.workspace = true
