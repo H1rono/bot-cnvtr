@@ -443,7 +443,6 @@ dependencies = [
 name = "domain"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "serde",
  "uuid",
 ]
@@ -1450,7 +1449,6 @@ dependencies = [
 name = "repository"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "domain",
  "envy",
  "indoc",
@@ -2313,7 +2311,6 @@ dependencies = [
 name = "traq-client"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "domain",
  "envy",
  "indoc",
@@ -2409,7 +2406,6 @@ name = "usecases"
 version = "0.1.0"
 dependencies = [
  "async-stream",
- "async-trait",
  "clap",
  "domain",
  "envy",
