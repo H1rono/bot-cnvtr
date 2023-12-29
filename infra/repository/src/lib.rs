@@ -10,7 +10,7 @@ mod repo_impl;
 pub use config::Config;
 pub use repo_impl::RepositoryImpl;
 
-pub const MIGRATOR: Migrator = sqlx::migrate!("../migrations");
+pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
 fn parse_col_str2uuid(row: &MySqlRow, col: &str) -> sqlx::Result<Uuid> {
     row.try_get(col).and_then(|u| {

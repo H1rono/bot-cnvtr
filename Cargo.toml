@@ -32,8 +32,8 @@ traq-bot-http = { version = "0.8", features = ["uuid"] }
 
 domain.path = "./domain"
 usecases.path = "./usecases"
-repository.path = "./repository"
-traq-client.path = "./traq-client"
+repository.path = "./infra/repository"
+traq-client.path = "./infra/traq-client"
 wh-handler.path = "./wh-handler"
 bot.path = "./bot"
 router.path = "./router"
