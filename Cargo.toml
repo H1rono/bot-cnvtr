@@ -34,8 +34,8 @@ domain.path = "./domain"
 usecases.path = "./usecases"
 repository.path = "./infra/repository"
 traq-client.path = "./infra/traq-client"
-wh-handler.path = "./wh-handler"
-bot.path = "./bot"
+wh-handler.path = "./app/wh-handler"
+bot.path = "./app/bot"
 router.path = "./router"
 
 [workspace.dependencies.sqlx]
