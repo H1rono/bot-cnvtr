@@ -6,6 +6,7 @@ publish.workspace = true
 
 [dependencies]
 uuid.workspace = true
+serde_json.workspace = true
 
 envy.workspace = true
 dotenvy = "0.15"
@@ -13,9 +14,12 @@ dotenvy = "0.15"
 tokio.workspace = true
 axum.workspace = true
 
+traq-bot-http.workspace = true
+
 domain.workspace = true
 usecases.workspace = true
 repository.workspace = true
 router.workspace = true
 traq-client.workspace = true
 wh-handler.workspace = true
+bot.workspace = true

@@ -2,22 +2,25 @@ use std::error::Error;
 use std::net::SocketAddr;
 
 use ::traq_client::ClientImpl;
+use ::wh_handler::WebhookHandlerImpl;
 use repository::RepositoryImpl;
 use router::make_router;
 use usecases::BotImpl;
-use wh_handler::WebhookHandlerImpl;
 
+pub mod app;
+pub mod bot;
 pub mod config;
 pub mod infra;
 pub mod repo;
 pub mod traq_client;
+pub mod wh_handler;
 
 use config::ConfigComposite;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let ConfigComposite {
-        usecases_config,
+        bot_config,
         router_config,
         client_config,
         repo_config,
@@ -29,9 +32,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
     let infra = infra::InfraImpl::new_wrapped(repo, client);
-    let usecases = BotImpl::from_config(usecases_config);
+    let bot = BotImpl::from_config(bot_config);
+    let bot = bot::BotWrapper(bot);
     let wh = WebhookHandlerImpl::new();
-    let app = make_router(router_config, infra, wh, usecases);
+    let wh = wh_handler::WHandlerWrapper(wh);
+    let app = app::AppImpl(bot, wh);
+    let app = make_router(router_config, infra, app);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("listening on {} ...", addr);
