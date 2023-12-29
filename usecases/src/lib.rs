@@ -1,3 +1,4 @@
+mod app;
 mod bot;
 pub(crate) mod cli;
 mod config;
@@ -6,6 +7,7 @@ mod messages;
 mod system;
 mod wh_handler;
 
+pub use app::App;
 pub use bot::{Bot, BotImpl};
 pub use config::Config;
 pub use error::{Error, Result};
