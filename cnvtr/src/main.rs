@@ -1,14 +1,16 @@
 use std::error::Error;
 use std::net::SocketAddr;
 
+use ::traq_client::ClientImpl;
 use repository::RepositoryImpl;
 use router::make_router;
-use traq_client::ClientImpl;
 use usecases::BotImpl;
 use wh_handler::WebhookHandlerImpl;
 
 pub mod config;
 pub mod infra;
+pub mod repo;
+pub mod traq_client;
 
 use config::ConfigComposite;
 
@@ -26,7 +28,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let client = ClientImpl::from_config(client_config);
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
-    let infra = infra::InfraImpl(repo, client);
+    let infra = infra::InfraImpl::new_wrapped(repo, client);
     let usecases = BotImpl::from_config(usecases_config);
     let wh = WebhookHandlerImpl::new();
     let app = make_router(router_config, infra, wh, usecases);
