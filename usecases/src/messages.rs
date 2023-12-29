@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use domain::{Repository, TraqClient};
 
-use super::{Bot, Error, Result};
+use super::{BotImpl, Error, Result};
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 
 mod cmd_sudo;
@@ -20,7 +20,7 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
     Cli::try_parse_from(args)
 }
 
-impl Bot {
+impl BotImpl {
     async fn run_command2<E1, E2>(
         &self,
         repo: &impl Repository<Error = E1>,

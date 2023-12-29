@@ -1,5 +1,6 @@
 use traq_bot_http::Event;
 
+mod bot;
 pub(crate) mod cli;
 mod config;
 mod error;
@@ -7,17 +8,18 @@ mod messages;
 mod system;
 mod wh_handler;
 
+pub use bot::Bot;
 pub use config::Config;
 pub use error::{Error, Result};
 pub use wh_handler::WebhookHandler;
 
 #[derive(Debug, Clone)]
-pub struct Bot {
+pub struct BotImpl {
     pub id: String,
     pub user_id: String,
 }
 
-impl Bot {
+impl BotImpl {
     pub fn new(id: &str, user_id: &str) -> Self {
         let id = id.to_string();
         let user_id = user_id.to_string();

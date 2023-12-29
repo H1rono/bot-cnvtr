@@ -9,7 +9,7 @@ use axum::{
 use traq_bot_http::RequestParser;
 
 use domain::{Infra, Repository, TraqClient};
-use usecases::Bot;
+use usecases::BotImpl;
 use usecases::WebhookHandler;
 
 mod bot;
@@ -31,7 +31,7 @@ where
     pub infra: Arc<I>,
     pub wh: WH,
     pub parser: RequestParser,
-    pub bot: Bot,
+    pub bot: BotImpl,
 }
 
 impl<I, WH, E1, E2, E3> Clone for AppState<I, WH, E1, E2, E3>
@@ -60,7 +60,7 @@ where
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    pub fn new(infra: I, wh: WH, parser: RequestParser, bot: Bot) -> Self {
+    pub fn new(infra: I, wh: WH, parser: RequestParser, bot: BotImpl) -> Self {
         Self {
             infra: Arc::new(infra),
             wh,
@@ -83,7 +83,7 @@ where
     }
 }
 
-pub fn make_router<I, WH, E1, E2, E3>(config: Config, infra: I, wh: WH, bot: Bot) -> Router
+pub fn make_router<I, WH, E1, E2, E3>(config: Config, infra: I, wh: WH, bot: BotImpl) -> Router
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,

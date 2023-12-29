@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 use repository::RepositoryImpl;
 use router::make_router;
 use traq_client::ClientImpl;
-use usecases::Bot;
+use usecases::BotImpl;
 use wh_handler::WebhookHandlerImpl;
 
 pub mod config;
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
     let infra = infra::InfraImpl(repo, client);
-    let usecases = Bot::from_config(usecases_config);
+    let usecases = BotImpl::from_config(usecases_config);
     let wh = WebhookHandlerImpl::new();
     let app = make_router(router_config, infra, wh, usecases);
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

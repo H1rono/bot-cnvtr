@@ -6,9 +6,9 @@ use futures::{pin_mut, StreamExt};
 
 use domain::{Repository, TraqClient};
 
-use super::{Bot, Error, Result};
+use super::{BotImpl, Error, Result};
 
-impl Bot {
+impl BotImpl {
     pub(super) async fn handle_sudo_command<E1, E2>(
         &self,
         repo: &impl Repository<Error = E1>,

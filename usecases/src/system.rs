@@ -2,9 +2,9 @@ use traq_bot_http::payloads::{JoinedPayload, LeftPayload};
 
 use domain::{Repository, TraqClient};
 
-use super::{Bot, Result};
+use super::{BotImpl, Result};
 
-impl Bot {
+impl BotImpl {
     pub(super) async fn on_joined(
         &self,
         _repo: &impl Repository,

@@ -4,10 +4,10 @@ use uuid::Uuid;
 
 use domain::{Owner, OwnerKind, Repository, TraqClient, User};
 
-use super::{Bot, Error, Result};
+use super::{BotImpl, Error, Result};
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
 
-impl Bot {
+impl BotImpl {
     pub(super) async fn handle_webhook_command<E1, E2>(
         &self,
         repo: &impl Repository<Error = E1>,
