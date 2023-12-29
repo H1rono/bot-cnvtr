@@ -3,9 +3,10 @@ use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload
 use uuid::Uuid;
 
 use domain::{Repository, TraqClient};
+use usecases::{Error, Result};
 
-use super::{BotImpl, Error, Result};
 use crate::cli::{Cli, CompletedCmds, Incomplete};
+use crate::BotImpl;
 
 mod cmd_sudo;
 mod cmd_webhook;
