@@ -46,7 +46,7 @@
 
           # Additional environment variables can be set directly
           # MY_CUSTOM_VAR = "some value";
-        } // (craneLib.crateNameFromCargoToml { cargoToml = ./cnvtr/Cargo.toml; });
+        };
 
         # Build *just* the cargo dependencies, so we can reuse
         # all of that work (e.g. via cachix) when running in CI
