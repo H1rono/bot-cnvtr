@@ -2430,19 +2430,11 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 name = "usecases"
 version = "0.1.0"
 dependencies = [
- "async-stream",
- "clap",
  "domain",
- "envy",
- "futures",
- "indoc",
- "serde",
  "serde_json",
- "shlex",
  "sqlx",
  "thiserror",
  "traq-bot-http",
- "uuid",
 ]
 
 [[package]]
