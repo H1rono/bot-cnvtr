@@ -11,13 +11,13 @@ use traq_bot_http::Event;
 use domain::{Infra, Repository, TraqClient};
 use usecases::WebhookHandler;
 
-use super::AppState;
+use super::AppStateImpl;
 
 #[derive(Debug, Clone)]
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<I, WH, E1, E2, E3> FromRequest<AppState<I, WH, E1, E2, E3>> for BotEvent
+impl<I, WH, E1, E2, E3> FromRequest<AppStateImpl<I, WH, E1, E2, E3>> for BotEvent
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,
@@ -29,7 +29,7 @@ where
 
     async fn from_request(
         req: Request<Body>,
-        state: &AppState<I, WH, E1, E2, E3>,
+        state: &AppStateImpl<I, WH, E1, E2, E3>,
     ) -> Result<Self, Self::Rejection> {
         let parser = &state.parser;
         let (parts, body) = req.into_parts();
@@ -50,7 +50,7 @@ where
 }
 
 pub(super) async fn event<I, WH, E1, E2, E3>(
-    State(st): State<AppState<I, WH, E1, E2, E3>>,
+    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
     BotEvent(event): BotEvent,
 ) -> StatusCode
 where

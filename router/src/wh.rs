@@ -10,11 +10,11 @@ use domain::Webhook;
 use domain::{Infra, Repository, TraqClient};
 use usecases::WebhookHandler;
 
-use super::{AppState, Error, Result};
+use super::{AppStateImpl, Error, Result};
 
 /// GET /wh/:id
 pub(super) async fn get_wh<I, WH, E1, E2, E3>(
-    State(st): State<AppState<I, WH, E1, E2, E3>>,
+    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Webhook>>
 where
@@ -34,7 +34,7 @@ where
 
 /// POST /wh/:id/github
 pub(super) async fn wh_github<I, WH, E1, E2, E3>(
-    State(st): State<AppState<I, WH, E1, E2, E3>>,
+    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
@@ -70,7 +70,7 @@ where
 
 /// POST /wh/:id/gitea
 pub(super) async fn wh_gitea<I, WH, E1, E2, E3>(
-    State(st): State<AppState<I, WH, E1, E2, E3>>,
+    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
@@ -106,7 +106,7 @@ where
 
 /// POST /wh/:id/clickup
 pub(super) async fn wh_clickup<I, WH, E1, E2, E3>(
-    State(st): State<AppState<I, WH, E1, E2, E3>>,
+    State(st): State<AppStateImpl<I, WH, E1, E2, E3>>,
     Path(id): Path<Uuid>,
     headers: HeaderMap,
     Json(payload): Json<Value>,

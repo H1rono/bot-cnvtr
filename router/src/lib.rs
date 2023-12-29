@@ -10,7 +10,7 @@ use traq_bot_http::RequestParser;
 
 use domain::{Infra, Repository, TraqClient};
 use usecases::BotImpl;
-use usecases::WebhookHandler;
+use usecases::{App, WebhookHandler};
 
 mod bot;
 mod config;
@@ -20,7 +20,29 @@ mod wh;
 pub use config::Config;
 use error::{Error, Result};
 
-struct AppState<I, WH, E1, E2, E3>
+trait AppState {
+    type Infra: Infra<Error = Self::Error>;
+    type App: App<Self::Infra, Error = Self::Error>;
+    type Error: Send + Sync + 'static;
+
+    fn infra(&self) -> &Self::Infra;
+    fn repo(&self) -> &<Self::Infra as Infra>::Repo {
+        self.infra().repo()
+    }
+    fn traq_client(&self) -> &<Self::Infra as Infra>::TClient {
+        self.infra().traq_client()
+    }
+
+    fn app(&self) -> &Self::App;
+    fn bot(&self) -> &<Self::App as App<Self::Infra>>::Bot {
+        self.app().bot()
+    }
+    fn webhook_handler(&self) -> &<Self::App as App<Self::Infra>>::WebhookHandler {
+        self.app().webhook_handler()
+    }
+}
+
+struct AppStateImpl<I, WH, E1, E2, E3>
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,
@@ -34,7 +56,7 @@ where
     pub bot: BotImpl,
 }
 
-impl<I, WH, E1, E2, E3> Clone for AppState<I, WH, E1, E2, E3>
+impl<I, WH, E1, E2, E3> Clone for AppStateImpl<I, WH, E1, E2, E3>
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,
@@ -52,7 +74,7 @@ where
     }
 }
 
-impl<I, WH, E1, E2, E3> AppState<I, WH, E1, E2, E3>
+impl<I, WH, E1, E2, E3> AppStateImpl<I, WH, E1, E2, E3>
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,
@@ -70,7 +92,8 @@ where
     }
 }
 
-impl<I, WH, E1, E2, E3> AsRef<AppState<I, WH, E1, E2, E3>> for State<AppState<I, WH, E1, E2, E3>>
+impl<I, WH, E1, E2, E3> AsRef<AppStateImpl<I, WH, E1, E2, E3>>
+    for State<AppStateImpl<I, WH, E1, E2, E3>>
 where
     I: Infra,
     I::Repo: Repository<Error = E1>,
@@ -78,7 +101,7 @@ where
     WH: WebhookHandler<Error = E3>,
     usecases::Error: From<E1> + From<E2> + From<E3>,
 {
-    fn as_ref(&self) -> &AppState<I, WH, E1, E2, E3> {
+    fn as_ref(&self) -> &AppStateImpl<I, WH, E1, E2, E3> {
         &self.0
     }
 }
@@ -95,7 +118,7 @@ where
     E3: Send + Sync + 'static,
 {
     let parser = config.into();
-    let state = AppState::new(infra, wh, parser, bot);
+    let state = AppStateImpl::new(infra, wh, parser, bot);
     Router::new()
         .route("/bot", post(bot::event::<I, WH, E1, E2, E3>))
         .route("/wh/:id", get(wh::get_wh::<I, WH, E1, E2, E3>))
