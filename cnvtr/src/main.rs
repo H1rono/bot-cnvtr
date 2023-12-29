@@ -1,11 +1,11 @@
 use std::error::Error;
 use std::net::SocketAddr;
 
+use ::bot::BotImpl;
 use ::traq_client::ClientImpl;
 use ::wh_handler::WebhookHandlerImpl;
 use repository::RepositoryImpl;
 use router::make_router;
-use usecases::BotImpl;
 
 pub mod app;
 pub mod bot;
