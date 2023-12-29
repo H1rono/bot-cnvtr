@@ -1,10 +1,8 @@
 use std::future::Future;
 
-use uuid::Uuid;
-
 use crate::owner::Owner;
 use crate::user::User;
-use crate::webhook::Webhook;
+use crate::webhook::{ChannelId, Webhook, WebhookId};
 
 pub trait Repository: Send + Sync + 'static {
     type Error: Send + Sync + 'static;
@@ -20,7 +18,7 @@ pub trait Repository: Send + Sync + 'static {
     fn list_webhooks(&self) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
     fn find_webhook(
         &self,
-        id: &Uuid,
+        id: &WebhookId,
     ) -> impl Future<Output = Result<Option<Webhook>, Self::Error>> + Send;
     fn filter_webhook_by_owner(
         &self,
@@ -28,7 +26,7 @@ pub trait Repository: Send + Sync + 'static {
     ) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
     fn filter_webhook_by_channel(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
     ) -> impl Future<Output = Result<Vec<Webhook>, Self::Error>> + Send;
     fn filter_webhook_by_user(
         &self,

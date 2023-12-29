@@ -1,17 +1,18 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::User;
 
+crate::macros::newtype_id! {Group}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Group {
-    pub id: Uuid,
+    pub id: GroupId,
     pub name: String,
     pub members: Vec<User>,
 }
 
 impl Group {
-    pub fn new(id: Uuid, name: String, members: &[User]) -> Self {
+    pub fn new(id: GroupId, name: String, members: &[User]) -> Self {
         Self {
             id,
             name,

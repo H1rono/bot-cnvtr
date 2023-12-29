@@ -1,55 +1,59 @@
 use std::future::Future;
 
-use uuid::Uuid;
+use crate::group::{Group, GroupId};
+use crate::user::{User, UserId};
+use crate::webhook::ChannelId;
 
-use crate::group::Group;
-use crate::user::User;
+crate::macros::newtype_id! {Message}
+crate::macros::newtype_id! {Stamp}
 
 pub trait TraqClient: Send + Sync + 'static {
     type Error: Send + Sync + 'static;
 
     fn send_message(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
         content: &str,
         embed: bool,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn send_code(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
         lang: &str,
         code: &str,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn send_direct_message(
         &self,
-        user_id: &Uuid,
+        user_id: &UserId,
         content: &str,
         embed: bool,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn send_code_dm(
         &self,
-        user_id: &Uuid,
+        user_id: &UserId,
         lang: &str,
         code: &str,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    fn get_group(&self, group_id: &Uuid)
-        -> impl Future<Output = Result<Group, Self::Error>> + Send;
+    fn get_group(
+        &self,
+        group_id: &GroupId,
+    ) -> impl Future<Output = Result<Group, Self::Error>> + Send;
 
-    fn get_user(&self, user_id: &Uuid) -> impl Future<Output = Result<User, Self::Error>> + Send;
+    fn get_user(&self, user_id: &UserId) -> impl Future<Output = Result<User, Self::Error>> + Send;
 
     fn get_channel_path(
         &self,
-        channel_id: &Uuid,
+        channel_id: &ChannelId,
     ) -> impl Future<Output = Result<String, Self::Error>> + Send;
 
     fn add_message_stamp(
         &self,
-        message_id: &Uuid,
-        stamp_id: &Uuid,
+        message_id: &MessageId,
+        stamp_id: &StampId,
         count: i32,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

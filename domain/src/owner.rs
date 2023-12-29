@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{Group, User};
+
+crate::macros::newtype_id! {Owner}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -18,10 +19,10 @@ impl Owner {
         }
     }
 
-    pub fn id(&self) -> Uuid {
+    pub fn id(&self) -> OwnerId {
         match self {
-            Self::Group(g) => g.id,
-            Self::SigleUser(u) => u.id,
+            Self::Group(g) => g.id.0.into(),
+            Self::SigleUser(u) => u.id.0.into(),
         }
     }
 
