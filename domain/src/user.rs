@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 crate::macros::newtype_id! {User}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -11,9 +10,6 @@ pub struct User {
 
 impl User {
     pub fn new(id: UserId, name: String) -> Self {
-        Self {
-            id,
-            name,
-        }
+        Self { id, name }
     }
 }

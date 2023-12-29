@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 use crate::Owner;
 
 crate::macros::newtype_id! {Webhook}
