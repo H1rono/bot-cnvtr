@@ -22,7 +22,19 @@ pub trait TraqClient: Send + Sync + 'static {
         channel_id: &ChannelId,
         lang: &str,
         code: &str,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send {
+        async move {
+            let message = indoc::formatdoc! {
+                r#"
+                    ```{}
+                    {}
+                    ```
+                "#,
+                lang, code
+            };
+            self.send_message(channel_id, &message, false).await
+        }
+    }
 
     fn send_direct_message(
         &self,
@@ -36,7 +48,19 @@ pub trait TraqClient: Send + Sync + 'static {
         user_id: &UserId,
         lang: &str,
         code: &str,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send {
+        async move {
+            let message = indoc::formatdoc! {
+                r#"
+                    ```{}
+                    {}
+                    ```
+                "#,
+                lang, code
+            };
+            self.send_direct_message(user_id, &message, false).await
+        }
+    }
 
     fn get_group(
         &self,

@@ -1,6 +1,5 @@
 use std::vec;
 
-use indoc::formatdoc;
 use itertools::Itertools;
 use traq::apis::configuration::Configuration;
 
@@ -52,23 +51,6 @@ impl TraqClient for ClientImpl {
         Ok(())
     }
 
-    async fn send_code(
-        &self,
-        channel_id: &ChannelId,
-        lang: &str,
-        code: &str,
-    ) -> Result<(), Self::Error> {
-        let message = formatdoc! {
-            r#"
-            ```{}
-            {}
-            ```
-            "#,
-            lang, code
-        };
-        self.send_message(channel_id, message.trim(), false).await
-    }
-
     async fn send_direct_message(
         &self,
         user_id: &UserId,
@@ -85,24 +67,6 @@ impl TraqClient for ClientImpl {
         let user_id = user_id.to_string();
         post_direct_message(&self.config, &user_id, Some(req)).await?;
         Ok(())
-    }
-
-    async fn send_code_dm(
-        &self,
-        user_id: &UserId,
-        lang: &str,
-        code: &str,
-    ) -> Result<(), Self::Error> {
-        let message = formatdoc! {
-            r#"
-            ```{}
-            {}
-            ```
-            "#,
-            lang, code
-        };
-        self.send_direct_message(user_id, message.trim(), false)
-            .await
     }
 
     async fn get_group(&self, group_id: &GroupId) -> Result<Group, Self::Error> {

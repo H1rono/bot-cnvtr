@@ -466,6 +466,7 @@ dependencies = [
 name = "domain"
 version = "0.1.0"
 dependencies = [
+ "indoc",
  "paste",
  "serde",
  "uuid",
@@ -2336,7 +2337,6 @@ version = "0.1.0"
 dependencies = [
  "domain",
  "envy",
- "indoc",
  "itertools 0.11.0",
  "reqwest",
  "serde",
