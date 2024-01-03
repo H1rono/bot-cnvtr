@@ -1,3 +1,4 @@
+pub mod error;
 mod group;
 mod infra;
 pub(crate) mod macros;
@@ -7,6 +8,7 @@ mod traq_client;
 mod user;
 mod webhook;
 
+pub use error::{Error, Result};
 pub use group::{Group, GroupId};
 pub use infra::Infra;
 pub use owner::{Owner, OwnerId, OwnerKind};

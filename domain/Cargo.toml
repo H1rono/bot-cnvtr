@@ -7,6 +7,8 @@ publish.workspace = true
 [dependencies]
 paste = "1.0"
 indoc.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
 
 serde.workspace = true
 uuid.workspace = true
