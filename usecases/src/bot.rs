@@ -5,7 +5,7 @@ use traq_bot_http::Event;
 use domain::Infra;
 
 pub trait Bot<I: Infra>: Send + Sync + 'static {
-    type Error: Send + Sync + 'static;
+    type Error: Into<domain::Error> + Send + Sync + 'static;
 
     fn handle_event(
         &self,

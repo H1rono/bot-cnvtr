@@ -1,7 +1,7 @@
 use serde_json::Value;
 
 pub trait WebhookHandler: Clone + Send + Sync + 'static {
-    type Error: Send + Sync + 'static;
+    type Error: Into<domain::Error> + Send + Sync + 'static;
 
     fn github_webhook<'a, H, K, V>(
         &self,

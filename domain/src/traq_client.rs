@@ -7,7 +7,7 @@ use crate::webhook::ChannelId;
 crate::macros::newtype_id! {Message}
 crate::macros::newtype_id! {Stamp}
 
-pub trait TraqClient: Send + Sync + 'static {
+pub trait TraqClient: Into<crate::error::Error> + Send + Sync + 'static {
     type Error: Send + Sync + 'static;
 
     fn send_message(
