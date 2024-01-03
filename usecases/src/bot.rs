@@ -4,8 +4,6 @@ use traq_bot_http::Event;
 
 use domain::Infra;
 
-use crate::error::Result;
-
 pub trait Bot<I: Infra>: Send + Sync + 'static {
     type Error: Send + Sync + 'static;
 

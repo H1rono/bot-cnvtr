@@ -5,10 +5,7 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies]
-thiserror.workspace = true
 serde_json.workspace = true
-
 traq-bot-http.workspace = true
-sqlx.workspace = true
 
 domain.workspace = true

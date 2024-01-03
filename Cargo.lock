@@ -2585,8 +2585,6 @@ version = "0.1.0"
 dependencies = [
  "domain",
  "serde_json",
- "sqlx",
- "thiserror",
  "traq-bot-http",
 ]
 
