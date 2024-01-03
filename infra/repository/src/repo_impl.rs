@@ -77,7 +77,7 @@ impl AsRef<MySqlPool> for RepositoryImpl {
 }
 
 impl Repository for RepositoryImpl {
-    type Error = sqlx::Error;
+    type Error = crate::error::Error;
 
     async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
         let w = crate::model::Webhook {
@@ -135,7 +135,7 @@ impl Repository for RepositoryImpl {
 
     async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
         let webhook_id = webhook.id.into();
-        self.delete_webhook(&webhook_id).await
+        Ok(self.delete_webhook(&webhook_id).await?)
     }
 
     async fn list_webhooks(&self) -> Result<Vec<Webhook>, Self::Error> {
@@ -160,7 +160,7 @@ impl Repository for RepositoryImpl {
 
     async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Self::Error> {
         let ws = self.filter_webhooks_by_oid(owner.id().0).await?;
-        self.complete_webhooks(&ws).await
+        Ok(self.complete_webhooks(&ws).await?)
     }
 
     async fn filter_webhook_by_channel(
@@ -168,7 +168,7 @@ impl Repository for RepositoryImpl {
         channel_id: &ChannelId,
     ) -> Result<Vec<Webhook>, Self::Error> {
         let ws = self.filter_webhooks_by_cid(channel_id.0).await?;
-        self.complete_webhooks(&ws).await
+        Ok(self.complete_webhooks(&ws).await?)
     }
 
     async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error> {
@@ -176,6 +176,6 @@ impl Repository for RepositoryImpl {
         let mut oids = gms.into_iter().map(|gm| gm.group_id).collect::<Vec<_>>();
         oids.push(user.id.0);
         let ws = self.filter_webhooks_by_oids(&oids).await?;
-        self.complete_webhooks(&ws).await
+        Ok(self.complete_webhooks(&ws).await?)
     }
 }

@@ -4,6 +4,7 @@ use sqlx::Row;
 use uuid::Uuid;
 
 mod config;
+pub mod error;
 pub(crate) mod model;
 mod repo_impl;
 
