@@ -7,20 +7,19 @@ use serde_json::Value;
 
 use domain::{Infra, Repository, TraqClient};
 use domain::{Webhook, WebhookId};
-use usecases::{App, WebhookHandler};
+use usecases::WebhookHandler;
 
-use super::{AppState, AppStateImpl, Result};
+use super::{AppState, Result};
 
 /// GET /wh/:id
-pub(super) async fn get_wh<I, A>(
-    State(st): State<AppStateImpl<I, A>>,
+pub(super) async fn get_wh<S>(
+    State(st): State<S>,
     Path(id): Path<WebhookId>,
 ) -> Result<Json<Webhook>>
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
-    let repo = st.infra.repo();
+    let repo = st.infra().repo();
     repo.find_webhook(&id)
         .await
         .map_err(domain::Error::from)?
@@ -29,18 +28,17 @@ where
 }
 
 /// POST /wh/:id/github
-pub(super) async fn wh_github<I, A>(
-    State(st): State<AppStateImpl<I, A>>,
+pub(super) async fn wh_github<S>(
+    State(st): State<S>,
     Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
-    let client = st.infra.traq_client();
-    let repo = st.infra.repo();
+    let client = st.infra().traq_client();
+    let repo = st.infra().repo();
     let webhook = repo
         .find_webhook(&id)
         .await
@@ -62,18 +60,17 @@ where
 }
 
 /// POST /wh/:id/gitea
-pub(super) async fn wh_gitea<I, A>(
-    State(st): State<AppStateImpl<I, A>>,
+pub(super) async fn wh_gitea<S>(
+    State(st): State<S>,
     Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
-    let client = st.infra.traq_client();
-    let repo = st.infra.repo();
+    let client = st.infra().traq_client();
+    let repo = st.infra().repo();
     let webhook = repo
         .find_webhook(&id)
         .await
@@ -95,18 +92,17 @@ where
 }
 
 /// POST /wh/:id/clickup
-pub(super) async fn wh_clickup<I, A>(
-    State(st): State<AppStateImpl<I, A>>,
+pub(super) async fn wh_clickup<S>(
+    State(st): State<S>,
     Path(id): Path<WebhookId>,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
-    let client = st.infra.traq_client();
-    let repo = st.infra.repo();
+    let client = st.infra().traq_client();
+    let repo = st.infra().repo();
     let webhook = repo
         .find_webhook(&id)
         .await

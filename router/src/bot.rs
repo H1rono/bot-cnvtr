@@ -8,27 +8,22 @@ use axum::{
 };
 use traq_bot_http::Event;
 
-use domain::Infra;
-use usecases::{App, Bot};
+use usecases::Bot;
 
-use super::{AppState, AppStateImpl};
+use super::AppState;
 
 #[derive(Debug, Clone)]
 pub struct BotEvent(pub Event);
 
 #[async_trait]
-impl<I, A> FromRequest<AppStateImpl<I, A>> for BotEvent
+impl<S> FromRequest<S> for BotEvent
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
     type Rejection = StatusCode;
 
-    async fn from_request(
-        req: Request<Body>,
-        state: &AppStateImpl<I, A>,
-    ) -> Result<Self, Self::Rejection> {
-        let parser = &state.parser;
+    async fn from_request(req: Request<Body>, state: &S) -> Result<Self, Self::Rejection> {
+        let parser = state.parser();
         let (parts, body) = req.into_parts();
         let headers = parts.headers;
         let body = to_bytes(body, usize::MAX)
@@ -46,13 +41,9 @@ where
     }
 }
 
-pub(super) async fn event<I, A>(
-    State(st): State<AppStateImpl<I, A>>,
-    BotEvent(event): BotEvent,
-) -> StatusCode
+pub(super) async fn event<S>(State(st): State<S>, BotEvent(event): BotEvent) -> StatusCode
 where
-    I: Infra<Error = domain::Error>,
-    A: App<I, Error = domain::Error>,
+    S: AppState<Error = domain::Error>,
 {
     match st.bot().handle_event(st.infra(), event).await {
         Ok(_) => StatusCode::NO_CONTENT,

@@ -109,10 +109,13 @@ where
     let parser = config.into();
     let state = AppStateImpl::new(infra, app, parser);
     Router::new()
-        .route("/bot", post(bot::event::<I, A>))
-        .route("/wh/:id", get(wh::get_wh::<I, A>))
-        .route("/wh/:id/github", post(wh::wh_github::<I, A>))
-        .route("/wh/:id/gitea", post(wh::wh_gitea::<I, A>))
-        .route("/wh/:id/clickup", post(wh::wh_clickup::<I, A>))
+        .route("/bot", post(bot::event::<AppStateImpl<I, A>>))
+        .route("/wh/:id", get(wh::get_wh::<AppStateImpl<I, A>>))
+        .route("/wh/:id/github", post(wh::wh_github::<AppStateImpl<I, A>>))
+        .route("/wh/:id/gitea", post(wh::wh_gitea::<AppStateImpl<I, A>>))
+        .route(
+            "/wh/:id/clickup",
+            post(wh::wh_clickup::<AppStateImpl<I, A>>),
+        )
         .with_state(state)
 }
