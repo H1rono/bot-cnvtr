@@ -1,7 +1,7 @@
 use traq_bot_http::Event;
 
-use domain::Infra;
-use usecases::{Bot, Error};
+use domain::{Error, Infra};
+use usecases::Bot;
 
 use crate::config::Config;
 

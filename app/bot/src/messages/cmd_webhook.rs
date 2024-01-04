@@ -1,3 +1,4 @@
+use anyhow::Context;
 use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
@@ -172,7 +173,8 @@ impl BotImpl {
         Error: From<E1> + From<E2>,
     {
         let webhooks = repo.filter_webhook_by_user(&list.user).await?;
-        let code = serde_json::to_string_pretty(&webhooks)?;
+        let code = serde_json::to_string_pretty(&webhooks)
+            .with_context(|| format!("failed to format {:?}", &webhooks))?;
         client.send_code_dm(&list.user.id, "json", &code).await?;
         Ok(())
     }

@@ -1,7 +1,6 @@
 use traq_bot_http::payloads::{JoinedPayload, LeftPayload};
 
-use domain::{Repository, TraqClient};
-use usecases::Result;
+use domain::{Repository, Result, TraqClient};
 
 use crate::BotImpl;
 

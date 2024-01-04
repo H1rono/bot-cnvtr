@@ -1,8 +1,7 @@
 use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use domain::{MessageId, Repository, StampId, TraqClient};
-use usecases::{Error, Result};
+use domain::{Error, MessageId, Repository, Result, StampId, TraqClient};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 use crate::BotImpl;

@@ -1,12 +1,13 @@
-use crate::cli::sudo::{
-    webhook::{Completed, Delete, ListAll},
-    SudoCompleted,
-};
+use anyhow::Context;
 use futures::{pin_mut, StreamExt};
 
 use domain::{Repository, TraqClient};
 
 use super::{BotImpl, Error, Result};
+use crate::cli::sudo::{
+    webhook::{Completed, Delete, ListAll},
+    SudoCompleted,
+};
 
 impl BotImpl {
     pub(super) async fn handle_sudo_command<E1, E2>(
@@ -39,7 +40,8 @@ impl BotImpl {
         Error: From<E1> + From<E2>,
     {
         let webhooks = repo.list_webhooks().await?;
-        let code = serde_json::to_string_pretty(&webhooks)?;
+        let code = serde_json::to_string_pretty(&webhooks)
+            .with_context(|| format!("failed to format {:?}", &webhooks))?;
         client
             .send_code_dm(&list_all.user_id, "json", &code)
             .await?;
