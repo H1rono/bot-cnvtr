@@ -10,14 +10,14 @@ pub enum Error {
     SerdeJson(#[from] serde_json::Error),
 }
 
-pub type Result<T, E = Error> = ::std::result::Result<T, E>;
-
-impl From<Error> for usecases::Error {
+impl From<Error> for domain::Error {
     fn from(value: Error) -> Self {
         match value {
-            Error::MissingField => usecases::Error::BadRequest(None),
-            Error::WrongType => usecases::Error::BadRequest(None),
-            Error::SerdeJson(s) => usecases::Error::Serde(s),
+            Error::MissingField => domain::Error::BadRequest,
+            Error::WrongType => domain::Error::BadRequest,
+            e => domain::Error::Unexpected(e.into()),
         }
     }
 }
+
+pub type Result<T, E = Error> = ::std::result::Result<T, E>;
