@@ -19,8 +19,8 @@ pub struct BotEvent(pub Event);
 #[async_trait]
 impl<I, A> FromRequest<AppStateImpl<I, A>> for BotEvent
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     type Rejection = StatusCode;
 
@@ -51,8 +51,8 @@ pub(super) async fn event<I, A>(
     BotEvent(event): BotEvent,
 ) -> StatusCode
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     match st.bot().handle_event(st.infra(), event).await {
         Ok(_) => StatusCode::NO_CONTENT,

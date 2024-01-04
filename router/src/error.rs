@@ -2,45 +2,19 @@ use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
-pub enum Error {
-    #[error("not found")]
-    NotFound,
-    #[error("bad request")]
-    BadRequest,
-    #[error("sqlx error")]
-    Sqlx(#[from] sqlx::Error),
-    #[error("unexpected error")]
-    Unexpected, // TODO: anyhow
-}
-
-impl From<usecases::Error> for Error {
-    fn from(value: usecases::Error) -> Self {
-        match value {
-            usecases::Error::BadRequest(_) => Error::BadRequest,
-            usecases::Error::Sqlx(e) => Error::Sqlx(e),
-            usecases::Error::Serde(e) => {
-                eprintln!("serde error: {}", e);
-                Error::Unexpected
-            }
-            usecases::Error::Other(e) => {
-                eprintln!("unexpected error: {}", e);
-                Error::Unexpected
-            }
-        }
-    }
-}
+#[error(transparent)]
+pub struct Error(#[from] pub domain::Error);
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::NotFound => (StatusCode::NOT_FOUND, "Not Found").into_response(),
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request").into_response(),
-            Self::Sqlx(e) => {
-                eprintln!("sqlx error: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-            Self::Unexpected => {
-                eprintln!("unexpected error");
+        use domain::Error as DE;
+        match self.0 {
+            DE::BadRequest => StatusCode::BAD_REQUEST.into_response(),
+            DE::NotFound => StatusCode::NOT_FOUND.into_response(),
+            DE::NotImplemented => StatusCode::NOT_IMPLEMENTED.into_response(),
+            DE::Unauthorized => StatusCode::UNAUTHORIZED.into_response(),
+            DE::Unexpected(e) => {
+                eprintln!("{}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }

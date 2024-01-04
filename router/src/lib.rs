@@ -4,7 +4,6 @@ use axum::{
     routing::{get, post},
     Router,
 };
-
 use traq_bot_http::RequestParser;
 
 use domain::Infra;
@@ -16,7 +15,7 @@ mod error;
 mod wh;
 
 pub use config::Config;
-use error::{Error, Result};
+use error::Result;
 
 trait AppState {
     type Infra: Infra<Error = Self::Error>;
@@ -42,8 +41,8 @@ trait AppState {
 
 struct AppStateImpl<I, A>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     pub infra: Arc<I>,
     pub app: Arc<A>,
@@ -52,12 +51,12 @@ where
 
 impl<I, A> AppState for AppStateImpl<I, A>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     type Infra = I;
     type App = A;
-    type Error = usecases::Error;
+    type Error = domain::Error;
 
     fn infra(&self) -> &Self::Infra {
         &self.infra
@@ -70,8 +69,8 @@ where
 
 impl<I, A> Clone for AppStateImpl<I, A>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -84,8 +83,8 @@ where
 
 impl<I, A> AppStateImpl<I, A>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     pub fn new(infra: I, app: A, parser: RequestParser) -> Self {
         Self {
@@ -98,8 +97,8 @@ where
 
 pub fn make_router<I, A>(config: Config, infra: I, app: A) -> Router
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     let parser = config.into();
     let state = AppStateImpl::new(infra, app, parser);

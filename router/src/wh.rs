@@ -9,7 +9,7 @@ use domain::{Infra, Repository, TraqClient};
 use domain::{Webhook, WebhookId};
 use usecases::{App, WebhookHandler};
 
-use super::{AppState, AppStateImpl, Error, Result};
+use super::{AppState, AppStateImpl, Result};
 
 /// GET /wh/:id
 pub(super) async fn get_wh<I, A>(
@@ -17,14 +17,14 @@ pub(super) async fn get_wh<I, A>(
     Path(id): Path<WebhookId>,
 ) -> Result<Json<Webhook>>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     let repo = st.infra.repo();
     repo.find_webhook(&id)
         .await
-        .map_err(usecases::Error::from)?
-        .ok_or(Error::NotFound)
+        .map_err(domain::Error::from)?
+        .ok_or(domain::Error::NotFound.into())
         .map(Json)
 }
 
@@ -36,20 +36,20 @@ pub(super) async fn wh_github<I, A>(
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await
-        .map_err(usecases::Error::from)?
-        .ok_or(Error::NotFound)?;
+        .map_err(domain::Error::from)?
+        .ok_or(domain::Error::NotFound)?;
     let message = st
         .webhook_handler()
         .github_webhook(headers.iter(), payload)
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -57,7 +57,7 @@ where
     client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -69,20 +69,20 @@ pub(super) async fn wh_gitea<I, A>(
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await
-        .map_err(usecases::Error::from)?
-        .ok_or(Error::NotFound)?;
+        .map_err(domain::Error::from)?
+        .ok_or(domain::Error::NotFound)?;
     let message = st
         .webhook_handler()
         .gitea_webhook(headers.iter(), payload)
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -90,7 +90,7 @@ where
     client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     Ok(StatusCode::NOT_IMPLEMENTED)
 }
 
@@ -102,20 +102,20 @@ pub(super) async fn wh_clickup<I, A>(
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
-    I: Infra<Error = usecases::Error>,
-    A: App<I, Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    A: App<I, Error = domain::Error>,
 {
     let client = st.infra.traq_client();
     let repo = st.infra.repo();
     let webhook = repo
         .find_webhook(&id)
         .await
-        .map_err(usecases::Error::from)?
-        .ok_or(Error::NotFound)?;
+        .map_err(domain::Error::from)?
+        .ok_or(domain::Error::NotFound)?;
     let message = st
         .webhook_handler()
         .clickup_webhook(headers.iter(), payload)
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     if message.is_none() {
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -123,6 +123,6 @@ where
     client
         .send_message(&webhook.channel_id, message.trim(), false)
         .await
-        .map_err(usecases::Error::from)?;
+        .map_err(domain::Error::from)?;
     Ok(StatusCode::NOT_IMPLEMENTED)
 }
