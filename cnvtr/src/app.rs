@@ -5,11 +5,11 @@ pub struct AppImpl<B, W>(pub B, pub W);
 
 impl<I, B, W> App<I> for AppImpl<B, W>
 where
-    I: Infra<Error = usecases::Error>,
-    B: Bot<I, Error = usecases::Error>,
-    W: WebhookHandler<Error = usecases::Error>,
+    I: Infra<Error = domain::Error>,
+    B: Bot<I, Error = domain::Error>,
+    W: WebhookHandler<Error = domain::Error>,
 {
-    type Error = usecases::Error;
+    type Error = domain::Error;
     type Bot = B;
     type WebhookHandler = W;
 

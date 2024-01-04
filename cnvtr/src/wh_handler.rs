@@ -8,9 +8,9 @@ pub struct WHandlerWrapper<W: WebhookHandler>(pub W);
 impl<W> WebhookHandler for WHandlerWrapper<W>
 where
     W: WebhookHandler,
-    usecases::Error: From<W::Error>,
+    domain::Error: From<W::Error>,
 {
-    type Error = usecases::Error;
+    type Error = domain::Error;
 
     fn github_webhook<'a, H, K, V>(
         &self,

@@ -5,9 +5,9 @@ pub struct TraqClientWrapper<C: TraqClient>(pub C);
 impl<C> TraqClient for TraqClientWrapper<C>
 where
     C: TraqClient,
-    usecases::Error: From<C::Error>,
+    domain::Error: From<C::Error>,
 {
-    type Error = usecases::Error;
+    type Error = domain::Error;
 
     async fn send_message(
         &self,

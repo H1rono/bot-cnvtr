@@ -265,6 +265,7 @@ dependencies = [
 name = "bot"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-stream",
  "clap",
  "domain",
@@ -1569,6 +1570,7 @@ dependencies = [
  "itertools 0.11.0",
  "serde",
  "sqlx",
+ "thiserror",
  "usecases",
  "uuid",
 ]
@@ -1630,6 +1632,7 @@ dependencies = [
 name = "router"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "axum",
  "domain",
  "envy",
@@ -2499,7 +2502,6 @@ dependencies = [
  "serde_json",
  "thiserror",
  "traq",
- "usecases",
 ]
 
 [[package]]
@@ -2723,6 +2725,7 @@ checksum = "1778a42e8b3b90bff8d0f5032bf22250792889a5cdc752aa0020c84abe3aaf10"
 name = "wh-handler"
 version = "0.1.0"
 dependencies = [
+ "domain",
  "indoc",
  "serde",
  "serde_json",

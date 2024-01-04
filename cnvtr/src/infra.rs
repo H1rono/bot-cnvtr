@@ -13,8 +13,8 @@ impl<R: Repository, C: TraqClient> InfraImpl<R, C> {
 
 impl<R: Repository, C: TraqClient> InfraImpl<RepoWrapper<R>, TraqClientWrapper<C>>
 where
-    R::Error: Into<usecases::Error>,
-    C::Error: Into<usecases::Error>,
+    domain::Error: From<R::Error>,
+    domain::Error: From<C::Error>,
 {
     pub fn new_wrapped(repo: R, client: C) -> Self {
         let repo = RepoWrapper(repo);
@@ -26,13 +26,13 @@ where
 impl<R, C> Infra for InfraImpl<RepoWrapper<R>, TraqClientWrapper<C>>
 where
     R: Repository,
-    usecases::Error: From<R::Error>,
+    domain::Error: From<R::Error>,
     C: TraqClient,
-    usecases::Error: From<C::Error>,
+    domain::Error: From<C::Error>,
 {
     type Repo = RepoWrapper<R>;
     type TClient = TraqClientWrapper<C>;
-    type Error = usecases::Error;
+    type Error = domain::Error;
 
     fn repo(&self) -> &Self::Repo {
         &self.0

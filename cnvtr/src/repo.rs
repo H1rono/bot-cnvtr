@@ -4,9 +4,9 @@ pub struct RepoWrapper<R: Repository>(pub R);
 
 impl<R: Repository> Repository for RepoWrapper<R>
 where
-    usecases::Error: From<R::Error>,
+    domain::Error: From<R::Error>,
 {
-    type Error = usecases::Error;
+    type Error = domain::Error;
 
     async fn add_webhook(&self, webhook: &domain::Webhook) -> Result<(), Self::Error> {
         Ok(self.0.add_webhook(webhook).await?)
