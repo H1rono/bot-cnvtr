@@ -29,9 +29,9 @@ impl<T> From<ApiError<T>> for Error {
     }
 }
 
-impl From<Error> for usecases::Error {
+impl From<Error> for domain::Error {
     fn from(value: Error) -> Self {
-        usecases::Error::Other(value.into())
+        domain::Error::Unexpected(value.into())
     }
 }
 

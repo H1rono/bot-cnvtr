@@ -15,4 +15,3 @@ reqwest.workspace = true
 traq = "0.1"
 
 domain.workspace = true
-usecases.workspace = true

@@ -5,7 +5,7 @@ use traq::apis::configuration::Configuration;
 
 use domain::{ChannelId, Group, GroupId, MessageId, StampId, TraqClient, User, UserId};
 
-use crate::{Config, Error, Result};
+use crate::{Config, Result};
 
 #[derive(Debug, Clone)]
 pub struct ClientImpl {
@@ -31,7 +31,7 @@ impl ClientImpl {
 }
 
 impl TraqClient for ClientImpl {
-    type Error = Error;
+    type Error = crate::Error;
 
     async fn send_message(
         &self,
