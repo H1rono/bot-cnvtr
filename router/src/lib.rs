@@ -17,7 +17,7 @@ mod wh;
 pub use config::Config;
 use error::Result;
 
-trait AppState {
+trait AppState: Send + Sync + 'static {
     type Infra: Infra<Error = Self::Error>;
     type App: App<Self::Infra, Error = Self::Error>;
     type Error: Send + Sync + 'static;
@@ -37,6 +37,8 @@ trait AppState {
     fn webhook_handler(&self) -> &<Self::App as App<Self::Infra>>::WebhookHandler {
         self.app().webhook_handler()
     }
+
+    fn parser(&self) -> &RequestParser;
 }
 
 struct AppStateImpl<I, A>
@@ -64,6 +66,10 @@ where
 
     fn app(&self) -> &Self::App {
         &self.app
+    }
+
+    fn parser(&self) -> &RequestParser {
+        &self.parser
     }
 }
 
