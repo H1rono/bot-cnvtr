@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let bot = BotImpl::from_config(bot_config);
     let bot = bot::BotWrapper(bot);
     let wh = WebhookHandlerImpl::new();
-    let wh = wh_handler::WHandlerWrapper(wh);
+    let wh = wh_handler::WHandlerWrapper::new(wh);
     let app = app::AppImpl(bot, wh);
     let router = make_router(router_config, infra, app).layer(TraceLayer::new_for_http());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

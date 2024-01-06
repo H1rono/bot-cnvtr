@@ -6,6 +6,7 @@ publish.workspace = true
 
 [dependencies]
 serde_json.workspace = true
+http.workspace = true
 traq-bot-http.workspace = true
 
 domain.workspace = true

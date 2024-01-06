@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use http::HeaderMap;
 use serde_json::Value;
 
 use domain::{Infra, Webhook};
@@ -7,39 +8,27 @@ use domain::{Infra, Webhook};
 pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
     type Error: Into<domain::Error> + Send + Sync + 'static;
 
-    fn github_webhook<'a, H, K, V>(
+    fn github_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static;
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    fn gitea_webhook<'a, H, K, V>(
+    fn gitea_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static;
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    fn clickup_webhook<'a, H, K, V>(
+    fn clickup_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static;
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

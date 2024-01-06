@@ -75,7 +75,7 @@ where
 {
     let infra = st.infra();
     st.webhook_handler()
-        .github_webhook(infra, webhook, headers.iter(), payload)
+        .github_webhook(infra, webhook, headers, payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -92,7 +92,7 @@ where
 {
     let infra = st.infra();
     st.webhook_handler()
-        .gitea_webhook(infra, webhook, headers.iter(), payload)
+        .gitea_webhook(infra, webhook, headers, payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -109,7 +109,7 @@ where
 {
     let infra = st.infra();
     st.webhook_handler()
-        .clickup_webhook(infra, webhook, headers.iter(), payload)
+        .clickup_webhook(infra, webhook, headers, payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }

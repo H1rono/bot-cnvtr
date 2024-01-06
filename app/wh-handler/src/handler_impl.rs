@@ -1,3 +1,4 @@
+use http::HeaderMap;
 use serde_json::Value;
 
 use domain::{Error, Infra, TraqClient, Webhook};
@@ -29,20 +30,15 @@ where
 {
     type Error = Error;
 
-    async fn github_webhook<'a, H, K, V>(
+    async fn github_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> Result<(), Self::Error>
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static,
-    {
+    ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = github::handle(headers, payload)? else {
+        let Some(message) = github::handle(headers.iter(), payload)? else {
             return Ok(());
         };
         client
@@ -52,20 +48,15 @@ where
         Ok(())
     }
 
-    async fn gitea_webhook<'a, H, K, V>(
+    async fn gitea_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> Result<(), Self::Error>
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static,
-    {
+    ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = gitea::handle(headers, payload)? else {
+        let Some(message) = gitea::handle(headers.iter(), payload)? else {
             return Ok(());
         };
         client
@@ -75,20 +66,15 @@ where
         Ok(())
     }
 
-    async fn clickup_webhook<'a, H, K, V>(
+    async fn clickup_webhook(
         &self,
         infra: &I,
         webhook: Webhook,
-        headers: H,
+        headers: HeaderMap,
         payload: Value,
-    ) -> Result<(), Self::Error>
-    where
-        H: Iterator<Item = (&'a K, &'a V)> + Send + 'a,
-        K: AsRef<[u8]> + Send + ?Sized + 'static,
-        V: AsRef<[u8]> + Send + ?Sized + 'static,
-    {
+    ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = clickup::handle(headers, payload)? else {
+        let Some(message) = clickup::handle(headers.iter(), payload)? else {
             return Ok(());
         };
         client

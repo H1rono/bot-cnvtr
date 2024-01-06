@@ -364,6 +364,7 @@ dependencies = [
  "domain",
  "dotenvy",
  "envy",
+ "http 1.0.0",
  "repository",
  "router",
  "serde_json",
@@ -2586,6 +2587,7 @@ name = "usecases"
 version = "0.1.0"
 dependencies = [
  "domain",
+ "http 1.0.0",
  "serde_json",
  "traq-bot-http",
 ]
@@ -2727,6 +2729,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "domain",
+ "http 1.0.0",
  "indoc",
  "serde",
  "serde_json",

@@ -7,7 +7,7 @@ impl<I, B, W> App<I> for AppImpl<B, W>
 where
     I: Infra<Error = domain::Error>,
     B: Bot<I, Error = domain::Error>,
-    W: WebhookHandler<Error = domain::Error>,
+    W: WebhookHandler<I, Error = domain::Error>,
 {
     type Error = domain::Error;
     type Bot = B;
