@@ -28,27 +28,6 @@ impl BotImpl {
             user_id: bot_user_id,
         }
     }
-
-    pub async fn handle_event<E1, E2>(
-        &self,
-        repo: &impl domain::Repository<Error = E1>,
-        client: &impl domain::TraqClient<Error = E2>,
-        event: Event,
-    ) -> Result<(), Error>
-    where
-        Error: From<E1> + From<E2>,
-    {
-        use Event::*;
-        match event {
-            Joined(payload) => self.on_joined(repo, client, payload).await,
-            Left(payload) => self.on_left(repo, client, payload).await,
-            MessageCreated(payload) => self.on_message_created(repo, client, payload).await,
-            DirectMessageCreated(payload) => {
-                self.on_direct_message_created(repo, client, payload).await
-            }
-            _ => Ok(()),
-        }
-    }
 }
 
 impl<I: Infra> Bot<I> for BotImpl
