@@ -1,12 +1,20 @@
+use std::marker::PhantomData;
+
 use traq_bot_http::Event;
 
 use domain::Infra;
 use usecases::Bot;
 
 #[derive(Clone)]
-pub struct BotWrapper<B>(pub B);
+pub struct BotWrapper<I: Infra, B: Bot<I>>(pub B, PhantomData<I>);
 
-impl<I, B> Bot<I> for BotWrapper<B>
+impl<I: Infra, B: Bot<I>> BotWrapper<I, B> {
+    pub fn new(bot: B) -> Self {
+        Self(bot, PhantomData)
+    }
+}
+
+impl<I, B> Bot<I> for BotWrapper<I, B>
 where
     I: Infra,
     B: Bot<I, Error = I::Error>,

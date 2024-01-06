@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     repo.migrate().await?;
     let infra = infra::InfraImpl::new_wrapped(repo, client);
     let bot = BotImpl::from_config(bot_config);
-    let bot = bot::BotWrapper(bot);
+    let bot = bot::BotWrapper::new(bot);
     let wh = WebhookHandlerImpl::new();
     let wh = wh_handler::WHandlerWrapper::new(wh);
     let app = app::AppImpl(bot, wh);
