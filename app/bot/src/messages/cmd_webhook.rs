@@ -3,38 +3,33 @@ use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use domain::{Owner, OwnerKind, Repository, TraqClient, User};
+use domain::{Error, Infra, Owner, OwnerKind, Repository, Result, TraqClient, User};
 
-use super::{BotImpl, Error, Result};
+use super::BotImpl;
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
 
 impl BotImpl {
-    pub(super) async fn handle_webhook_command<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        wh: Webhook,
-    ) -> Result<()>
+    pub(super) async fn handle_webhook_command<I>(&self, infra: &I, wh: Webhook) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
         use Webhook::*;
         match wh {
-            Create(create) => self.handle_webhook_create(repo, client, create).await,
-            Delete(delete) => self.handle_webhook_delete(repo, client, delete).await,
-            List(list) => self.handle_webhook_list(repo, client, list).await,
+            Create(create) => self.handle_webhook_create(infra, create).await,
+            Delete(delete) => self.handle_webhook_delete(infra, delete).await,
+            List(list) => self.handle_webhook_list(infra, list).await,
         }
     }
 
-    async fn handle_webhook_create<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        create: WebhookCreate,
-    ) -> Result<()>
+    async fn handle_webhook_create<I>(&self, infra: &I, create: WebhookCreate) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
+        let client = infra.traq_client();
+        let repo = infra.repo();
+
         let owner = match create.owner_kind {
             OwnerKind::Group => {
                 let group_id = create.owner_id.0.into();
@@ -113,15 +108,14 @@ impl BotImpl {
         Ok(())
     }
 
-    async fn handle_webhook_delete<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        delete: WebhookDelete,
-    ) -> Result<()>
+    async fn handle_webhook_delete<I>(&self, infra: &I, delete: WebhookDelete) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
+        let repo = infra.repo();
+        let client = infra.traq_client();
+
         let webhook = repo.find_webhook(&delete.webhook_id).await?;
         if webhook.is_none() {
             let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);
@@ -163,19 +157,18 @@ impl BotImpl {
         Ok(())
     }
 
-    async fn handle_webhook_list<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        list: WebhookList,
-    ) -> Result<()>
+    async fn handle_webhook_list<I>(&self, infra: &I, list: WebhookList) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
-        let webhooks = repo.filter_webhook_by_user(&list.user).await?;
+        let webhooks = infra.repo().filter_webhook_by_user(&list.user).await?;
         let code = serde_json::to_string_pretty(&webhooks)
             .with_context(|| format!("failed to format {:?}", &webhooks))?;
-        client.send_code_dm(&list.user.id, "json", &code).await?;
+        infra
+            .traq_client()
+            .send_code_dm(&list.user.id, "json", &code)
+            .await?;
         Ok(())
     }
 }

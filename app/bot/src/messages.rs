@@ -1,7 +1,7 @@
 use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use domain::{Error, MessageId, Repository, Result, StampId, TraqClient};
+use domain::{Error, Infra, MessageId, Result, StampId, TraqClient};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 use crate::BotImpl;
@@ -20,20 +20,21 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
 }
 
 impl BotImpl {
-    async fn run_command2<E1, E2>(
+    async fn run_command2<I>(
         &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
+        infra: &I,
         message_id: &MessageId,
         cmd: CompletedCmds,
     ) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
         use CompletedCmds::*;
+        let client = infra.traq_client();
         let res = match cmd {
-            Webhook(w) => self.handle_webhook_command(repo, client, w).await,
-            Sudo(s) => self.handle_sudo_command(repo, client, s).await,
+            Webhook(w) => self.handle_webhook_command(infra, w).await,
+            Sudo(s) => self.handle_sudo_command(infra, s).await,
         };
         match res {
             Ok(_) => {
@@ -53,15 +54,16 @@ impl BotImpl {
         }
     }
 
-    pub(super) async fn on_message_created<E1, E2>(
+    pub(super) async fn on_message_created<I>(
         &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
+        infra: &I,
         payload: MessageCreatedPayload,
     ) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
+        // TODO: tracing
         print!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
@@ -71,24 +73,28 @@ impl BotImpl {
             Ok(c) => c,
             Err(e) => {
                 let channel_id = message.channel_id.into();
-                client.send_code(&channel_id, "", &e.to_string()).await?;
+                infra
+                    .traq_client()
+                    .send_code(&channel_id, "", &e.to_string())
+                    .await?;
                 return Ok(());
             }
         };
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(repo, client, &mid, cmd).await
+        self.run_command2(infra, &mid, cmd).await
     }
 
-    pub(super) async fn on_direct_message_created<E1, E2>(
+    pub(super) async fn on_direct_message_created<I>(
         &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
+        infra: &I,
         payload: DirectMessageCreatedPayload,
     ) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
+        // TODO: tracing
         print!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
             payload.message.user.display_name, payload.message.text
@@ -98,12 +104,15 @@ impl BotImpl {
             Ok(c) => c,
             Err(e) => {
                 let channel_id = message.channel_id.into();
-                client.send_code(&channel_id, "", &e.to_string()).await?;
+                infra
+                    .traq_client()
+                    .send_code(&channel_id, "", &e.to_string())
+                    .await?;
                 return Ok(());
             }
         };
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(repo, client, &mid, cmd).await
+        self.run_command2(infra, &mid, cmd).await
     }
 }

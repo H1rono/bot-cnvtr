@@ -39,22 +39,10 @@ where
     async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
         use Event::*;
         match event {
-            Joined(payload) => {
-                self.on_joined(infra.repo(), infra.traq_client(), payload)
-                    .await
-            }
-            Left(payload) => {
-                self.on_left(infra.repo(), infra.traq_client(), payload)
-                    .await
-            }
-            MessageCreated(payload) => {
-                self.on_message_created(infra.repo(), infra.traq_client(), payload)
-                    .await
-            }
-            DirectMessageCreated(payload) => {
-                self.on_direct_message_created(infra.repo(), infra.traq_client(), payload)
-                    .await
-            }
+            Joined(payload) => self.on_joined(infra, payload).await,
+            Left(payload) => self.on_left(infra, payload).await,
+            MessageCreated(payload) => self.on_message_created(infra, payload).await,
+            DirectMessageCreated(payload) => self.on_direct_message_created(infra, payload).await,
             _ => Ok(()),
         }
     }

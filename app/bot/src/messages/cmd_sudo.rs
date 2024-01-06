@@ -1,62 +1,51 @@
 use anyhow::Context;
 use futures::{pin_mut, StreamExt};
 
-use domain::{Repository, TraqClient};
+use domain::{Error, Infra, Repository, Result, TraqClient};
 
-use super::{BotImpl, Error, Result};
+use super::BotImpl;
 use crate::cli::sudo::{
     webhook::{Completed, Delete, ListAll},
     SudoCompleted,
 };
 
 impl BotImpl {
-    pub(super) async fn handle_sudo_command<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        sudo: SudoCompleted,
-    ) -> Result<()>
+    pub(super) async fn handle_sudo_command<I>(&self, infra: &I, sudo: SudoCompleted) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
         use SudoCompleted::*;
         match sudo {
             Webhook(Completed::ListAll(list_all)) => {
-                self.handle_sudo_wh_list_all(repo, client, list_all).await
+                self.handle_sudo_wh_list_all(infra, list_all).await
             }
-            Webhook(Completed::Delete(delete)) => {
-                self.handle_sudo_wh_delete(repo, client, delete).await
-            }
+            Webhook(Completed::Delete(delete)) => self.handle_sudo_wh_delete(infra, delete).await,
         }
     }
 
-    async fn handle_sudo_wh_list_all<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        list_all: ListAll,
-    ) -> Result<()>
+    async fn handle_sudo_wh_list_all<I>(&self, infra: &I, list_all: ListAll) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
-        let webhooks = repo.list_webhooks().await?;
+        let webhooks = infra.repo().list_webhooks().await?;
         let code = serde_json::to_string_pretty(&webhooks)
             .with_context(|| format!("failed to format {:?}", &webhooks))?;
-        client
+        infra
+            .traq_client()
             .send_code_dm(&list_all.user_id, "json", &code)
             .await?;
         Ok(())
     }
 
-    async fn handle_sudo_wh_delete<E1, E2>(
-        &self,
-        repo: &impl Repository<Error = E1>,
-        client: &impl TraqClient<Error = E2>,
-        delete: Delete,
-    ) -> Result<()>
+    async fn handle_sudo_wh_delete<I>(&self, infra: &I, delete: Delete) -> Result<()>
     where
-        Error: From<E1> + From<E2>,
+        I: Infra,
+        Error: From<I::Error>,
     {
+        let repo = infra.repo();
+        let client = infra.traq_client();
         if !delete.valid {
             let message = "Permission denied.";
             client
