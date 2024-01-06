@@ -38,7 +38,7 @@ where
         payload: Value,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = github::handle(headers.iter(), payload)? else {
+        let Some(message) = github::handle(headers, payload)? else {
             return Ok(());
         };
         client
@@ -56,7 +56,7 @@ where
         payload: Value,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = gitea::handle(headers.iter(), payload)? else {
+        let Some(message) = gitea::handle(headers, payload)? else {
             return Ok(());
         };
         client
@@ -74,7 +74,7 @@ where
         payload: Value,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
-        let Some(message) = clickup::handle(headers.iter(), payload)? else {
+        let Some(message) = clickup::handle(headers, payload)? else {
             return Ok(());
         };
         client

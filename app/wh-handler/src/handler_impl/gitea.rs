@@ -1,14 +1,10 @@
+use http::HeaderMap;
 use indoc::indoc;
 use serde_json::Value;
 
 use crate::Result;
 
-pub(super) fn handle<'a, H, K, V>(_headers: H, _payload: Value) -> Result<Option<String>>
-where
-    H: Iterator<Item = (&'a K, &'a V)>,
-    K: AsRef<[u8]> + ?Sized + 'static,
-    V: AsRef<[u8]> + ?Sized + 'static,
-{
+pub(super) fn handle(_headers: HeaderMap, _payload: Value) -> Result<Option<String>> {
     let message = indoc! {r#"
         GiteaからWebhookが送信されました。
         実装は現在工事中です :construction:

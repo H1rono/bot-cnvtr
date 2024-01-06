@@ -1,15 +1,11 @@
+use http::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
 
 use super::utils::ValueExt;
 use crate::Result;
 
-pub(super) fn handle<'a, H, K, V>(_headers: H, payload: Value) -> Result<Option<String>>
-where
-    H: Iterator<Item = (&'a K, &'a V)>,
-    K: AsRef<[u8]> + ?Sized + 'static,
-    V: AsRef<[u8]> + ?Sized + 'static,
-{
+pub(super) fn handle(_headers: HeaderMap, payload: Value) -> Result<Option<String>> {
     let event = payload.get_or_err("event")?.as_str_or_err()?;
     let message = formatdoc! {
         r#"

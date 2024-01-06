@@ -1,25 +1,13 @@
+use http::HeaderMap;
 use serde_json::{value::Index, Value};
 
 use crate::{Error, Result};
 
-pub(crate) fn extract_header_value<'a, H, K, V>(headers: H, name: &str) -> Result<&'a [u8]>
-where
-    H: Iterator<Item = (&'a K, &'a V)>,
-    K: AsRef<[u8]> + ?Sized + 'static,
-    V: AsRef<[u8]> + ?Sized + 'static,
-{
-    use std::str::from_utf8;
-    let name = name.to_lowercase();
-    for (k, v) in headers {
-        let Ok(key) = from_utf8(k.as_ref()) else {
-            continue;
-        };
-        if key.to_lowercase() != name {
-            continue;
-        }
-        return Ok(v.as_ref());
-    }
-    Err(Error::MissingField)
+pub(crate) fn extract_header_value<'a>(headers: &'a HeaderMap, name: &str) -> Result<&'a [u8]> {
+    headers
+        .get(name)
+        .map(|k| k.as_bytes())
+        .ok_or(Error::MissingField)
 }
 
 pub(crate) trait ValueExt {
