@@ -1,124 +1,115 @@
 use axum::{
-    extract::{Path, State},
-    http::{HeaderMap, StatusCode},
+    async_trait,
+    extract::{FromRequestParts, Path, State},
+    http::{request::Parts, HeaderMap, StatusCode},
+    response::IntoResponse,
     Json,
 };
 use serde_json::Value;
 
-use domain::{Infra, Repository, TraqClient};
-use domain::{Webhook, WebhookId};
+use domain::{Repository, Webhook, WebhookId};
 use usecases::WebhookHandler;
 
-use super::{AppState, Result};
+use crate::{
+    error::{Error, Result},
+    AppState,
+};
 
-/// GET /wh/:id
-pub(super) async fn get_wh<S>(
-    State(st): State<S>,
-    Path(id): Path<WebhookId>,
-) -> Result<Json<Webhook>>
+#[derive(Debug, Clone)]
+pub struct Wh(pub Webhook);
+
+#[derive(Debug, thiserror::Error)]
+pub enum WhRejection {
+    #[error(transparent)]
+    Path(#[from] axum::extract::rejection::PathRejection),
+    #[error(transparent)]
+    Logic(#[from] Error),
+}
+
+impl IntoResponse for WhRejection {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            WhRejection::Path(p) => p.into_response(),
+            WhRejection::Logic(l) => l.into_response(),
+        }
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for Wh
 where
     S: AppState<Error = domain::Error>,
 {
-    let repo = st.infra().repo();
-    repo.find_webhook(&id)
-        .await
-        .map_err(domain::Error::from)?
-        .ok_or(domain::Error::NotFound.into())
-        .map(Json)
+    type Rejection = WhRejection;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let Path(id) = Path::<WebhookId>::from_request_parts(parts, state).await?;
+        let webhook = state
+            .repo()
+            .find_webhook(&id)
+            .await
+            .map_err(domain::Error::from)
+            .map_err(Error::from)?
+            .ok_or(Error::from(domain::Error::NotFound))?;
+        Ok(Wh(webhook))
+    }
+}
+
+/// GET /wh/:id
+pub(super) async fn get_wh<S>(Wh(webhook): Wh) -> Json<Webhook>
+where
+    S: AppState<Error = domain::Error>,
+{
+    Json(webhook)
 }
 
 /// POST /wh/:id/github
 pub(super) async fn wh_github<S>(
     State(st): State<S>,
-    Path(id): Path<WebhookId>,
+    Wh(webhook): Wh,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
-    let client = st.infra().traq_client();
-    let repo = st.infra().repo();
-    let webhook = repo
-        .find_webhook(&id)
-        .await
-        .map_err(domain::Error::from)?
-        .ok_or(domain::Error::NotFound)?;
-    let message = st
-        .webhook_handler()
-        .github_webhook(headers.iter(), payload)
-        .map_err(domain::Error::from)?;
-    if message.is_none() {
-        return Ok(StatusCode::NO_CONTENT);
-    }
-    let message = message.unwrap();
-    client
-        .send_message(&webhook.channel_id, message.trim(), false)
-        .await
-        .map_err(domain::Error::from)?;
+    let infra = st.infra();
+    st.webhook_handler()
+        .github_webhook(infra, webhook, headers.iter(), payload)
+        .await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
 /// POST /wh/:id/gitea
 pub(super) async fn wh_gitea<S>(
     State(st): State<S>,
-    Path(id): Path<WebhookId>,
+    Wh(webhook): Wh,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
-    let client = st.infra().traq_client();
-    let repo = st.infra().repo();
-    let webhook = repo
-        .find_webhook(&id)
-        .await
-        .map_err(domain::Error::from)?
-        .ok_or(domain::Error::NotFound)?;
-    let message = st
-        .webhook_handler()
-        .gitea_webhook(headers.iter(), payload)
-        .map_err(domain::Error::from)?;
-    if message.is_none() {
-        return Ok(StatusCode::NO_CONTENT);
-    }
-    let message = message.unwrap();
-    client
-        .send_message(&webhook.channel_id, message.trim(), false)
-        .await
-        .map_err(domain::Error::from)?;
-    Ok(StatusCode::NOT_IMPLEMENTED)
+    let infra = st.infra();
+    st.webhook_handler()
+        .gitea_webhook(infra, webhook, headers.iter(), payload)
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// POST /wh/:id/clickup
 pub(super) async fn wh_clickup<S>(
     State(st): State<S>,
-    Path(id): Path<WebhookId>,
+    Wh(webhook): Wh,
     headers: HeaderMap,
     Json(payload): Json<Value>,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
-    let client = st.infra().traq_client();
-    let repo = st.infra().repo();
-    let webhook = repo
-        .find_webhook(&id)
-        .await
-        .map_err(domain::Error::from)?
-        .ok_or(domain::Error::NotFound)?;
-    let message = st
-        .webhook_handler()
-        .clickup_webhook(headers.iter(), payload)
-        .map_err(domain::Error::from)?;
-    if message.is_none() {
-        return Ok(StatusCode::NO_CONTENT);
-    }
-    let message = message.unwrap();
-    client
-        .send_message(&webhook.channel_id, message.trim(), false)
-        .await
-        .map_err(domain::Error::from)?;
-    Ok(StatusCode::NOT_IMPLEMENTED)
+    let infra = st.infra();
+    st.webhook_handler()
+        .clickup_webhook(infra, webhook, headers.iter(), payload)
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
 }

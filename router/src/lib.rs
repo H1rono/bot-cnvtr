@@ -15,9 +15,8 @@ mod error;
 mod wh;
 
 pub use config::Config;
-use error::Result;
 
-trait AppState: Send + Sync + 'static {
+trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra<Error = Self::Error>;
     type App: App<Self::Infra, Error = Self::Error>;
     type Error: Send + Sync + 'static;

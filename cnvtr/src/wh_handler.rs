@@ -5,49 +5,65 @@ use usecases::WebhookHandler;
 #[derive(Clone)]
 pub struct WHandlerWrapper<W: WebhookHandler>(pub W);
 
-impl<W> WebhookHandler for WHandlerWrapper<W>
+impl<I, W> WebhookHandler<I> for WHandlerWrapper<W>
 where
-    W: WebhookHandler,
+    I: Infra<Error = domain::Error>,
+    W: WebhookHandler<I>,
     domain::Error: From<W::Error>,
 {
     type Error = domain::Error;
 
     fn github_webhook<'a, H, K, V>(
-        &self,
+        &'a self,
+        infra: &'a I,
+        webhook: Webhook,
         headers: H,
         payload: Value,
-    ) -> Result<Option<String>, Self::Error>
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send
     where
-        H: Iterator<Item = (&'a K, &'a V)>,
-        K: AsRef<[u8]> + ?Sized + 'static,
-        V: AsRef<[u8]> + ?Sized + 'static,
+        H: Iterator<Item = (&'a K, &'a V)> + Send,
+        K: AsRef<[u8]> + Send + ?Sized + 'static,
+        V: AsRef<[u8]> + Send + ?Sized + 'static,
     {
-        Ok(self.0.github_webhook(headers, payload)?)
+        Ok(self
+            .0
+            .github_webhook(infra, webhook, headers, payload)
+            .await?)
     }
 
     fn gitea_webhook<'a, H, K, V>(
-        &self,
+        &'a self,
+        infra: &'a I,
+        webhook: Webhook,
         headers: H,
         payload: Value,
-    ) -> Result<Option<String>, Self::Error>
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send
     where
-        H: Iterator<Item = (&'a K, &'a V)>,
-        K: AsRef<[u8]> + ?Sized + 'static,
-        V: AsRef<[u8]> + ?Sized + 'static,
+        H: Iterator<Item = (&'a K, &'a V)> + Send,
+        K: AsRef<[u8]> + Send + ?Sized + 'static,
+        V: AsRef<[u8]> + Send + ?Sized + 'static,
     {
-        Ok(self.0.gitea_webhook(headers, payload)?)
+        Ok(self
+            .0
+            .gitea_webhook(infra, webhook, headers, payload)
+            .await?)
     }
 
     fn clickup_webhook<'a, H, K, V>(
-        &self,
+        &'a self,
+        infra: &'a I,
+        webhook: Webhook,
         headers: H,
         payload: Value,
-    ) -> Result<Option<String>, Self::Error>
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send
     where
-        H: Iterator<Item = (&'a K, &'a V)>,
-        K: AsRef<[u8]> + ?Sized + 'static,
-        V: AsRef<[u8]> + ?Sized + 'static,
+        H: Iterator<Item = (&'a K, &'a V)> + Send,
+        K: AsRef<[u8]> + Send + ?Sized + 'static,
+        V: AsRef<[u8]> + Send + ?Sized + 'static,
     {
-        Ok(self.0.clickup_webhook(headers, payload)?)
+        Ok(self
+            .0
+            .clickup_webhook(infra, webhook, headers, payload)
+            .await?)
     }
 }
