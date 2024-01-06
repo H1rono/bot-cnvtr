@@ -11,6 +11,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE:-cnvtr}
     expose:
       - 3306
+    ports:
+      - "3306:3306"
     healthcheck:
       test:
         [
