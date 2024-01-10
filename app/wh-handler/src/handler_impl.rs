@@ -1,5 +1,4 @@
 use http::HeaderMap;
-use serde_json::Value;
 
 use domain::{Error, Infra, TraqClient, Webhook};
 use usecases::WebhookHandler;
@@ -35,7 +34,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
         let Some(message) = github::handle(headers, payload)? else {
@@ -53,7 +52,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
         let Some(message) = gitea::handle(headers, payload)? else {
@@ -71,7 +70,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         let client = infra.traq_client();
         let Some(message) = clickup::handle(headers, payload)? else {

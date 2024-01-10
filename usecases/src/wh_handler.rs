@@ -1,7 +1,6 @@
 use std::future::Future;
 
 use http::HeaderMap;
-use serde_json::Value;
 
 use domain::{Infra, Webhook};
 
@@ -13,7 +12,7 @@ pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn gitea_webhook(
@@ -21,7 +20,7 @@ pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn clickup_webhook(
@@ -29,6 +28,6 @@ pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

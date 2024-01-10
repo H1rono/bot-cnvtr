@@ -1,7 +1,6 @@
 use std::marker::PhantomData;
 
 use http::HeaderMap;
-use serde_json::Value;
 
 use domain::{Infra, Webhook};
 use usecases::WebhookHandler;
@@ -28,7 +27,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         Ok(self
             .0
@@ -41,7 +40,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         Ok(self
             .0
@@ -54,7 +53,7 @@ where
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
-        payload: Value,
+        payload: &str,
     ) -> Result<(), Self::Error> {
         Ok(self
             .0

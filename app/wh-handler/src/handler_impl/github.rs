@@ -7,7 +7,9 @@ use serde_json::Value;
 use super::utils::{extract_header_value, ValueExt};
 use crate::{Error, Result};
 
-pub(super) fn handle(headers: HeaderMap, payload: Value) -> Result<Option<String>> {
+pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+    use serde_json::from_str;
+    let payload: Value = from_str(payload)?;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
     match event_type {
