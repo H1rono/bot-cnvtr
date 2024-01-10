@@ -22,7 +22,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         "fork" => fork(from_str(payload)?),
         "branch_protection_rule" => branch_protection_rule(from_str(payload)?),
         "pull_request" => pull_request(from_str(payload)?),
-        "pull_request_comment" => pull_request_comment(from_str(payload)?),
+        "pull_request_review_comment" => pull_request_review_comment(from_str(payload)?),
         "pull_request_review" => pull_request_review(from_str(payload)?),
         "pull_request_review_thread" => pull_request_review_thread(from_str(payload)?),
         "release" => release(from_str(payload)?),
@@ -270,11 +270,42 @@ fn pull_request(payload: gh::PullRequestEvent) -> Result<Option<String>> {
     Ok(Some(message))
 }
 
-/// X-GitHub-Event: pull_request_comment
-fn pull_request_comment(_payload: gh::PullRequestReviewCommentEvent) -> Result<Option<String>> {
-    // WARN: このイベントはないのでpull_request_review_commentが正しい
-    // https://docs.github.com/ja/webhooks/webhook-events-and-payloads#pull_request_review_comment
-    unimplemented!()
+/// X-GitHub-Event: pull_request_review_comment
+fn pull_request_review_comment(
+    payload: gh::PullRequestReviewCommentEvent,
+) -> Result<Option<String>> {
+    macro_rules! pr_review_comment_event {
+        ($i:ident, $kind:ident) => {{
+            paste! {
+                let gh::[< PullRequestReviewComment $kind:camel Event >] {
+                    repository, sender, pull_request, comment, ..
+                } = $i;
+                let pull_request = (pull_request.number, pull_request.title, pull_request.html_url);
+                (stringify!([< $kind:snake:lower >]), repository, sender, pull_request, comment)
+            }
+        }};
+    }
+
+    use gh::PullRequestReviewCommentEvent::*;
+
+    let (action, repository, sender, pull_request, comment) = match &payload {
+        Created(r) => pr_review_comment_event!(r, created),
+        Deleted(r) => pr_review_comment_event!(r, deleted),
+        Edited(r) => pr_review_comment_event!(r, edited),
+    };
+    let (number, title, url) = pull_request;
+    let message = formatdoc! {
+        r##"
+            [{}] Pull Request comment {} in [`#{} {}`]({}) by {}
+            {}
+        "##,
+        repo_str(repository)?,
+        action,
+        number, title, url,
+        user_str(sender)?,
+        comment.html_url
+    };
+    Ok(Some(message))
 }
 
 /// X-GitHub-Event: pull_request_review
