@@ -5,6 +5,7 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies]
+paste = "1.0"
 indoc.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true

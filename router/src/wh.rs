@@ -5,7 +5,6 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use serde_json::Value;
 
 use domain::{Repository, Webhook, WebhookId};
 use usecases::WebhookHandler;
@@ -68,14 +67,14 @@ pub(super) async fn wh_github<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
     headers: HeaderMap,
-    Json(payload): Json<Value>,
+    payload: String,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
     let infra = st.infra();
     st.webhook_handler()
-        .github_webhook(infra, webhook, headers, payload)
+        .github_webhook(infra, webhook, headers, &payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -85,14 +84,14 @@ pub(super) async fn wh_gitea<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
     headers: HeaderMap,
-    Json(payload): Json<Value>,
+    payload: String,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
     let infra = st.infra();
     st.webhook_handler()
-        .gitea_webhook(infra, webhook, headers, payload)
+        .gitea_webhook(infra, webhook, headers, &payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -102,14 +101,14 @@ pub(super) async fn wh_clickup<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
     headers: HeaderMap,
-    Json(payload): Json<Value>,
+    payload: String,
 ) -> Result<StatusCode>
 where
     S: AppState<Error = domain::Error>,
 {
     let infra = st.infra();
     st.webhook_handler()
-        .clickup_webhook(infra, webhook, headers, payload)
+        .clickup_webhook(infra, webhook, headers, &payload)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }
