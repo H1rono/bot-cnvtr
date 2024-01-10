@@ -45,7 +45,7 @@
           ];
 
           # Additional environment variables can be set directly
-          # MY_CUSTOM_VAR = "some value";
+          CARGO_PROFILE = "";
         };
 
         # Build *just* the cargo dependencies, so we can reuse
