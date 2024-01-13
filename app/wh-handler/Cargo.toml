@@ -17,3 +17,6 @@ github-webhook = "0.5.1"
 
 domain.workspace = true
 usecases.workspace = true
+
+[patch.crates-io]
+github-webhook = { git = "https://github.com/H1rono/github-webhook-rs", branch = "dev" }
