@@ -7,12 +7,12 @@ ENV NIX_CONFIG='filter-syscalls = false'
 
 COPY flake.nix .
 COPY flake.lock .
-RUN nix build --option sandbox false . || true
+RUN nix build . || true
 
 COPY . .
 
-RUN nix build --option sandbox false .
-RUN nix build --option sandbox false .
+RUN nix build .#deps
+RUN nix build .
 
 RUN mkdir /tmp/nix-store-closure
 RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
