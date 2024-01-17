@@ -32,7 +32,7 @@
         octokit-webhooks = pkgs.fetchFromGitHub {
           owner = "octokit";
           repo = "webhooks";
-          rev = "v7.3.1"; # WARN: this should be synced with github-webhook/Cargo.toml
+          rev = "v7.3.1";
           hash = "sha256-ckGVw5owHTv1h73LGan6mn4PZls4sNjRo/n+rrJHqe0=";
         };
 
@@ -53,7 +53,7 @@
 
           # Additional environment variables can be set directly
           CARGO_PROFILE = "";
-          WEBHOOK_SCHEMA_DTS = "${octokit-webhooks}/payload-types/schema.d.ts";
+          GITHUB_WEBHOOK_SCHEMA_DTS = "${octokit-webhooks}/payload-types/schema.d.ts";
         };
 
         # Build *just* the cargo dependencies, so we can reuse
