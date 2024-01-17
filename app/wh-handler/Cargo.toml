@@ -13,10 +13,10 @@ serde.workspace = true
 serde_json.workspace = true
 uuid.workspace = true
 http.workspace = true
-github-webhook = "0.5.1"
+github-webhook = "0.6.0"
 
 domain.workspace = true
 usecases.workspace = true
 
 [patch.crates-io]
-github-webhook = { git = "https://github.com/H1rono/github-webhook-rs", branch = "dev" }
+github-webhook = { git = "https://github.com/H1rono/github-webhook-rs.git", branch = "dev" }

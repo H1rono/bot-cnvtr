@@ -42,3 +42,6 @@ router.path = "./router"
 [workspace.dependencies.sqlx]
 version = "0.7"
 features = ["runtime-tokio", "tls-rustls", "mysql", "migrate", "uuid"]
+
+[patch.crates-io]
+github-webhook = { git = "https://github.com/H1rono/github-webhook-rs", branch = "dev" }
