@@ -80,7 +80,8 @@
         "crane": "crane",
         "fenix": "fenix",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "teahook-rs": "teahook-rs"
       }
     },
     "rust-analyzer-src": {
@@ -112,6 +113,35 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "teahook-rs": {
+      "inputs": {
+        "crane": [
+          "crane"
+        ],
+        "fenix": [
+          "fenix"
+        ],
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1705936169,
+        "narHash": "sha256-xJB5/Gh16aS1ALFfq9d3LXlzkjrPanPcRoOJoe/Moec=",
+        "owner": "H1rono",
+        "repo": "teahook-rs",
+        "rev": "849b0a2b687607acc3a9f304fa4277f208d4f374",
+        "type": "github"
+      },
+      "original": {
+        "owner": "H1rono",
+        "repo": "teahook-rs",
         "type": "github"
       }
     }

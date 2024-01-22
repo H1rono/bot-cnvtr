@@ -45,6 +45,14 @@
           hash = "sha256-ckGVw5owHTv1h73LGan6mn4PZls4sNjRo/n+rrJHqe0=";
         };
 
+        gitea = pkgs.fetchFromGitHub {
+          owner = "traptitech";
+          repo = "gitea";
+          rev = "traP-1.21.1-1";
+          hash = "sha256-3iMenHuWaJFhMm7s5zoNuC/DebziVNhLWQrEsuiDNHM=";
+        };
+        teahook-transpiler = teahook-rs.packages.${system}.goBuild;
+
         commonArgs = {
           inherit src;
           strictDeps = true;
@@ -63,6 +71,8 @@
           # Additional environment variables can be set directly
           CARGO_PROFILE = "";
           GITHUB_WEBHOOK_SCHEMA_DTS = "${octokit-webhooks}/payload-types/schema.d.ts";
+          GITEA_SOURCE_ROOT = "${gitea}";
+          GITEA_TRANSPILER_PATH = "${teahook-transpiler}/bin/teahook-rs";
         };
 
         # Build *just* the cargo dependencies, so we can reuse
