@@ -12,6 +12,7 @@ edition = "2021"
 publish = false
 
 [workspace.dependencies]
+paste = "1.0"
 itertools = "0.11"
 indoc = "2.0"
 thiserror = "1.0"
