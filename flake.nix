@@ -12,9 +12,18 @@
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    teahook-rs = {
+      url = "github:H1rono/teahook-rs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+        fenix.follows = "fenix";
+        crane.follows = "crane";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, fenix, crane, ... }:
+  outputs = { self, nixpkgs, flake-utils, fenix, crane, teahook-rs, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
