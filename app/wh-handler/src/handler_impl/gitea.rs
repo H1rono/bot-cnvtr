@@ -1,11 +1,11 @@
-use std::{ops::Deref, str::from_utf8};
+use std::str::from_utf8;
 
 use http::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
 use teahook as th;
 
-use super::utils::extract_header_value;
+use super::utils::{extract_header_value, OptionExt};
 use crate::{Error, Result};
 
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
@@ -15,12 +15,12 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     let event_type = extract_header_value(&headers, "X-Gitea-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
     let message = match event_type {
-        "create" => Some(create(from_str(payload)?)),
-        "delete" => Some(delete(from_str(payload)?)),
-        "fork" => Some(fork(from_str(payload)?)),
-        "push" => Some(push(from_str(payload)?)),
-        "issues" => Some(issues(from_str(payload)?)),
-        "pull_request" => Some(pull_request(from_str(payload)?)),
+        "create" => Some(create(from_str(payload)?)?),
+        "delete" => Some(delete(from_str(payload)?)?),
+        "fork" => Some(fork(from_str(payload)?)?),
+        "push" => Some(push(from_str(payload)?)?),
+        "issues" => Some(issues(from_str(payload)?)?),
+        "pull_request" => Some(pull_request(from_str(payload)?)?),
         "issue_assign"
         | "issue_label"
         | "issue_milestone"
@@ -53,8 +53,18 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     Ok(Some(message))
 }
 
+macro_rules! unwrap_opt_boxed {
+    ($i:ident) => {
+        let $i = $i.as_deref().ok_or_err()?;
+    };
+
+    ($($i:ident),*) => {
+        $(let $i = $i.as_deref().ok_or_err()?;)*
+    };
+}
+
 /// X-Gitea-Event: create
-fn create(payload: th::CreatePayload) -> String {
+fn create(payload: th::CreatePayload) -> Result<String> {
     let th::CreatePayload {
         r#ref,
         ref_type,
@@ -62,16 +72,17 @@ fn create(payload: th::CreatePayload) -> String {
         sender,
         ..
     } = &payload;
-    formatdoc! {
+    unwrap_opt_boxed! {repo, sender}
+    Ok(formatdoc! {
         r##"
             [{}] {} `{}` was created by {}
         "##,
         repo_str(repo), ref_type, r#ref, user_str(sender)
-    }
+    })
 }
 
 /// X-Gitea-Event: delete
-fn delete(payload: th::DeletePayload) -> String {
+fn delete(payload: th::DeletePayload) -> Result<String> {
     let th::DeletePayload {
         r#ref,
         ref_type,
@@ -79,31 +90,33 @@ fn delete(payload: th::DeletePayload) -> String {
         sender,
         ..
     } = &payload;
-    formatdoc! {
+    unwrap_opt_boxed! {repo, sender}
+    Ok(formatdoc! {
         r#"
             [{}] {} `{}` was deleted by {}
         "#,
         repo_str(repo), ref_type, r#ref, user_str(sender)
-    }
+    })
 }
 
 /// X-Gitea-Event: fork
-fn fork(payload: th::ForkPayload) -> String {
+fn fork(payload: th::ForkPayload) -> Result<String> {
     let th::ForkPayload {
         forkee,
         repo,
         sender,
     } = &payload;
-    formatdoc! {
+    unwrap_opt_boxed! {repo, sender, forkee}
+    Ok(formatdoc! {
         r#"
             [{}] forked to {} by {}
         "#,
         repo_str(repo), repo_str(forkee), user_str(sender)
-    }
+    })
 }
 
 /// X-Gitea-Event: push
-fn push(payload: th::PushPayload) -> String {
+fn push(payload: th::PushPayload) -> Result<String> {
     let th::PushPayload {
         r#ref,
         commits,
@@ -111,29 +124,31 @@ fn push(payload: th::PushPayload) -> String {
         sender,
         ..
     } = &payload;
+    unwrap_opt_boxed! {repo, sender, commits}
     let commit_count = commits.len();
     let commit_unit = if commit_count == 1 { "" } else { "s" };
     let commits = commits
         .iter()
         .map(|c| {
+            unwrap_opt_boxed! {c}
             let th::PayloadCommit {
                 id, message, url, ..
-            } = c.deref();
-            format!("[`{}`]({}) {}", &id[0..7], url, message)
+            } = c;
+            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message))
         })
-        .collect::<Vec<_>>()
+        .collect::<Result<Vec<_>>>()?
         .join("\n");
-    formatdoc! {
+    Ok(formatdoc! {
         r#"
             [{}:{}] {} commit{} was pushed by {}
             {}
         "#,
         repo_str(repo), r#ref, commit_count, commit_unit, user_str(sender), commits
-    }
+    })
 }
 
 /// X-Gitea-Event: issues
-fn issues(payload: th::IssuePayload) -> String {
+fn issues(payload: th::IssuePayload) -> Result<String> {
     let th::IssuePayload {
         action,
         index,
@@ -142,15 +157,16 @@ fn issues(payload: th::IssuePayload) -> String {
         sender,
         ..
     } = &payload;
-    formatdoc! {
+    unwrap_opt_boxed! {repo, sender, issue}
+    Ok(formatdoc! {
         r#"
             [{}] issue [#{} {}]({}) {} by {}
         "#,
         repo_str(repo), index, &issue.title, &issue.html_url, action, user_str(sender)
-    }
+    })
 }
 
-fn pull_request(payload: th::PullRequestPayload) -> String {
+fn pull_request(payload: th::PullRequestPayload) -> Result<String> {
     let th::PullRequestPayload {
         action,
         pull_request,
@@ -158,12 +174,13 @@ fn pull_request(payload: th::PullRequestPayload) -> String {
         sender,
         ..
     } = &payload;
-    formatdoc! {
+    unwrap_opt_boxed! {repo, sender, pull_request}
+    Ok(formatdoc! {
         r#"
             [{}] Pull Request {} {} by {}
         "#,
         repo_str(repo), pr_str(pull_request), action, user_str(sender)
-    }
+    })
 }
 
 /// X-Gitea-Event: *

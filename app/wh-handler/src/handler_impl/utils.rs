@@ -10,6 +10,19 @@ pub(crate) fn extract_header_value<'a>(headers: &'a HeaderMap, name: &str) -> Re
         .ok_or(Error::MissingField)
 }
 
+pub(crate) trait OptionExt {
+    type Inner;
+    fn ok_or_err(self) -> Result<Self::Inner>;
+}
+
+impl<T> OptionExt for Option<T> {
+    type Inner = T;
+
+    fn ok_or_err(self) -> Result<Self::Inner> {
+        self.ok_or(Error::MissingField)
+    }
+}
+
 pub(crate) trait ValueExt {
     fn get_or_err<I>(&self, index: I) -> Result<&Value>
     where
