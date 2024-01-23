@@ -9,18 +9,24 @@ use super::utils::{extract_header_value, OptionExt};
 use crate::{Error, Result};
 
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+    macro_rules! handler {
+        ($i:ident) => {
+            Some($i(from_str(payload)?)?)
+        };
+    }
+
     use serde_json::from_str;
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/services/webhook/deliver.go#L124-L138
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/modules/webhook/type.go#L11-L33
     let event_type = extract_header_value(&headers, "X-Gitea-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
     let message = match event_type {
-        "create" => Some(create(from_str(payload)?)?),
-        "delete" => Some(delete(from_str(payload)?)?),
-        "fork" => Some(fork(from_str(payload)?)?),
-        "push" => Some(push(from_str(payload)?)?),
-        "issues" => Some(issues(from_str(payload)?)?),
-        "pull_request" => Some(pull_request(from_str(payload)?)?),
+        "create" => handler!(create),
+        "delete" => handler!(delete),
+        "fork" => handler!(fork),
+        "push" => handler!(push),
+        "issues" => handler!(issues),
+        "pull_request" => handler!(pull_request),
         "issue_assign"
         | "issue_label"
         | "issue_milestone"
