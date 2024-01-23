@@ -431,8 +431,10 @@ fn default(_event_type: &str, _payload: Value) -> Result<Option<String>> {
 
 /// user -> [user.login](user.html_url)
 fn user_str(user: &gh::User) -> Result<String> {
-    let &gh::User { name, html_url, .. } = user;
-    Ok(format!("[{}]({})", name.unwrap_or("{anonymous}"), html_url))
+    let &gh::User {
+        login, html_url, ..
+    } = user;
+    Ok(format!("[{}]({})", login, html_url))
 }
 
 /// repository -> [repository.full_name](repository.html_url)
