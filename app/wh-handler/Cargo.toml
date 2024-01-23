@@ -14,7 +14,7 @@ serde_json.workspace = true
 uuid.workspace = true
 http.workspace = true
 github-webhook = "0.6.0"
-teahook-rs = "0.1.0"
+teahook = "0.1.0"
 
 domain.workspace = true
 usecases.workspace = true

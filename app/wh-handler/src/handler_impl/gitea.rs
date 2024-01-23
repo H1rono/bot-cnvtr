@@ -3,7 +3,7 @@ use std::{ops::Deref, str::from_utf8};
 use http::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
-use teahook_rs as th;
+use teahook as th;
 
 use super::utils::extract_header_value;
 use crate::{Error, Result};

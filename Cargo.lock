@@ -2799,9 +2799,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "teahook-rs"
+name = "teahook"
 version = "0.1.0"
-source = "git+https://github.com/H1rono/teahook-rs.git?branch=main#bdb14681ff0e7dc62d14bbce3f4203770827290a"
+source = "git+https://github.com/H1rono/teahook-rs.git?branch=main#1a2a08c99432a679fb23b11d69df261293a80d9f"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3356,7 +3356,7 @@ dependencies = [
  "paste",
  "serde",
  "serde_json",
- "teahook-rs",
+ "teahook",
  "thiserror",
  "usecases",
  "uuid",
