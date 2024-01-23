@@ -46,7 +46,7 @@ fn create(payload: gh::CreateEvent) -> Result<Option<String>> {
     } = &payload;
     let message = formatdoc! {
         r##"
-            [{}] {} `{}` was created by {}.
+            [{}] {} `{}` was created by {}
         "##,
         repo_str(repository)?, ser_ref_type(ref_type), ref_name, user_str(sender)?
     };
@@ -61,7 +61,7 @@ fn delete(payload: gh::DeleteEvent) -> Result<Option<String>> {
     let sender = payload.sender;
     let message = formatdoc! {
         r##"
-            [{}] {} `{}` was deleted by {}.
+            [{}] {} `{}` was deleted by {}
         "##,
         repo_str(&repo)?, ser_ref_type(&ref_type), ref_name, user_str(&sender)?
     };
@@ -70,11 +70,15 @@ fn delete(payload: gh::DeleteEvent) -> Result<Option<String>> {
 
 /// X-GitHub-Event: push
 fn push(payload: gh::PushEvent) -> Result<Option<String>> {
-    let ref_name = payload.ref_;
-    let repo = &payload.repository;
-    let sender = payload.sender;
-    let commits = payload.commits;
+    let gh::PushEvent {
+        ref_: ref_name,
+        commits,
+        repository: repo,
+        sender,
+        ..
+    } = &payload;
     let commit_count = commits.len();
+    let commit_unit = if commit_count == 1 { "" } else { "s" };
     let commits = commits
         .iter()
         .map(|c| {
@@ -87,10 +91,10 @@ fn push(payload: gh::PushEvent) -> Result<Option<String>> {
         .join("\n");
     let message = formatdoc! {
         r##"
-            [{}:{}] {} commit(s) was pushed by {}
+            [{}:{}] {} commit{} was pushed by {}
             {}
         "##,
-        repo_str(repo)?, ref_name, commit_count, user_str(&sender)?, commits
+        repo_str(repo)?, ref_name, commit_count, commit_unit, user_str(sender)?, commits
     };
     Ok(Some(message))
 }
