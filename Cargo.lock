@@ -2801,7 +2801,7 @@ dependencies = [
 [[package]]
 name = "teahook"
 version = "0.1.0"
-source = "git+https://github.com/H1rono/teahook-rs.git?branch=main#1a2a08c99432a679fb23b11d69df261293a80d9f"
+source = "git+https://github.com/H1rono/teahook-rs.git?branch=main#b32a18c17fa576a7a4ae1460b51005081baf57f2"
 dependencies = [
  "anyhow",
  "cargo_metadata",
