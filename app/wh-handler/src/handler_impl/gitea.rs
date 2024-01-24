@@ -140,6 +140,7 @@ fn push(payload: th::PushPayload) -> Result<String> {
             let th::PayloadCommit {
                 id, message, url, ..
             } = c;
+            let message = message.lines().next().unwrap();
             Ok(format!("[`{}`]({}) {}", &id[0..7], url, message))
         })
         .collect::<Result<Vec<_>>>()?
