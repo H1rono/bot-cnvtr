@@ -133,15 +133,17 @@ fn push(payload: th::PushPayload) -> Result<String> {
     unwrap_opt_boxed! {repo, sender, commits}
     let commit_count = commits.len();
     let commit_unit = if commit_count == 1 { "" } else { "s" };
+    // githubと順序を合わせるためにrev
     let commits = commits
         .iter()
+        .rev()
         .map(|c| {
             unwrap_opt_boxed! {c}
             let th::PayloadCommit {
                 id, message, url, ..
             } = c;
             let message = message.lines().next().unwrap();
-            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message))
+            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end()))
         })
         .collect::<Result<Vec<_>>>()?
         .join("\n");

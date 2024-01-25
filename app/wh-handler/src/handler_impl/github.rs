@@ -86,7 +86,7 @@ fn push(payload: gh::PushEvent) -> Result<Option<String>> {
                 id, url, message, ..
             } = c;
             let message = message.lines().next().unwrap();
-            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message))
+            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end()))
         })
         .collect::<Result<Vec<_>>>()?
         .join("\n");
