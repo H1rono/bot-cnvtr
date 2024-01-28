@@ -1974,6 +1974,7 @@ dependencies = [
  "sqlx",
  "thiserror",
  "tokio",
+ "tracing",
  "traq-bot-http",
  "usecases",
 ]

@@ -5,6 +5,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use tracing::{debug, instrument};
 
 use domain::{Repository, Webhook, WebhookId};
 use usecases::WebhookHandler;
@@ -55,14 +56,17 @@ where
 }
 
 /// GET /wh/:id
+#[instrument(skip_all, fields(webhook_id = %webhook.id))]
 pub(super) async fn get_wh<S>(Wh(webhook): Wh) -> Json<Webhook>
 where
     S: AppState<Error = domain::Error>,
 {
+    debug!("GET webhook info");
     Json(webhook)
 }
 
 /// POST /wh/:id/github
+#[instrument(skip_all, fields(webhook_id = %webhook.id))]
 pub(super) async fn wh_github<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
@@ -72,6 +76,7 @@ pub(super) async fn wh_github<S>(
 where
     S: AppState<Error = domain::Error>,
 {
+    debug!("POST github webhook");
     let infra = st.infra();
     st.webhook_handler()
         .github_webhook(infra, webhook, headers, &payload)
@@ -80,6 +85,7 @@ where
 }
 
 /// POST /wh/:id/gitea
+#[instrument(skip_all, fields(webhook_id = %webhook.id))]
 pub(super) async fn wh_gitea<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
@@ -89,6 +95,7 @@ pub(super) async fn wh_gitea<S>(
 where
     S: AppState<Error = domain::Error>,
 {
+    debug!("POST gitea webhook");
     let infra = st.infra();
     st.webhook_handler()
         .gitea_webhook(infra, webhook, headers, &payload)
@@ -97,6 +104,7 @@ where
 }
 
 /// POST /wh/:id/clickup
+#[instrument(skip_all, fields(webhook_id = %webhook.id))]
 pub(super) async fn wh_clickup<S>(
     State(st): State<S>,
     Wh(webhook): Wh,
@@ -106,6 +114,7 @@ pub(super) async fn wh_clickup<S>(
 where
     S: AppState<Error = domain::Error>,
 {
+    debug!("POST clickup webhook");
     let infra = st.infra();
     st.webhook_handler()
         .clickup_webhook(infra, webhook, headers, &payload)
