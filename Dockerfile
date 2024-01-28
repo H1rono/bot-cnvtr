@@ -7,11 +7,12 @@ ENV NIX_CONFIG='filter-syscalls = false'
 
 COPY flake.nix .
 COPY flake.lock .
+RUN nix build .#otherDeps
 RUN nix build . || true
 
 COPY . .
 
-RUN nix build .#deps
+RUN nix build .#cargoDeps
 RUN nix build .
 
 RUN mkdir /tmp/nix-store-closure
