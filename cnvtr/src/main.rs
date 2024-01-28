@@ -2,7 +2,7 @@ use std::error::Error;
 use std::net::SocketAddr;
 
 use tower_http::trace::TraceLayer;
-use tracing::Level;
+use tracing_subscriber::EnvFilter;
 
 use ::bot::BotImpl;
 use ::traq_client::ClientImpl;
@@ -23,7 +23,7 @@ use config::ConfigComposite;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt()
-        .with_max_level(Level::TRACE)
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or("info".into()))
         .init();
     let ConfigComposite {
         bot_config,
