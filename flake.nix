@@ -107,8 +107,14 @@
           # Check formatting
           fmt = craneLib.cargoFmt commonArgs;
         };
-        packages.deps = cargoArtifacts;
-        packages.default = build;
+        packages = {
+          default = build;
+          cargoDeps = cargoArtifacts;
+          otherDeps = pkgs.symlinkJoin {
+            name = "cnvtr-other-deps";
+            paths = [ octokit-webhooks gitea teahook-transpiler ];
+          };
+        };
 
         apps.default = flake-utils.lib.mkApp {
           drv = build;
