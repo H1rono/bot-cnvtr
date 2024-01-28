@@ -98,7 +98,7 @@ impl<'a> Incomplete<&'a MessageCreatedPayload> for WebhookCreate {
     type Completed = complete::WebhookCreate;
 
     fn complete(&self, context: &'a MessageCreatedPayload) -> Self::Completed {
-        self.complete((true, &context.message))
+        self.complete((false, &context.message))
     }
 }
 
