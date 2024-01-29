@@ -5,8 +5,7 @@ WORKDIR /app
 
 ENV NIX_CONFIG='filter-syscalls = false'
 
-COPY flake.nix .
-COPY flake.lock .
+COPY flake.nix flake.lock ./
 RUN nix build .#otherDeps
 
 COPY . .
