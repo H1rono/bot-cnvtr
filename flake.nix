@@ -124,19 +124,14 @@
           # Inherit inputs from checks.
           checks = self.checks.${system};
 
-          shellHook = ''
-            unset GOROOT
-            unset GOPATH
-            unset GOTOOLDIR
-          '';
-
           # Additional dev-shell environment variables can be set directly
           # MY_CUSTOM_DEVELOPMENT_VAR = "something else";
+          GITHUB_WEBHOOK_SCHEMA_DTS = "${octokit-webhooks}/payload-types/schema.d.ts";
+          GITEA_SOURCE_ROOT = "${gitea}";
+          GITEA_TRANSPILER_PATH = "${teahook-transpiler}/bin/teahook-rs";
 
           # Extra inputs can be added here; cargo and rustc are provided by default.
-          packages = [
-            pkgs.go_1_21
-          ];
+          packages = [ ];
         };
       }
     );
