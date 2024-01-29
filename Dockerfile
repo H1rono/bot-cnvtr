@@ -8,7 +8,6 @@ ENV NIX_CONFIG='filter-syscalls = false'
 COPY flake.nix .
 COPY flake.lock .
 RUN nix build .#otherDeps
-RUN nix build . || true
 
 COPY . .
 
