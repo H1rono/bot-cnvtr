@@ -322,7 +322,6 @@ dependencies = [
  "async-stream",
  "clap 4.4.18",
  "domain",
- "envy",
  "futures",
  "indoc",
  "serde",
@@ -348,6 +347,7 @@ dependencies = [
  "http 1.0.0",
  "repository",
  "router",
+ "serde",
  "serde_json",
  "tokio",
  "tower-http",
@@ -1898,7 +1898,6 @@ name = "repository"
 version = "0.1.0"
 dependencies = [
  "domain",
- "envy",
  "indoc",
  "itertools 0.11.0",
  "serde",
@@ -1968,7 +1967,6 @@ dependencies = [
  "anyhow",
  "axum",
  "domain",
- "envy",
  "indoc",
  "serde",
  "serde_json",
@@ -3095,7 +3093,6 @@ name = "traq-client"
 version = "0.1.0"
 dependencies = [
  "domain",
- "envy",
  "itertools 0.11.0",
  "reqwest",
  "serde",
