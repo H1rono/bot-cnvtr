@@ -2,7 +2,6 @@ use sqlx::MySqlPool;
 
 use domain::{ChannelId, Group, Owner, OwnerKind, Repository, User, Webhook, WebhookId};
 
-use crate::config::Config;
 use crate::MIGRATOR;
 
 pub struct RepositoryImpl(pub(crate) MySqlPool);
@@ -12,9 +11,8 @@ impl RepositoryImpl {
         Self(pool)
     }
 
-    pub async fn from_config(c: Config) -> sqlx::Result<Self> {
-        let url = c.database_url();
-        let pool = MySqlPool::connect(&url).await?;
+    pub async fn connect(url: &str) -> sqlx::Result<Self> {
+        let pool = MySqlPool::connect(url).await?;
         Ok(Self::new(pool))
     }
 

@@ -10,7 +10,6 @@ indoc.workspace = true
 serde.workspace = true
 uuid.workspace = true
 thiserror.workspace = true
-envy.workspace = true
 
 sqlx.workspace = true
 

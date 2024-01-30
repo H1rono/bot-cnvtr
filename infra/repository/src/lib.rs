@@ -3,12 +3,10 @@ use sqlx::mysql::MySqlRow;
 use sqlx::Row;
 use uuid::Uuid;
 
-mod config;
 pub mod error;
 pub(crate) mod model;
 mod repo_impl;
 
-pub use config::Config;
 pub use repo_impl::RepositoryImpl;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
