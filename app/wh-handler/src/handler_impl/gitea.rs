@@ -9,9 +9,20 @@ use super::utils::{extract_header_value, OptionExt};
 use crate::{Error, Result};
 
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
-    macro_rules! handler {
-        ($i:ident) => {
-            Some($i(from_str(payload)?)?)
+    macro_rules! match_event {
+        ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {
+            match $t {
+                $(stringify!($i) => Some($i(from_str($p)?)?),)*
+                $(stringify!($di))|* => default($t, from_str($p)?),
+                _ => {
+                    // TODO: tracing
+                    eprintln!(
+                        "received unexpected header: `X-Gitea-Event: {}`",
+                        $t
+                    );
+                    return Err(Error::WrongType);
+                }
+            }
         };
     }
 
@@ -20,39 +31,17 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/modules/webhook/type.go#L11-L33
     let event_type = extract_header_value(&headers, "X-Gitea-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
-    let message = match event_type {
-        "create" => handler!(create),
-        "delete" => handler!(delete),
-        "fork" => handler!(fork),
-        "push" => handler!(push),
-        "issues" => handler!(issues),
-        "pull_request" => handler!(pull_request),
-        "issue_assign"
-        | "issue_label"
-        | "issue_milestone"
-        | "issue_comment"
-        | "pull_request_assign"
-        | "pull_request_label"
-        | "pull_request_milestone"
-        | "pull_request_comment"
-        | "pull_request_review_approved"
-        | "pull_request_review_rejected"
-        | "pull_request_review_comment"
-        | "pull_request_sync"
-        | "pull_request_review_request"
-        | "wiki"
-        | "repository"
-        | "release"
-        | "package" => default(event_type, from_str(payload)?),
-        _ => {
-            // TODO: tracing
-            eprintln!(
-                "received unexpected header: `X-Gitea-Event: {}`",
-                event_type
-            );
-            return Err(Error::WrongType);
-        }
-    };
+    let message = match_event!(
+        event_type => payload;
+        create, delete, fork, push, issues, pull_request;
+        default = [
+            issue_assign, issue_label, issue_milestone, issue_comment,
+            pull_request_assign, pull_request_label, pull_request_milestone,
+            pull_request_comment, pull_request_review_approved, pull_request_review_rejected,
+            pull_request_revew_comment, pull_request_sync, pull_request_review_request, wiki,
+            repository, release, package
+        ]
+    );
     let Some(message) = message else {
         return Ok(None);
     };

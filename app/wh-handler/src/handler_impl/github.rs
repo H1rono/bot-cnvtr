@@ -10,24 +10,25 @@ use super::utils::extract_header_value;
 use crate::{Error, Result};
 
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+    macro_rules! match_event {
+        ($t:expr => $p:expr; $($i:ident),*) => {
+            match $t {
+                $(stringify!($i) => $i(from_str($p)?),)*
+                _ => default($t, from_str($p)?),
+            }
+        };
+    }
+
     use serde_json::from_str;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
-    let message = match event_type {
-        "create" => create(from_str(payload)?),
-        "delete" => delete(from_str(payload)?),
-        "push" => push(from_str(payload)?),
-        "issues" => issues(from_str(payload)?),
-        "ping" => ping(from_str(payload)?),
-        "fork" => fork(from_str(payload)?),
-        "branch_protection_rule" => branch_protection_rule(from_str(payload)?),
-        "pull_request" => pull_request(from_str(payload)?),
-        "pull_request_review_comment" => pull_request_review_comment(from_str(payload)?),
-        "pull_request_review" => pull_request_review(from_str(payload)?),
-        "pull_request_review_thread" => pull_request_review_thread(from_str(payload)?),
-        "release" => release(from_str(payload)?),
-        _ => default(event_type, from_str(payload)?),
-    };
+    let message = match_event!(
+        event_type => payload;
+        create, delete, push, issues, ping, fork, release,
+        branch_protection_rule,
+        pull_request, pull_request_review_comment,
+        pull_request_review, pull_request_review_thread
+    );
     Ok(message)
 }
 
