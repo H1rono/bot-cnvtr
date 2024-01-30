@@ -10,11 +10,8 @@ use domain::Infra;
 use usecases::App;
 
 mod bot;
-mod config;
 mod error;
 mod wh;
-
-pub use config::Config;
 
 trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra<Error = Self::Error>;
@@ -100,12 +97,12 @@ where
     }
 }
 
-pub fn make_router<I, A>(config: Config, infra: I, app: A) -> Router
+pub fn make_router<I, A>(verification_token: &str, infra: I, app: A) -> Router
 where
     I: Infra<Error = domain::Error>,
     A: App<I, Error = domain::Error>,
 {
-    let parser = config.into();
+    let parser = RequestParser::new(verification_token);
     let state = AppStateImpl::new(infra, app, parser);
     Router::new()
         .route("/bot", post(bot::event::<AppStateImpl<I, A>>))
