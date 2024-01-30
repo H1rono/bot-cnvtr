@@ -3,21 +3,13 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
-use ::bot::BotImpl;
-use ::traq_client::ClientImpl;
-use ::wh_handler::WebhookHandlerImpl;
+use bot::BotImpl;
 use repository::RepositoryImpl;
 use router::make_router;
+use traq_client::ClientImpl;
+use wh_handler::WebhookHandlerImpl;
 
-pub mod app;
-pub mod bot;
-pub mod config;
-pub mod infra;
-pub mod repo;
-pub mod traq_client;
-pub mod wh_handler;
-
-use config::ConfigComposite;
+use bot_cnvtr::config::ConfigComposite;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -39,11 +31,11 @@ async fn main() -> anyhow::Result<()> {
     let client = ClientImpl::from_config(client_config);
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
-    let infra = infra::InfraImpl::new_wrapped(repo, client);
+    let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client);
 
     let bot = BotImpl::from_config(bot_config);
     let wh = WebhookHandlerImpl::new();
-    let app = app::AppImpl::new_wrapped(bot, wh);
+    let app = bot_cnvtr::app::AppImpl::new_wrapped(bot, wh);
 
     let router = make_router(router_config, infra, app).layer(TraceLayer::new_for_http());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
