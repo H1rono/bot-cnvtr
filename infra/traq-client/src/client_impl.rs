@@ -5,7 +5,7 @@ use traq::apis::configuration::Configuration;
 
 use domain::{ChannelId, Group, GroupId, MessageId, StampId, TraqClient, User, UserId};
 
-use crate::{Config, Result};
+use crate::Result;
 
 #[derive(Debug, Clone)]
 pub struct ClientImpl {
@@ -16,14 +16,6 @@ impl ClientImpl {
     pub fn new(bot_access_token: &str) -> Self {
         let config = Configuration {
             bearer_access_token: Some(bot_access_token.to_string()),
-            ..Default::default()
-        };
-        Self { config }
-    }
-
-    pub fn from_config(config: Config) -> Self {
-        let config = Configuration {
-            bearer_access_token: Some(config.bot_access_token),
             ..Default::default()
         };
         Self { config }
