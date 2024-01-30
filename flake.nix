@@ -54,6 +54,7 @@
         teahook-transpiler = teahook-rs.packages.${system}.goBuild;
 
         commonArgs = {
+          pname = "bot-cnvtr";
           inherit src;
           strictDeps = true;
           nativeBuildInputs = [ pkgs.pkg-config ];
