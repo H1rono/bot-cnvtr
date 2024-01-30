@@ -1,9 +1,9 @@
+use std::borrow::Cow;
+
 use traq_bot_http::Event;
 
 use domain::{Error, Infra};
 use usecases::Bot;
-
-use crate::config::Config;
 
 #[derive(Debug, Clone)]
 pub struct BotImpl {
@@ -12,21 +12,10 @@ pub struct BotImpl {
 }
 
 impl BotImpl {
-    pub fn new(id: &str, user_id: &str) -> Self {
-        let id = id.to_string();
-        let user_id = user_id.to_string();
+    pub fn new<'a>(id: impl Into<Cow<'a, str>>, user_id: impl Into<Cow<'a, str>>) -> Self {
+        let id = id.into().into_owned();
+        let user_id = user_id.into().into_owned();
         Self { id, user_id }
-    }
-
-    pub fn from_config(bot_config: Config) -> Self {
-        let Config {
-            bot_id,
-            bot_user_id,
-        } = bot_config;
-        Self {
-            id: bot_id,
-            user_id: bot_user_id,
-        }
     }
 }
 
