@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
         .layer(TraceLayer::new_for_http());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    println!("listening on {} ...", addr);
+    tracing::info!("listening on {} ...", addr);
     axum::serve(listener, router)
         .with_graceful_shutdown(bot_cnvtr::signal::signal())
         .await?;

@@ -6,6 +6,7 @@ use thiserror::Error as ThisError;
 pub struct Error(#[from] pub domain::Error);
 
 impl IntoResponse for Error {
+    #[tracing::instrument(skip_all, target = "router::error::Error::into_response")]
     fn into_response(self) -> axum::response::Response {
         use domain::Error as DE;
         match self.0 {
@@ -14,7 +15,7 @@ impl IntoResponse for Error {
             DE::NotImplemented => StatusCode::NOT_IMPLEMENTED.into_response(),
             DE::Unauthorized => StatusCode::UNAUTHORIZED.into_response(),
             DE::Unexpected(e) => {
-                eprintln!("{}", e);
+                tracing::error!("Unexpected error while routing: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }

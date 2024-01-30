@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use axum::{
     async_trait,
     body::{to_bytes, Body},
@@ -22,6 +20,7 @@ where
 {
     type Rejection = StatusCode;
 
+    #[tracing::instrument(skip_all, target = "router::bot::BotEvent::from_request")]
     async fn from_request(req: Request<Body>, state: &S) -> Result<Self, Self::Rejection> {
         let parser = state.parser();
         let (parts, body) = req.into_parts();
@@ -32,9 +31,7 @@ where
         match parser.parse(headers.iter(), &body) {
             Ok(event) => Ok(Self(event)),
             Err(err) => {
-                eprintln!("ERROR: {err}");
-                eprintln!("{err:?}");
-                eprintln!("{:?}", err.source());
+                tracing::error!("failed to parse bot event: {}", err);
                 Err(StatusCode::INTERNAL_SERVER_ERROR)
             }
         }
