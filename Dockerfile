@@ -17,7 +17,7 @@ COPY infra/traq-client/Cargo.toml ./infra/traq-client/
 COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
 COPY app/bot/Cargo.toml           ./app/bot/
 COPY router/Cargo.toml            ./router/
-COPY cnvtr/Cargo.toml             ./cnvtr/
+COPY bot-cnvtr/Cargo.toml             ./bot-cnvtr/
 RUN nix build .#cargoDeps
 
 COPY . .
@@ -36,4 +36,4 @@ WORKDIR /app
 COPY --from=builder /tmp/nix-store-closure /nix/store
 COPY --from=builder /app/result /app
 
-CMD [ "/app/bin/cnvtr" ]
+CMD [ "/app/bin/bot-cnvtr" ]

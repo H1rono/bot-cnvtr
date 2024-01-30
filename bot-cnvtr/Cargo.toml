@@ -1,5 +1,5 @@
 [package]
-name = "cnvtr"
+name = "bot-cnvtr"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true

@@ -336,6 +336,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "bot-cnvtr"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bot",
+ "domain",
+ "dotenvy",
+ "envy",
+ "http 1.0.0",
+ "repository",
+ "router",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "traq-bot-http",
+ "traq-client",
+ "usecases",
+ "wh-handler",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -454,30 +478,6 @@ name = "clap_lex"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
-
-[[package]]
-name = "cnvtr"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "bot",
- "domain",
- "dotenvy",
- "envy",
- "http 1.0.0",
- "repository",
- "router",
- "serde_json",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "traq-bot-http",
- "traq-client",
- "usecases",
- "wh-handler",
-]
 
 [[package]]
 name = "colorchoice"
