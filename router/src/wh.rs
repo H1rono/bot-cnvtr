@@ -5,7 +5,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use tracing::{debug, instrument};
+use tracing::{info, instrument};
 
 use domain::{Repository, Webhook, WebhookId};
 use usecases::WebhookHandler;
@@ -61,7 +61,7 @@ pub(super) async fn get_wh<S>(Wh(webhook): Wh) -> Json<Webhook>
 where
     S: AppState<Error = domain::Error>,
 {
-    debug!("GET webhook info");
+    info!("GET webhook info");
     Json(webhook)
 }
 
@@ -76,7 +76,7 @@ pub(super) async fn wh_github<S>(
 where
     S: AppState<Error = domain::Error>,
 {
-    debug!("POST github webhook");
+    info!("POST github webhook");
     let infra = st.infra();
     st.webhook_handler()
         .github_webhook(infra, webhook, headers, &payload)
@@ -95,7 +95,7 @@ pub(super) async fn wh_gitea<S>(
 where
     S: AppState<Error = domain::Error>,
 {
-    debug!("POST gitea webhook");
+    info!("POST gitea webhook");
     let infra = st.infra();
     st.webhook_handler()
         .gitea_webhook(infra, webhook, headers, &payload)
@@ -114,7 +114,7 @@ pub(super) async fn wh_clickup<S>(
 where
     S: AppState<Error = domain::Error>,
 {
-    debug!("POST clickup webhook");
+    info!("POST clickup webhook");
     let infra = st.infra();
     st.webhook_handler()
         .clickup_webhook(infra, webhook, headers, &payload)

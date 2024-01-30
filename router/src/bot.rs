@@ -46,7 +46,7 @@ pub(super) async fn event<S>(State(st): State<S>, BotEvent(event): BotEvent) -> 
 where
     S: AppState<Error = domain::Error>,
 {
-    tracing::debug!("POST traQ BOT event");
+    tracing::info!("POST traQ BOT event");
     match st.bot().handle_event(st.infra(), event).await {
         Ok(_) => StatusCode::NO_CONTENT,
         Err(err) => {
