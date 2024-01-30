@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::net::SocketAddr;
 
 use tower_http::trace::TraceLayer;
@@ -21,7 +20,7 @@ pub mod wh_handler;
 use config::ConfigComposite;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::try_from_default_env().unwrap_or("info".into()))
         .init();
@@ -30,10 +29,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         router_config,
         client_config,
         repo_config,
-    } = ConfigComposite::from_env().or_else(|_| -> Result<_, Box<dyn Error>> {
-        dotenvy::from_filename_override(".env")?;
-        Ok(ConfigComposite::from_env()?)
-    })?;
+    } = ConfigComposite::from_env()
+        .map_err(anyhow::Error::from)
+        .or_else(|_| -> anyhow::Result<ConfigComposite> {
+            dotenvy::from_filename_override(".env")?;
+            Ok(ConfigComposite::from_env()?)
+        })?;
     let client = ClientImpl::from_config(client_config);
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;

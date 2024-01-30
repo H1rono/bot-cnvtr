@@ -6,7 +6,7 @@ publish.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-
+anyhow.workspace = true
 envy.workspace = true
 dotenvy = "0.15"
 
