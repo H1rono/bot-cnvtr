@@ -13,7 +13,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     use serde_json::from_str;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
-    match event_type {
+    let message = match event_type {
         "create" => create(from_str(payload)?),
         "delete" => delete(from_str(payload)?),
         "push" => push(from_str(payload)?),
@@ -27,16 +27,17 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         "pull_request_review_thread" => pull_request_review_thread(from_str(payload)?),
         "release" => release(from_str(payload)?),
         _ => default(event_type, from_str(payload)?),
-    }
+    };
+    Ok(message)
 }
 
 /// X-GitHub-Event: ping
-fn ping(_: Value) -> Result<Option<String>> {
-    Ok(None)
+fn ping(_: Value) -> Option<String> {
+    None
 }
 
 /// X-GitHub-Event: create
-fn create(payload: gh::CreateEvent) -> Result<Option<String>> {
+fn create(payload: gh::CreateEvent) -> Option<String> {
     let gh::CreateEvent {
         ref_: ref_name,
         ref_type,
@@ -48,13 +49,13 @@ fn create(payload: gh::CreateEvent) -> Result<Option<String>> {
         r##"
             [{}] {} `{}` was created by {}
         "##,
-        repo_str(repository)?, ser_ref_type(ref_type), ref_name, user_str(sender)?
+        repo_str(repository), ser_ref_type(ref_type), ref_name, user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: delete
-fn delete(payload: gh::DeleteEvent) -> Result<Option<String>> {
+fn delete(payload: gh::DeleteEvent) -> Option<String> {
     let ref_name = payload.ref_;
     let ref_type = payload.ref_type;
     let repo = payload.repository;
@@ -63,13 +64,13 @@ fn delete(payload: gh::DeleteEvent) -> Result<Option<String>> {
         r##"
             [{}] {} `{}` was deleted by {}
         "##,
-        repo_str(&repo)?, ser_ref_type(&ref_type), ref_name, user_str(&sender)?
+        repo_str(&repo), ser_ref_type(&ref_type), ref_name, user_str(&sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: push
-fn push(payload: gh::PushEvent) -> Result<Option<String>> {
+fn push(payload: gh::PushEvent) -> Option<String> {
     let gh::PushEvent {
         ref_: ref_name,
         commits,
@@ -86,22 +87,23 @@ fn push(payload: gh::PushEvent) -> Result<Option<String>> {
                 id, url, message, ..
             } = c;
             let message = message.lines().next().unwrap();
-            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end()))
+            format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end())
         })
-        .collect::<Result<Vec<_>>>()?
+        .collect::<Vec<_>>()
         .join("\n");
     let message = formatdoc! {
         r##"
             [{}:{}] {} commit{} was pushed by {}
             {}
         "##,
-        repo_str(repo)?, ref_name, commit_count, commit_unit, user_str(sender)?, commits
+        repo_str(repo), ref_name, commit_count, commit_unit,
+        user_str(sender), commits
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: issues
-fn issues(payload: gh::IssuesEvent) -> Result<Option<String>> {
+fn issues(payload: gh::IssuesEvent) -> Option<String> {
     macro_rules! issue_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -154,16 +156,16 @@ fn issues(payload: gh::IssuesEvent) -> Result<Option<String>> {
         r##"
             [{}] Issue [`#{} {}`]({}) {} by {}
         "##,
-        repo_str(repository)?,
+        repo_str(repository),
         issue_number, issue_title, issue_url,
         action,
-        user_str(sender)?
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: fork
-fn fork(payload: gh::ForkEvent) -> Result<Option<String>> {
+fn fork(payload: gh::ForkEvent) -> Option<String> {
     let gh::ForkEvent {
         forkee,
         repository,
@@ -174,15 +176,15 @@ fn fork(payload: gh::ForkEvent) -> Result<Option<String>> {
         r##"
             [{}] forked to {} by {}
         "##,
-        repo_str(repository)?,
-        repo_str(forkee)?,
-        user_str(sender)?
+        repo_str(repository),
+        repo_str(forkee),
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: branch_protection_rule
-fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Result<Option<String>> {
+fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Option<String> {
     macro_rules! branch_protection_rule_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -205,16 +207,16 @@ fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Result<Opti
         r##"
             [{}:{}] branch protection rule {} by {}
         "##,
-        repo_str(repository)?,
+        repo_str(repository),
         rule.name,
         action,
-        user_str(sender)?
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: pull_request
-fn pull_request(payload: gh::PullRequestEvent) -> Result<Option<String>> {
+fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
     macro_rules! pull_request_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -267,18 +269,16 @@ fn pull_request(payload: gh::PullRequestEvent) -> Result<Option<String>> {
         r##"
             [{}] Pull Request {} {} by {}
         "##,
-        repo_str(repository)?,
-        pr_str(pull_request)?,
+        repo_str(repository),
+        pr_str(pull_request),
         action.replace('_', " "),
-        user_str(sender)?
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: pull_request_review_comment
-fn pull_request_review_comment(
-    payload: gh::PullRequestReviewCommentEvent,
-) -> Result<Option<String>> {
+fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Option<String> {
     macro_rules! pr_review_comment_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -304,17 +304,17 @@ fn pull_request_review_comment(
             [{}] Pull Request comment {} in [`#{} {}`]({}) by {}
             {}
         "##,
-        repo_str(repository)?,
+        repo_str(repository),
         action,
         number, title, url,
-        user_str(sender)?,
+        user_str(sender),
         comment.html_url
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: pull_request_review
-fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Result<Option<String>> {
+fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Option<String> {
     macro_rules! pr_review_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -338,17 +338,17 @@ fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Result<Option<Str
             [{}] Pull Request review {} {} by {}
             {}
         "##,
-        repo_str(repository)?,
-        simple_pr_str(pull_request)?,
+        repo_str(repository),
+        simple_pr_str(pull_request),
         action.replace('_', " "),
-        user_str(sender)?,
+        user_str(sender),
         review.html_url
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: pull_request_review_thread
-fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Result<Option<String>> {
+fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Option<String> {
     macro_rules! pr_review_thread_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -370,16 +370,16 @@ fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Resu
         r##"
             [{}] Pull Request review thread {} {} by {}
         "##,
-        repo_str(repository)?,
-        simple_pr_str(pull_request)?,
+        repo_str(repository),
+        simple_pr_str(pull_request),
         action.replace('_', " "),
-        user_str(sender)?
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: release
-fn release(payload: gh::ReleaseEvent) -> Result<Option<String>> {
+fn release(payload: gh::ReleaseEvent) -> Option<String> {
     macro_rules! release_event {
         ($i:ident, $kind:ident) => {{
             paste! {
@@ -417,31 +417,31 @@ fn release(payload: gh::ReleaseEvent) -> Result<Option<String>> {
         r##"
             [{}] Release {} {} by {}
         "##,
-        repo_str(repository)?,
-        release_str(release)?,
+        repo_str(repository),
+        release_str(release),
         action,
-        user_str(sender)?
+        user_str(sender)
     };
-    Ok(Some(message))
+    Some(message)
 }
 
 /// X-GitHub-Event: *
-fn default(_event_type: &str, _payload: Value) -> Result<Option<String>> {
-    Ok(None)
+fn default(_event_type: &str, _payload: Value) -> Option<String> {
+    None
 }
 
 /// user -> [user.login](user.html_url)
-fn user_str(user: &gh::User) -> Result<String> {
+fn user_str(user: &gh::User) -> String {
     let &gh::User {
         login, html_url, ..
     } = user;
-    Ok(format!("[{}]({})", login, html_url))
+    format!("[{}]({})", login, html_url)
 }
 
 /// repository -> [repository.full_name](repository.html_url)
-fn repo_str(repo: &gh::Repository) -> Result<String> {
+fn repo_str(repo: &gh::Repository) -> String {
     let &gh::Repository { name, html_url, .. } = repo;
-    Ok(format!("[{}]({})", name, html_url))
+    format!("[{}]({})", name, html_url)
 }
 
 fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
@@ -452,28 +452,28 @@ fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
 }
 
 /// pr -> [`pr.number pr.title`](pr.html_url)
-fn pr_str(pr: &gh::PullRequest) -> Result<String> {
+fn pr_str(pr: &gh::PullRequest) -> String {
     let gh::PullRequest {
         number,
         title,
         html_url,
         ..
     } = pr;
-    Ok(format!("[`#{} {}`]({})", number, title, html_url))
+    format!("[`#{} {}`]({})", number, title, html_url)
 }
 
-fn simple_pr_str(pr: &gh::SimplePullRequest) -> Result<String> {
+fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
     let gh::SimplePullRequest {
         number,
         title,
         html_url,
         ..
     } = pr;
-    Ok(format!("[`#{} {}`]({})", number, title, html_url))
+    format!("[`#{} {}`]({})", number, title, html_url)
 }
 
 /// release -> [release.name](release.html_url)
-fn release_str(release: &gh::Release) -> Result<String> {
+fn release_str(release: &gh::Release) -> String {
     let &gh::Release { name, html_url, .. } = release;
-    Ok(format!("[{}]({})", name, html_url))
+    format!("[{}]({})", name, html_url)
 }
