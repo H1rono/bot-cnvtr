@@ -111,10 +111,7 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
                 let gh::[< Issues $kind:camel Event >] {
                     repository, sender, issue, ..
                 } = $i;
-                let &gh::Issue {
-                    number, title, url, ..
-                } = issue;
-                (stringify!([< $kind:snake:lower >]), repository, sender, number, title, url)
+                (stringify!([< $kind:snake:lower >]), repository, sender, issue)
             }
         }};
     }
@@ -125,17 +122,14 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
                 let gh::[< Issues $kind:camel Event >] {
                     repository, sender, issue, ..
                 } = $i;
-                let gh::Issue {
-                    number, title, url, ..
-                } = issue.issue;
-                (stringify!([< $kind:snake:lower >]), repository, sender, number, title, url)
+                (stringify!([< $kind:snake:lower >]), repository, sender, &issue.issue)
             }
         }};
     }
 
     use gh::IssuesEvent::*;
 
-    let (action, repository, sender, issue_number, issue_title, issue_url) = match &payload {
+    let (action, repository, sender, issue) = match &payload {
         Assigned(i) => issue_event!(i, assigned),
         Closed(i) => issue_event_nested!(i, closed),
         Deleted(i) => issue_event!(i, deleted),
@@ -155,12 +149,14 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
     };
     let message = formatdoc! {
         r##"
-            [{}] Issue [#{} {}]({}) {} by {}
+            [{}] Issue {} {} by {}
+            {}
         "##,
         repo_str(repository),
-        issue_number, issue_title, issue_url,
+        issue_str(issue),
         action,
-        user_str(sender)
+        user_str(sender),
+        issue.body.unwrap_or_default()
     };
     Some(message)
 }
@@ -269,11 +265,13 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
     let message = formatdoc! {
         r##"
             [{}] Pull Request {} {} by {}
+            {}
         "##,
         repo_str(repository),
         pr_str(pull_request),
         action.replace('_', " "),
-        user_str(sender)
+        user_str(sender),
+        pull_request.body.unwrap_or_default()
     };
     Some(message)
 }
@@ -441,8 +439,12 @@ fn user_str(user: &gh::User) -> String {
 
 /// repository -> `[repository.full_name](repository.html_url)`
 fn repo_str(repo: &gh::Repository) -> String {
-    let &gh::Repository { name, html_url, .. } = repo;
-    format!("[{}]({})", name, html_url)
+    let &gh::Repository {
+        full_name,
+        html_url,
+        ..
+    } = repo;
+    format!("[{}]({})", full_name, html_url)
 }
 
 fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
@@ -460,6 +462,17 @@ fn pr_str(pr: &gh::PullRequest) -> String {
         html_url,
         ..
     } = pr;
+    format!("[#{} {}]({})", number, title, html_url)
+}
+
+/// `[#issue.number issue.title](issue.html_url)`
+fn issue_str(issue: &gh::Issue) -> String {
+    let gh::Issue {
+        number,
+        title,
+        html_url,
+        ..
+    } = issue;
     format!("[#{} {}]({})", number, title, html_url)
 }
 
