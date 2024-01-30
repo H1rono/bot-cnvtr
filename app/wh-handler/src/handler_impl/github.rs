@@ -154,7 +154,7 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
     };
     let message = formatdoc! {
         r##"
-            [{}] Issue [`#{} {}`]({}) {} by {}
+            [{}] Issue [#{} {}]({}) {} by {}
         "##,
         repo_str(repository),
         issue_number, issue_title, issue_url,
@@ -301,7 +301,7 @@ fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Op
     let (number, title, url) = pull_request;
     let message = formatdoc! {
         r##"
-            [{}] Pull Request comment {} in [`#{} {}`]({}) by {}
+            [{}] Pull Request comment {} in [#{} {}]({}) by {}
             {}
         "##,
         repo_str(repository),
@@ -430,7 +430,7 @@ fn default(_event_type: &str, _payload: Value) -> Option<String> {
     None
 }
 
-/// user -> [user.login](user.html_url)
+/// user -> `[user.login](user.html_url)`
 fn user_str(user: &gh::User) -> String {
     let &gh::User {
         login, html_url, ..
@@ -438,7 +438,7 @@ fn user_str(user: &gh::User) -> String {
     format!("[{}]({})", login, html_url)
 }
 
-/// repository -> [repository.full_name](repository.html_url)
+/// repository -> `[repository.full_name](repository.html_url)`
 fn repo_str(repo: &gh::Repository) -> String {
     let &gh::Repository { name, html_url, .. } = repo;
     format!("[{}]({})", name, html_url)
@@ -451,7 +451,7 @@ fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
     }
 }
 
-/// pr -> [`pr.number pr.title`](pr.html_url)
+/// pr -> `[#pr.number pr.title](pr.html_url)`
 fn pr_str(pr: &gh::PullRequest) -> String {
     let gh::PullRequest {
         number,
@@ -459,9 +459,10 @@ fn pr_str(pr: &gh::PullRequest) -> String {
         html_url,
         ..
     } = pr;
-    format!("[`#{} {}`]({})", number, title, html_url)
+    format!("[#{} {}]({})", number, title, html_url)
 }
 
+/// pr -> `[#pr.number pr.title](pr.html_url)`
 fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
     let gh::SimplePullRequest {
         number,
@@ -469,10 +470,10 @@ fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
         html_url,
         ..
     } = pr;
-    format!("[`#{} {}`]({})", number, title, html_url)
+    format!("[#{} {}]({})", number, title, html_url)
 }
 
-/// release -> [release.name](release.html_url)
+/// release -> `[release.name](release.html_url)`
 fn release_str(release: &gh::Release) -> String {
     let &gh::Release { name, html_url, .. } = release;
     format!("[{}]({})", name, html_url)
