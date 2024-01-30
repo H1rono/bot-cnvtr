@@ -9,6 +9,10 @@
         "* 0 * * 1"
     ],
     "prHourlyLimit": 10,
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automerge": true
+    },
     "packageRules": [
         {
             "matchPackageNames": [
@@ -20,7 +24,8 @@
             "matchDepTypes": [
                 "action"
             ],
-            "groupName": "github-actions"
+            "groupName": "github-actions",
+            "automerge": true
         }
     ]
 }
