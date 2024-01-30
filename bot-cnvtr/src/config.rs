@@ -16,6 +16,12 @@ pub struct RepoConfig {
 }
 
 impl RepoConfig {
+    pub fn from_env() -> envy::Result<Self> {
+        envy::prefixed("NS_MARIADB_")
+            .from_env()
+            .or_else(|_| envy::prefixed("MYSQL_").from_env())
+    }
+
     pub fn database_url(&self) -> String {
         format!(
             "mysql://{}:{}@{}:{}/{}",
@@ -47,7 +53,7 @@ impl ConfigComposite {
             bot_config: envy::from_env()?,
             router_config: envy::from_env()?,
             client_config: envy::from_env()?,
-            repo_config: envy::from_env()?,
+            repo_config: RepoConfig::from_env()?,
         })
     }
 }
