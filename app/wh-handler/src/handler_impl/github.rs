@@ -156,7 +156,7 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
         issue_str(issue),
         action,
         user_str(sender),
-        issue.body.unwrap_or_default()
+        issue.body.as_deref().unwrap_or_default()
     };
     Some(message)
 }
@@ -271,7 +271,7 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
         pr_str(pull_request),
         action.replace('_', " "),
         user_str(sender),
-        pull_request.body.unwrap_or_default()
+        pull_request.body.as_deref().unwrap_or_default()
     };
     Some(message)
 }
@@ -284,7 +284,7 @@ fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Op
                 let gh::[< PullRequestReviewComment $kind:camel Event >] {
                     repository, sender, pull_request, comment, ..
                 } = $i;
-                let pull_request = (pull_request.number, pull_request.title, pull_request.html_url);
+                let pull_request = (pull_request.number, &pull_request.title, &pull_request.html_url);
                 (stringify!([< $kind:snake:lower >]), repository, sender, pull_request, comment)
             }
         }};
@@ -431,7 +431,7 @@ fn default(_event_type: &str, _payload: Value) -> Option<String> {
 
 /// user -> `[user.login](user.html_url)`
 fn user_str(user: &gh::User) -> String {
-    let &gh::User {
+    let gh::User {
         login, html_url, ..
     } = user;
     format!("[{}]({})", login, html_url)
@@ -439,7 +439,7 @@ fn user_str(user: &gh::User) -> String {
 
 /// repository -> `[repository.full_name](repository.html_url)`
 fn repo_str(repo: &gh::Repository) -> String {
-    let &gh::Repository {
+    let gh::Repository {
         full_name,
         html_url,
         ..
@@ -489,6 +489,6 @@ fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
 
 /// release -> `[release.name](release.html_url)`
 fn release_str(release: &gh::Release) -> String {
-    let &gh::Release { name, html_url, .. } = release;
+    let gh::Release { name, html_url, .. } = release;
     format!("[{}]({})", name, html_url)
 }
