@@ -2,5 +2,25 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "config:recommended"
+    ],
+    "dependencyDashboard": true,
+    "timezone": "Asia/Tokyo",
+    "schedule": [
+        "* 0 * * 1"
+    ],
+    "prHourlyLimit": 10,
+    "packageRules": [
+        {
+            "matchPackageNames": [
+                "teahook"
+            ],
+            "enabled": false
+        },
+        {
+            "matchDepTypes": [
+                "action"
+            ],
+            "groupName": "github-actions"
+        }
     ]
 }
