@@ -35,15 +35,16 @@ async fn main() -> anyhow::Result<()> {
             dotenvy::from_filename_override(".env")?;
             Ok(ConfigComposite::from_env()?)
         })?;
+
     let client = ClientImpl::from_config(client_config);
     let repo = RepositoryImpl::from_config(repo_config).await?;
     repo.migrate().await?;
     let infra = infra::InfraImpl::new_wrapped(repo, client);
+
     let bot = BotImpl::from_config(bot_config);
-    let bot = bot::BotWrapper::new(bot);
     let wh = WebhookHandlerImpl::new();
-    let wh = wh_handler::WHandlerWrapper::new(wh);
-    let app = app::AppImpl(bot, wh);
+    let app = app::AppImpl::new_wrapped(bot, wh);
+
     let router = make_router(router_config, infra, app).layer(TraceLayer::new_for_http());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
