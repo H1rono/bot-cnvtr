@@ -28,16 +28,17 @@ async fn main() -> anyhow::Result<()> {
             Ok(ConfigComposite::from_env()?)
         })?;
 
-    let client = ClientImpl::from_config(client_config);
-    let repo = RepositoryImpl::from_config(repo_config).await?;
+    let client = ClientImpl::new(&client_config.bot_access_token);
+    let repo = RepositoryImpl::connect(&repo_config.database_url()).await?;
     repo.migrate().await?;
     let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client);
 
-    let bot = BotImpl::from_config(bot_config);
+    let bot = BotImpl::new(bot_config.bot_id, bot_config.bot_user_id);
     let wh = WebhookHandlerImpl::new();
     let app = bot_cnvtr::app::AppImpl::new_wrapped(bot, wh);
 
-    let router = make_router(router_config, infra, app).layer(TraceLayer::new_for_http());
+    let router = make_router(&router_config.verification_token, infra, app)
+        .layer(TraceLayer::new_for_http());
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("listening on {} ...", addr);

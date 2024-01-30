@@ -1,17 +1,53 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BotConfig {
+    pub bot_id: String,
+    pub bot_user_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RepoConfig {
+    pub database: String,
+    pub hostname: String,
+    pub password: String,
+    pub port: String,
+    pub user: String,
+}
+
+impl RepoConfig {
+    pub fn database_url(&self) -> String {
+        format!(
+            "mysql://{}:{}@{}:{}/{}",
+            self.user, self.password, self.hostname, self.port, self.database
+        )
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TraqClientConfig {
+    pub bot_access_token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RouterConfig {
+    pub verification_token: String,
+}
+
 pub struct ConfigComposite {
-    pub bot_config: ::bot::Config,
-    pub router_config: router::Config,
-    pub client_config: traq_client::Config,
-    pub repo_config: repository::Config,
+    pub bot_config: BotConfig,
+    pub router_config: RouterConfig,
+    pub client_config: TraqClientConfig,
+    pub repo_config: RepoConfig,
 }
 
 impl ConfigComposite {
     pub fn from_env() -> envy::Result<Self> {
         Ok(Self {
-            bot_config: ::bot::Config::from_env()?,
-            router_config: router::Config::from_env()?,
-            client_config: traq_client::Config::from_env()?,
-            repo_config: repository::Config::from_env()?,
+            bot_config: envy::from_env()?,
+            router_config: envy::from_env()?,
+            client_config: envy::from_env()?,
+            repo_config: envy::from_env()?,
         })
     }
 }
