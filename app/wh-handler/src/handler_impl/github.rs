@@ -147,17 +147,21 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
         Unlocked(i) => issue_event_nested!(i, unlocked),
         Unpinned(i) => issue_event!(i, unpinned),
     };
-    let message = formatdoc! {
-        r##"
-            [{}] Issue {} {} by {}
-            {}
-        "##,
+    let message_headline = format!(
+        "[{}] Issue {} {} by {}",
         repo_str(repository),
         issue_str(issue),
         action,
-        user_str(sender),
-        issue.body.as_deref().unwrap_or_default()
+        user_str(sender)
+    );
+    let message_body = issue.body.as_deref().unwrap_or(&issue.html_url);
+    let message_body_lines = message_body.lines().collect::<Vec<_>>();
+    let message_body = if message_body_lines.len() > 5 {
+        &issue.html_url
+    } else {
+        message_body
     };
+    let message = format!("{}\n{}", message_headline, message_body);
     Some(message)
 }
 
@@ -262,17 +266,25 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
         Unlocked(pr) => pull_request_event!(pr, unlocked),
     };
 
-    let message = formatdoc! {
-        r##"
-            [{}] Pull Request {} {} by {}
-            {}
-        "##,
+    let message_headline = format!(
+        "[{}] Pull Request {} {} by {}",
         repo_str(repository),
         pr_str(pull_request),
         action.replace('_', " "),
-        user_str(sender),
-        pull_request.body.as_deref().unwrap_or_default()
+        user_str(sender)
+    );
+    let message_body = pull_request
+        .body
+        .as_deref()
+        .unwrap_or(&pull_request.html_url);
+    let message_body_lines = message_body.lines().collect::<Vec<_>>();
+    let message_body = if message_body_lines.len() > 5 {
+        &pull_request.html_url
+    } else {
+        message_body
     };
+
+    let message = format!("{}\n{}", message_headline, message_body);
     Some(message)
 }
 
