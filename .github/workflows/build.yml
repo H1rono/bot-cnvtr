@@ -82,7 +82,7 @@ jobs:
     if: ${{ github.ref_name == 'main' }}
     env:
       REPOSITORY: ${{ github.repository }}
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.PAT }}
     steps:
       - uses: actions/checkout@v4
       - run: mkdir ./tmp
