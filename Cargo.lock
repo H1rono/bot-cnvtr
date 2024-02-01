@@ -329,6 +329,7 @@ dependencies = [
  "shlex",
  "sqlx",
  "thiserror",
+ "tracing",
  "traq-bot-http",
  "usecases",
  "uuid",
@@ -3357,6 +3358,7 @@ dependencies = [
  "serde_json",
  "teahook",
  "thiserror",
+ "tracing",
  "usecases",
  "uuid",
 ]

@@ -63,10 +63,10 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        // TODO: tracing
-        print!(
+        tracing::info!(
             "{}さんがメッセージを投稿しました。\n内容: {}\n",
-            payload.message.user.display_name, payload.message.text
+            payload.message.user.display_name,
+            payload.message.text
         );
         let message = &payload.message;
         let cli = match parse_command(&message.plain_text) {
@@ -94,10 +94,10 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        // TODO: tracing
-        print!(
+        tracing::info!(
             "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
-            payload.message.user.display_name, payload.message.text
+            payload.message.user.display_name,
+            payload.message.text
         );
         let message = &payload.message;
         let cli = match parse_command(&message.plain_text) {

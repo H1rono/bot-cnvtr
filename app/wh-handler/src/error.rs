@@ -12,10 +12,16 @@ pub enum Error {
 
 impl From<Error> for domain::Error {
     fn from(value: Error) -> Self {
+        use serde_json::error::Category;
         match value {
             Error::MissingField => domain::Error::BadRequest,
             Error::WrongType => domain::Error::BadRequest,
-            e => domain::Error::Unexpected(e.into()),
+            Error::SerdeJson(e) => match e.classify() {
+                Category::Data => domain::Error::BadRequest,
+                Category::Io => domain::Error::Unexpected(e.into()),
+                Category::Eof => domain::Error::BadRequest,
+                Category::Syntax => domain::Error::BadRequest,
+            },
         }
     }
 }

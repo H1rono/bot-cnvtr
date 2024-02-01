@@ -9,6 +9,7 @@ use serde_json::Value;
 use super::utils::extract_header_value;
 use crate::{Error, Result};
 
+#[tracing::instrument(target = "wh_handler::github::handle", skip_all)]
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),*) => {
@@ -22,6 +23,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     use serde_json::from_str;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
+    tracing::info!("X-GitHub-Event: {}", event_type);
     let message = match_event!(
         event_type => payload;
         create, delete, push, issues, ping, fork, release,
