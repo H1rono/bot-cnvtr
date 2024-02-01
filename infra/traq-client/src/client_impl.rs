@@ -33,6 +33,7 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::message_api::post_message;
         use traq::models::PostMessageRequest;
+        // TODO: tracing
         println!("send_message: {}", channel_id);
         let req = PostMessageRequest {
             content: content.to_string(),
@@ -51,6 +52,7 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::user_api::post_direct_message;
         use traq::models::PostMessageRequest;
+        // TODO: tracing
         println!("send_dm: {}", user_id);
         let req = PostMessageRequest {
             content: content.to_string(),
@@ -63,6 +65,7 @@ impl TraqClient for ClientImpl {
 
     async fn get_group(&self, group_id: &GroupId) -> Result<Group, Self::Error> {
         use traq::apis::group_api::get_user_group;
+        // TODO: tracing
         println!("get_group: {}", group_id);
         let gid = group_id.to_string();
         let g = get_user_group(&self.config, &gid).await?;
@@ -82,6 +85,7 @@ impl TraqClient for ClientImpl {
 
     async fn get_user(&self, user_id: &UserId) -> Result<User, Self::Error> {
         use traq::apis::user_api::get_user;
+        // TODO: tracing
         println!("get_user: {}", user_id);
         let uid = user_id.to_string();
         let u = get_user(&self.config, &uid).await?;
@@ -94,6 +98,7 @@ impl TraqClient for ClientImpl {
 
     async fn get_channel_path(&self, channel_id: &ChannelId) -> Result<String, Self::Error> {
         use traq::apis::channel_api::get_channel;
+        // TODO: tracing
         println!("get_channel_path: {}", channel_id);
         let mut channel_names: Vec<String> = vec![];
         let mut channel_id = Some(*channel_id);
@@ -113,6 +118,7 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::stamp_api::add_message_stamp;
         use traq::models::PostMessageStampRequest;
+        // TODO: tracing
         println!("add_message_stamp: {}, {}", message_id, stamp_id);
         let req = PostMessageStampRequest { count };
         let message_id = message_id.to_string();
