@@ -12,28 +12,28 @@ function gh_api() {
 
 function hook_id() {
 	gh_api "/repos/${REPOSITORY}/hooks" \
-		| jq -r 'map(select(.type == "Repository")) | .[0].id'
+		| jq -r -e 'map(select(.type == "Repository")) | .[0].id'
 }
 
 function push_delivery_id() {
 	gh_api "/repos/${REPOSITORY}/hooks/${HOOK_ID}/deliveries" \
-		| jq -r 'map(select(.event == "push")) | .[0].id'
+		| jq -r -e 'map(select(.event == "push")) | .[0].id'
 }
 
 function delivery_request() {
 	gh_api "/repos/${REPOSITORY}/hooks/${HOOK_ID}/deliveries/${DELIVERY_ID}" \
-		| jq '.request'
+		| jq -r -e '.request | @text'
 }
 
 function request() {
 	json=`cat`
 	headers=`echo "$json" | jq '.headeers'`
-	payload=`echo "$json" | jq -r '.payload | @text'`
+	payload=`echo "$json" | jq -r -e '.payload | @text'`
 
-	content_type=`echo "$headers" | jq -r '."Content-Type"'`
-	github_delivery=`echo "$headers" | jq -r '."X-GitHub-Delivery"'`
-	github_event=`echo "$headers" | jq -r '."X-GitHub-Event"'`
-	github_hook_id=`echo "$headers" | jq '."X-GitHub-Hook-ID"'`
+	content_type=`echo "$headers" | jq -r -e '."Content-Type"'`
+	github_delivery=`echo "$headers" | jq -r -e '."X-GitHub-Delivery"'`
+	github_event=`echo "$headers" | jq -r -e '."X-GitHub-Event"'`
+	github_hook_id=`echo "$headers" | jq -r -e '."X-GitHub-Hook-ID"'`
 
 	curl -f -X POST \
 		-H "Content-Type: $content_type" \
