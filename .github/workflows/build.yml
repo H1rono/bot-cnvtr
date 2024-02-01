@@ -12,12 +12,12 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21.4'
           cache: false
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache build
         uses: Swatinem/rust-cache@v2
       - name: Build
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v20
+      - uses: cachix/install-nix-action@v25
         with:
           nix_path: "nixpkgs=channel:release-23.11"
       - uses: DeterminateSystems/magic-nix-cache-action@v2
@@ -51,24 +51,24 @@ jobs:
     if: ${{ success() }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
+        uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
       - name: Collect metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/h1rono/bot-cnvtr
           tags: |
             type=ref,event=branch
             type=ref,event=pr
       - name: Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: h1rono
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
