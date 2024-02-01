@@ -16,20 +16,20 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/metadata-action@v4
+      - uses: actions/checkout@v4
+      - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ghcr.io/h1rono/bot-cnvtr
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-      - uses: docker/login-action@v2
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: h1rono
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v5
         with:
           context: .
           push: true
