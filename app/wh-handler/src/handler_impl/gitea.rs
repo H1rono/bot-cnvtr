@@ -8,21 +8,28 @@ use teahook as th;
 use super::utils::{extract_header_value, OptionExt};
 use crate::{Error, Result};
 
+#[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
 pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
     macro_rules! match_event {
-        ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {
-            match $t {
-                $(stringify!($i) => Some($i(from_str($p)?)?),)*
-                $(stringify!($di))|* => default($t, from_str($p)?),
-                _ => {
-                    // TODO: tracing
-                    eprintln!(
-                        "received unexpected header: `X-Gitea-Event: {}`",
-                        $t
+        ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {{
+            let local_event_type = $t;
+            match local_event_type {
+                $(stringify!($i) => {
+                    tracing::info!("X-Gitea-Event: {}", local_event_type);
+                    Some($i(from_str($p)?)?)
+                })*
+                $(stringify!($di))|* => {
+                    tracing::info!("X-Gitea-Event: {}", local_event_type);
+                    default($t, from_str($p)?)
+                }
+                ut => {
+                    tracing::warn!(
+                        "unexpected event: `X-Gitea-Event: {}`",
+                        ut
                     );
                     return Err(Error::WrongType);
                 }
-            }
+            }}
         };
     }
 

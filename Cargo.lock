@@ -3357,6 +3357,7 @@ dependencies = [
  "serde_json",
  "teahook",
  "thiserror",
+ "tracing",
  "usecases",
  "uuid",
 ]
