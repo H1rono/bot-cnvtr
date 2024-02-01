@@ -25,6 +25,7 @@ where
 {
     type Error = Error;
 
+    #[tracing::instrument(skip_all, fields(event_kind = %event.kind()))]
     async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
         use Event::*;
         match event {
