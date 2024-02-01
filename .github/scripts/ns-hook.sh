@@ -27,7 +27,7 @@ function delivery_request() {
 
 function request() {
 	json=`cat`
-	headers=`echo "$json" | jq '.headeers'`
+	headers=`echo "$json" | jq '.headers'`
 	payload=`echo "$json" | jq -r -e '.payload | @text'`
 
 	content_type=`echo "$headers" | jq -r -e '."Content-Type"'`
