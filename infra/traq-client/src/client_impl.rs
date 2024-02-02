@@ -25,6 +25,7 @@ impl ClientImpl {
 impl TraqClient for ClientImpl {
     type Error = crate::Error;
 
+    #[tracing::instrument(skip_all)]
     async fn send_message(
         &self,
         channel_id: &ChannelId,
@@ -33,8 +34,7 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::message_api::post_message;
         use traq::models::PostMessageRequest;
-        // TODO: tracing
-        println!("send_message: {}", channel_id);
+        tracing::debug!("send_message: channel_id={}", channel_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
@@ -44,6 +44,7 @@ impl TraqClient for ClientImpl {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     async fn send_direct_message(
         &self,
         user_id: &UserId,
@@ -52,8 +53,7 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::user_api::post_direct_message;
         use traq::models::PostMessageRequest;
-        // TODO: tracing
-        println!("send_dm: {}", user_id);
+        tracing::debug!("send_dm: user_id={}", user_id);
         let req = PostMessageRequest {
             content: content.to_string(),
             embed: Some(embed),
@@ -63,10 +63,10 @@ impl TraqClient for ClientImpl {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     async fn get_group(&self, group_id: &GroupId) -> Result<Group, Self::Error> {
         use traq::apis::group_api::get_user_group;
-        // TODO: tracing
-        println!("get_group: {}", group_id);
+        tracing::debug!("get_group: group_id={}", group_id);
         let gid = group_id.to_string();
         let g = get_user_group(&self.config, &gid).await?;
         let mut members = vec![];
@@ -83,10 +83,10 @@ impl TraqClient for ClientImpl {
         Ok(group)
     }
 
+    #[tracing::instrument(skip_all)]
     async fn get_user(&self, user_id: &UserId) -> Result<User, Self::Error> {
         use traq::apis::user_api::get_user;
-        // TODO: tracing
-        println!("get_user: {}", user_id);
+        tracing::debug!("get_user: user_id={}", user_id);
         let uid = user_id.to_string();
         let u = get_user(&self.config, &uid).await?;
         let user = User {
@@ -96,10 +96,10 @@ impl TraqClient for ClientImpl {
         Ok(user)
     }
 
+    #[tracing::instrument(skip_all)]
     async fn get_channel_path(&self, channel_id: &ChannelId) -> Result<String, Self::Error> {
         use traq::apis::channel_api::get_channel;
-        // TODO: tracing
-        println!("get_channel_path: {}", channel_id);
+        tracing::debug!("get_channel_path: channel_id={}", channel_id);
         let mut channel_names: Vec<String> = vec![];
         let mut channel_id = Some(*channel_id);
         while let Some(id) = channel_id {
@@ -110,6 +110,7 @@ impl TraqClient for ClientImpl {
         Ok(format!("#{}", channel_names.into_iter().rev().join("/")))
     }
 
+    #[tracing::instrument(skip_all)]
     async fn add_message_stamp(
         &self,
         message_id: &MessageId,
@@ -118,8 +119,11 @@ impl TraqClient for ClientImpl {
     ) -> Result<(), Self::Error> {
         use traq::apis::stamp_api::add_message_stamp;
         use traq::models::PostMessageStampRequest;
-        // TODO: tracing
-        println!("add_message_stamp: {}, {}", message_id, stamp_id);
+        tracing::debug!(
+            "add_message_stamp: message_id={}, stamp_id={}",
+            message_id,
+            stamp_id
+        );
         let req = PostMessageStampRequest { count };
         let message_id = message_id.to_string();
         let stamp_id = stamp_id.to_string();
