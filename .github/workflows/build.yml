@@ -32,7 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v9
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      # https://github.com/H1rono/bot-cnvtr/actions/runs/7752860761/job/21143083012 のとりあえず対処
+      # - uses: DeterminateSystems/magic-nix-cache-action@v2
       - run: nix build .#otherDeps
       - run: nix build .#cargoDeps
       - run: nix build
