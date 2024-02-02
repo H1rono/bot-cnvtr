@@ -18,10 +18,10 @@ COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
 COPY app/bot/Cargo.toml           ./app/bot/
 COPY router/Cargo.toml            ./router/
 COPY bot-cnvtr/Cargo.toml             ./bot-cnvtr/
-RUN nix build .#cargoDeps
+RUN nix build .#cargoDepsRelease
 
 COPY . .
-RUN nix build .
+RUN nix build .#release
 
 RUN mkdir /tmp/nix-store-closure
 RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure

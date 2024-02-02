@@ -75,20 +75,28 @@
           GITEA_SOURCE_ROOT = "${gitea}";
           GITEA_TRANSPILER_PATH = "${teahook-transpiler}/bin/teahook-rs";
         };
+        releaseArgs = commonArgs // {
+          CARGO_PROFILE = "release";
+        };
 
         # Build *just* the cargo dependencies, so we can reuse
         # all of that work (e.g. via cachix) when running in CI
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         # Build the actual crate itself, reusing the dependency
         # artifacts from above.
-        build = craneLib.buildPackage (commonArgs // {
+        debugBuild = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
+        });
+
+        releaseArtifacts = craneLib.buildDepsOnly releaseArgs;
+        releaseBuild = craneLib.buildPackage (releaseArgs // {
+          cargoArtifacts = releaseArtifacts;
         });
       in
       {
         checks = {
           # Build the crate as part of `nix flake check` for convenience
-          inherit build;
+          inherit debugBuild;
 
           # Run clippy (and deny all warnings) on the crate source,
           # again, resuing the dependency artifacts from above.
@@ -109,8 +117,10 @@
           fmt = craneLib.cargoFmt commonArgs;
         };
         packages = {
-          default = build;
+          default = debugBuild;
           cargoDeps = cargoArtifacts;
+          release = releaseBuild;
+          cargoDepsRelease = releaseArtifacts;
           otherDeps = pkgs.symlinkJoin {
             name = "cnvtr-other-deps";
             paths = [ octokit-webhooks gitea teahook-transpiler ];
@@ -118,7 +128,7 @@
         };
 
         apps.default = flake-utils.lib.mkApp {
-          drv = build;
+          drv = debugBuild;
         };
 
         devShells.default = craneLib.devShell {
