@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
     flake-utils.url = "github:numtide/flake-utils";
     fenix = {
-      url = "github:nix-community/fenix";
+      url = "github:nix-community/fenix/monthly";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane = {
