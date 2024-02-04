@@ -29,7 +29,7 @@ RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 FROM debian:bookworm-slim
 
 RUN apt-get -y update \
-    && apt-get -y install build-essential libssl-dev ca-certificates \
+    && apt-get -y install coreutils libssl-dev ca-certificates \
     && update-ca-certificates --fresh
 WORKDIR /app
 
