@@ -29,7 +29,7 @@
         pkgs = import nixpkgs {
           inherit system;
         };
-        inherit (pkgs) lib;
+        inherit (pkgs) lib dockerTools;
 
         toolchain = fenix.packages.${system}.fromToolchainFile {
           file = ./rust-toolchain.toml;
@@ -92,6 +92,31 @@
         releaseBuild = craneLib.buildPackage (releaseArgs // {
           cargoArtifacts = releaseArtifacts;
         });
+
+        docker.bash = dockerTools.buildImage {
+          name = "bash";
+          tag = "latest";
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [ pkgs.bashInteractive ];
+            pathsToLink = [ "/bin" ];
+          };
+        };
+        docker.release = dockerTools.buildImage {
+          name = "bot-cnvtr";
+          tag = "latest";
+          fromImage = docker.bash;
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [
+              releaseBuild
+              pkgs.openssl
+              pkgs.coreutils
+              dockerTools.caCertificates
+            ];
+          };
+          config.Cmd = [ "/bin/bot-cnvtr" ];
+        };
       in
       {
         checks = {
@@ -125,6 +150,7 @@
             name = "cnvtr-other-deps";
             paths = [ octokit-webhooks gitea teahook-transpiler ];
           };
+          releaseImage = docker.release;
         };
 
         apps.default = flake-utils.lib.mkApp {
