@@ -1,4 +1,3 @@
-use anyhow::Context;
 use futures::{pin_mut, StreamExt};
 use indoc::formatdoc;
 use uuid::Uuid;
@@ -71,7 +70,7 @@ impl BotImpl {
 
         let message_title = match webhook.owner.kind() {
             OwnerKind::Group => format!(":@{}:によってWebhookが作成されました", create.user.name),
-            OwnerKind::SingleUser => String::new(),
+            OwnerKind::SingleUser => String::from("Webhookが作成されました"),
         };
         let channel_path = if !create.channel_dm {
             client.get_channel_path(&webhook.channel_id).await?
@@ -80,16 +79,23 @@ impl BotImpl {
         };
         let message = formatdoc! {
             r##"
-                {}
+                ### {}
+
+                Webhook ID: {}
                 投稿先チャンネル: {}
                 各サービスに対応するWebhookエンドポイントは以下の通りです:
+
                 - GitHub: https://cnvtr.trap.show/wh/{}/github
                 - Gitea: https://cnvtr.trap.show/wh/{}/gitea
                 - ClickUp: https://cnvtr.trap.show/wh/{}/clickup
+
+                Webhookを削除する場合は `@BOT_cnvtr webhook delete {}` と投稿してください
             "##,
             message_title,
+            webhook.id,
             channel_path,
-            &webhook.id, &webhook.id, &webhook.id
+            webhook.id, webhook.id, webhook.id,
+            webhook.id
         };
         let msg = message.trim();
         let own_users = webhook.owner.users();
@@ -151,12 +157,24 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
+        let client = infra.traq_client();
+
         let webhooks = infra.repo().filter_webhook_by_user(&list.user).await?;
-        let code = serde_json::to_string_pretty(&webhooks)
-            .with_context(|| format!("failed to format {:?}", &webhooks))?;
-        infra
-            .traq_client()
-            .send_code_dm(&list.user.id, "json", &code)
+        let mut serialized_webhooks = vec![];
+        for w in webhooks {
+            let channel_path = client.get_channel_path(&w.channel_id).await?;
+            let ser_w = formatdoc! {
+                r#"
+                    Webhook ID: {}
+                    投稿先チャンネル: {}
+                "#,
+                w.id, channel_path
+            };
+            serialized_webhooks.push(ser_w);
+        }
+        let message = serialized_webhooks.join("\n\n---\n\n");
+        client
+            .send_direct_message(&list.user.id, &message, false)
             .await?;
         Ok(())
     }
