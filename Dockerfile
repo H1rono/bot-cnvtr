@@ -1,5 +1,5 @@
 # ref: https://marcopolo.io/code/nix-and-small-containers/
-FROM nixpkgs/nix-flakes:latest AS builder
+FROM nixpkgs/nix-flakes:nixos-23.11 AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,9 @@ RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 FROM debian:bookworm-slim
 
 RUN apt-get -y update \
-    && apt-get -y install coreutils libssl-dev ca-certificates \
+    && apt-get install -y --no-install-recommends \
+    coreutils libssl-dev ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates --fresh
 WORKDIR /app
 
