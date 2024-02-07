@@ -17,7 +17,7 @@ COPY infra/traq-client/Cargo.toml ./infra/traq-client/
 COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
 COPY app/bot/Cargo.toml           ./app/bot/
 COPY router/Cargo.toml            ./router/
-COPY bot-cnvtr/Cargo.toml             ./bot-cnvtr/
+COPY bot-cnvtr/Cargo.toml         ./bot-cnvtr/
 RUN nix build .#cargoDepsRelease
 
 COPY . .
