@@ -20,7 +20,7 @@ fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
 }
 
 impl BotImpl {
-    async fn run_command2<I>(
+    async fn run_command<I>(
         &self,
         infra: &I,
         message_id: &MessageId,
@@ -82,7 +82,7 @@ impl BotImpl {
         };
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(infra, &mid, cmd).await
+        self.run_command(infra, &mid, cmd).await
     }
 
     pub(super) async fn on_direct_message_created<I>(
@@ -113,6 +113,6 @@ impl BotImpl {
         };
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
-        self.run_command2(infra, &mid, cmd).await
+        self.run_command(infra, &mid, cmd).await
     }
 }
