@@ -12,7 +12,7 @@ publish = false
 
 [workspace.dependencies]
 paste = "1.0"
-itertools = "0.11"
+itertools = "0.12"
 indoc = "2.0"
 thiserror = "1.0"
 anyhow = "1.0"
