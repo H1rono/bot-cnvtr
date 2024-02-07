@@ -51,6 +51,7 @@ impl BotImpl {
             client
                 .send_code(&delete.talking_channel_id, "", message)
                 .await?;
+            return Ok(());
         }
         let webhook = match repo.find_webhook(&delete.id).await? {
             Some(w) => w,
