@@ -9,17 +9,17 @@ use crate::BotImpl;
 mod cmd_sudo;
 mod cmd_webhook;
 
-fn parse_command(cmd: &str) -> Result<Cli, clap::Error> {
-    let cmd = cmd.trim().to_string();
-    let cmd = (!cmd.starts_with('@'))
-        .then(|| format!("@BOT_cnvtr {}", cmd))
-        .unwrap_or(cmd)
-        .replace('#', r"\#");
-    let args = shlex::split(&cmd).unwrap_or_default();
-    Cli::try_parse_from(args)
-}
-
 impl BotImpl {
+    fn parse_command(&self, cmd: &str) -> Result<Cli, clap::Error> {
+        let cmd = cmd.trim().to_string();
+        let cmd = (!cmd.starts_with('@'))
+            .then(|| format!("@BOT_cnvtr {}", cmd))
+            .unwrap_or(cmd)
+            .replace('#', r"\#");
+        let args = shlex::split(&cmd).unwrap_or_default();
+        Cli::try_parse_from(args)
+    }
+
     async fn run_command<I>(
         &self,
         infra: &I,
@@ -69,7 +69,7 @@ impl BotImpl {
             payload.message.text
         );
         let message = &payload.message;
-        let cli = match parse_command(&message.plain_text) {
+        let cli = match self.parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
                 let channel_id = message.channel_id.into();
@@ -100,7 +100,7 @@ impl BotImpl {
             payload.message.text
         );
         let message = &payload.message;
-        let cli = match parse_command(&message.plain_text) {
+        let cli = match self.parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
                 let channel_id = message.channel_id.into();
