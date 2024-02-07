@@ -16,7 +16,7 @@ function hook_id() {
 }
 
 function push_delivery_id() {
-	gh_api "/repos/${REPOSITORY}/hooks/${HOOK_ID}/deliveries" \
+	gh_api "/repos/${REPOSITORY}/hooks/${HOOK_ID}/deliveries?per_page=50" \
 		| jq -r -e 'map(select(.event == "push")) | .[0].id'
 }
 
