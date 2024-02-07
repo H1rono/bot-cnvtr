@@ -57,6 +57,8 @@ jobs:
           git add flake.lock
           git commit -m ":arrow_up: CI: update nix flake"
           git push origin "$BRANCH_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
       - name: Create pull request
         run: |
           gh pr create --title ":arrow_up: CI: update flake" --body "" --base main --assignee H1rono
