@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
 use domain::{ChannelId, OwnerId, OwnerKind, User, WebhookId};
 
@@ -53,28 +52,6 @@ impl Completed for WebhookCreate {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookList {
     pub user: User,
-}
-
-impl From<Message> for WebhookList {
-    fn from(value: Message) -> Self {
-        let user = User {
-            id: value.user.id.into(),
-            name: value.user.name,
-        };
-        Self { user }
-    }
-}
-
-impl From<MessageCreatedPayload> for WebhookList {
-    fn from(value: MessageCreatedPayload) -> Self {
-        value.message.into()
-    }
-}
-
-impl From<DirectMessageCreatedPayload> for WebhookList {
-    fn from(value: DirectMessageCreatedPayload) -> Self {
-        value.message.into()
-    }
 }
 
 impl Completed for WebhookList {
