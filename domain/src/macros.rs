@@ -5,13 +5,13 @@ macro_rules! newtype_id {
             #[serde(transparent)]
             pub struct [<$i:camel Id>](pub ::uuid::Uuid);
 
-            impl From<::uuid::Uuid> for [<$i:camel Id>] {
+            impl ::std::convert::From<::uuid::Uuid> for [<$i:camel Id>] {
                 fn from(value: ::uuid::Uuid) -> Self {
                     Self(value)
                 }
             }
 
-            impl From<[<$i:camel Id>]> for ::uuid::Uuid {
+            impl ::std::convert::From<[<$i:camel Id>]> for ::uuid::Uuid {
                 fn from(value: [<$i:camel Id>]) -> Self {
                     value.0
                 }
