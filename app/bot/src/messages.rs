@@ -69,6 +69,10 @@ impl BotImpl {
             payload.message.text
         );
         let message = &payload.message;
+        if message.user.bot {
+            tracing::debug!("Ignore BOT");
+            return Ok(());
+        }
         let cli = match self.parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
@@ -100,6 +104,10 @@ impl BotImpl {
             payload.message.text
         );
         let message = &payload.message;
+        if message.user.bot {
+            tracing::debug!("Ignore BOT");
+            return Ok(());
+        }
         let cli = match self.parse_command(&message.plain_text) {
             Ok(c) => c,
             Err(e) => {
