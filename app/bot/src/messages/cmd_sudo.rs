@@ -62,11 +62,7 @@ impl BotImpl {
                 return Ok(());
             }
         };
-        let owner = &webhook.owner;
-        let own_users = match owner {
-            domain::Owner::Group(g) => g.members.iter().collect(),
-            domain::Owner::SigleUser(u) => vec![u],
-        };
+        let own_users = webhook.owner.users();
         repo.remove_webhook(&webhook).await?;
         let it = async_stream::stream! {
             let message = format!("Webhook {} を削除しました", delete.id);

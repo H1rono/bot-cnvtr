@@ -92,10 +92,7 @@ impl BotImpl {
             &webhook.id, &webhook.id, &webhook.id
         };
         let msg = message.trim();
-        let own_users = match webhook.owner {
-            Owner::Group(g) => g.members,
-            Owner::SigleUser(u) => vec![u],
-        };
+        let own_users = webhook.owner.users();
         let it = async_stream::stream! {
             for u in own_users {
                 yield client.send_direct_message(&u.id, msg, true).await;
@@ -116,19 +113,14 @@ impl BotImpl {
         let repo = infra.repo();
         let client = infra.traq_client();
 
-        let webhook = repo.find_webhook(&delete.webhook_id).await?;
-        if webhook.is_none() {
+        let Some(webhook) = repo.find_webhook(&delete.webhook_id).await? else {
             let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);
             client
                 .send_message(&delete.talking_channel_id, &message, true)
                 .await?;
             return Ok(());
-        }
-        let webhook = webhook.unwrap();
-        let own_users_contain_self = match &webhook.owner {
-            Owner::Group(g) => g.members.iter().any(|u| u.id == delete.user.id),
-            Owner::SigleUser(u) => u.id == delete.user.id,
         };
+        let own_users_contain_self = webhook.owner.users().iter().any(|u| u.id == delete.user.id);
         if !own_users_contain_self {
             let message = format!(
                 "エラー: webhook所有者に @{} が含まれていません",
@@ -140,10 +132,7 @@ impl BotImpl {
             return Ok(());
         }
         repo.remove_webhook(&webhook).await?;
-        let own_users = match webhook.owner {
-            Owner::Group(g) => g.members,
-            Owner::SigleUser(u) => vec![u],
-        };
+        let own_users = webhook.owner.users();
         let it = async_stream::stream! {
             let message = format!("Webhook {} を削除しました", delete.webhook_id);
             for u in own_users {
