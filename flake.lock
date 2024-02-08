@@ -61,13 +61,30 @@
         "type": "github"
       }
     },
+    "gitea": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1705459610,
+        "narHash": "sha256-nQrxWDydQOuR6i1c9YOA0q/HBKOluiLcwkQDxjdqdj4=",
+        "owner": "go-gitea",
+        "repo": "gitea",
+        "rev": "f4923854f660c75f75592b9506c0471475ecc7cf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "go-gitea",
+        "ref": "v1.21.4",
+        "repo": "gitea",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1706145209,
-        "narHash": "sha256-nGQYUPciFe22aLfE2t1qYHcCbP5UWEBCQH4TzfYhRzA=",
+        "lastModified": 1707272513,
+        "narHash": "sha256-AzYRCVpWcCAReIUJs5zAFPQw+Y/P5o5SHLdXZgJ2P1M=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "4430d6e3a94c8eb4240a955153f4a6ad4558e45e",
+        "rev": "88d128f5f35be5d405fe874495604f3f29350a5f",
         "type": "github"
       },
       "original": {
@@ -89,11 +106,11 @@
     "rust-analyzer-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1705864945,
-        "narHash": "sha256-ZATChFWHToTZQFLlzrzDUX8fjEbMHHBIyPaZU1JGmjI=",
+        "lastModified": 1706735270,
+        "narHash": "sha256-IJk+UitcJsxzMQWm9pa1ZbJBriQ4ginXOlPyVq+Cu40=",
         "owner": "rust-lang",
         "repo": "rust-analyzer",
-        "rev": "d410d4a2baf9e99b37b03dd42f06238b14374bf7",
+        "rev": "42cb1a2bd79af321b0cc503d2960b73f34e2f92b",
         "type": "github"
       },
       "original": {
@@ -129,16 +146,17 @@
         "flake-utils": [
           "flake-utils"
         ],
+        "gitea": "gitea",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1706044833,
-        "narHash": "sha256-c44J5SktyEk9HtubmJsEF0CtNdITH16G1uKpHbmFCvc=",
+        "lastModified": 1707071638,
+        "narHash": "sha256-+n+4AF1cvEje3BR60vdMlRURaf/3V19GRdTYu/fDCHQ=",
         "owner": "H1rono",
         "repo": "teahook-rs",
-        "rev": "b32a18c17fa576a7a4ae1460b51005081baf57f2",
+        "rev": "cc4258db10aa342c716d02b675da9af28473a2c1",
         "type": "github"
       },
       "original": {
