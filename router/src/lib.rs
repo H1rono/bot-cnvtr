@@ -115,3 +115,5 @@ where
         )
         .with_state(state)
 }
+
+pub use axum::serve;
