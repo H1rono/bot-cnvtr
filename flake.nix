@@ -39,6 +39,8 @@
     , fenix
     , crane
     , teahook-rs
+    , octokit-webhooks
+    , gitea
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -55,19 +57,6 @@
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
       src = craneLib.cleanCargoSource (craneLib.path ./.);
 
-      octokit-webhooks = pkgs.fetchFromGitHub {
-        owner = "octokit";
-        repo = "webhooks";
-        rev = "v7.3.1";
-        hash = "sha256-ckGVw5owHTv1h73LGan6mn4PZls4sNjRo/n+rrJHqe0=";
-      };
-
-      gitea = pkgs.fetchFromGitHub {
-        owner = "traptitech";
-        repo = "gitea";
-        rev = "traP-1.21.1-1";
-        hash = "sha256-3iMenHuWaJFhMm7s5zoNuC/DebziVNhLWQrEsuiDNHM=";
-      };
       teahook-transpiler = teahook-rs.packages.${system}.goBuild;
 
       commonArgs = {
