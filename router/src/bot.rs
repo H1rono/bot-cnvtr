@@ -1,9 +1,9 @@
+use async_trait::async_trait;
 use axum::{
-    async_trait,
     body::{to_bytes, Body},
     extract::{FromRequest, State},
-    http::{Request, StatusCode},
 };
+use http::{Request, StatusCode};
 use traq_bot_http::Event;
 
 use usecases::Bot;
