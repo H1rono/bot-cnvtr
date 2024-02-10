@@ -14,7 +14,6 @@ tracing.workspace = true
 axum = "0.7"
 
 traq-bot-http.workspace = true
-sqlx.workspace = true
 
 domain.workspace = true
 usecases.workspace = true

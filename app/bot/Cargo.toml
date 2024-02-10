@@ -18,7 +18,6 @@ futures.workspace = true
 async-stream = "0.3"
 
 traq-bot-http.workspace = true
-sqlx.workspace = true
 
 domain.workspace = true
 usecases.workspace = true
