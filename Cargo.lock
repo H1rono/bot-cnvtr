@@ -1963,7 +1963,6 @@ dependencies = [
  "serde_json",
  "sqlx",
  "thiserror",
- "tokio",
  "tracing",
  "traq-bot-http",
  "usecases",
