@@ -21,6 +21,14 @@
         crane.follows = "crane";
       };
     };
+    octokit-webhooks = {
+      url = "github:octokit/webhooks/v7.3.1";
+      flake = false;
+    };
+    gitea = {
+      url = "github:traPtitech/gitea/traP-1.21.1-1";
+      flake = false;
+    };
   };
 
   outputs =

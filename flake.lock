@@ -64,6 +64,23 @@
     "gitea": {
       "flake": false,
       "locked": {
+        "lastModified": 1701057329,
+        "narHash": "sha256-3iMenHuWaJFhMm7s5zoNuC/DebziVNhLWQrEsuiDNHM=",
+        "owner": "traPtitech",
+        "repo": "gitea",
+        "rev": "8abe54a9d4db1fdce7c517dc500a51e77d1f2c16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "traPtitech",
+        "ref": "traP-1.21.1-1",
+        "repo": "gitea",
+        "type": "github"
+      }
+    },
+    "gitea_2": {
+      "flake": false,
+      "locked": {
         "lastModified": 1705459610,
         "narHash": "sha256-nQrxWDydQOuR6i1c9YOA0q/HBKOluiLcwkQDxjdqdj4=",
         "owner": "go-gitea",
@@ -94,12 +111,31 @@
         "type": "github"
       }
     },
+    "octokit-webhooks": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1694904173,
+        "narHash": "sha256-ckGVw5owHTv1h73LGan6mn4PZls4sNjRo/n+rrJHqe0=",
+        "owner": "octokit",
+        "repo": "webhooks",
+        "rev": "c8983a4e4cbdb8ccc5d14d49fcf4ff9510f4c8d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "octokit",
+        "ref": "v7.3.1",
+        "repo": "webhooks",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "crane": "crane",
         "fenix": "fenix",
         "flake-utils": "flake-utils",
+        "gitea": "gitea",
         "nixpkgs": "nixpkgs",
+        "octokit-webhooks": "octokit-webhooks",
         "teahook-rs": "teahook-rs"
       }
     },
@@ -146,7 +182,7 @@
         "flake-utils": [
           "flake-utils"
         ],
-        "gitea": "gitea",
+        "gitea": "gitea_2",
         "nixpkgs": [
           "nixpkgs"
         ]
