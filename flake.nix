@@ -19,6 +19,7 @@
         flake-utils.follows = "flake-utils";
         fenix.follows = "fenix";
         crane.follows = "crane";
+        gitea.follows = "gitea";
       };
     };
     octokit-webhooks = {
