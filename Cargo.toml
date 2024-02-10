@@ -26,7 +26,6 @@ http = "1.0"
 tower-http = { version = "0.5.1", features = ["trace"] }
 hyper = "1.1"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 traq-bot-http = { version = "0.8", features = ["uuid"] }
 
 domain.path = "./domain"
