@@ -29,6 +29,13 @@ impl BotImpl {
         let client = infra.traq_client();
         let repo = infra.repo();
 
+        if !create.channel_dm {
+            let message = "エラー: Webhook投稿先にDMを指定することはできません";
+            client
+                .send_message(&create.talking_channel_id, message, false)
+                .await?;
+            return Ok(());
+        }
         let owner = match create.owner_kind {
             OwnerKind::Group => {
                 let group_id = create.owner_id.0.into();
@@ -72,11 +79,7 @@ impl BotImpl {
             OwnerKind::Group => format!(":@{}:によってWebhookが作成されました", create.user.name),
             OwnerKind::SingleUser => String::from("Webhookが作成されました"),
         };
-        let channel_path = if !create.channel_dm {
-            client.get_channel_path(&webhook.channel_id).await?
-        } else {
-            "DM".to_string()
-        };
+        let channel_path = client.get_channel_path(&webhook.channel_id).await?;
         let message = formatdoc! {
             r##"
                 ### {}
