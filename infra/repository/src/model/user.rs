@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
 use uuid::Uuid;
 
-use crate::{parse_col_str2uuid, RepositoryImpl};
+use super::parse_col_str2uuid;
+use crate::RepositoryImpl;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct User {

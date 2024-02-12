@@ -1,7 +1,5 @@
 use sqlx::migrate::Migrator;
-use sqlx::mysql::MySqlRow;
-use sqlx::{MySqlPool, Row};
-use uuid::Uuid;
+use sqlx::MySqlPool;
 
 use domain::{ChannelId, Group, Owner, OwnerKind, Repository, User, Webhook, WebhookId};
 
@@ -176,13 +174,4 @@ impl Repository for RepositoryImpl {
         let ws = self.filter_webhooks_by_oids(&oids).await?;
         Ok(self.complete_webhooks(&ws).await?)
     }
-}
-
-fn parse_col_str2uuid(row: &MySqlRow, col: &str) -> sqlx::Result<Uuid> {
-    row.try_get(col).and_then(|u| {
-        Uuid::parse_str(u).map_err(|e| sqlx::Error::ColumnDecode {
-            index: col.to_string(),
-            source: e.into(),
-        })
-    })
 }
