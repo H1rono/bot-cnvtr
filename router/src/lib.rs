@@ -88,16 +88,12 @@ where
     I: Infra<Error = domain::Error>,
     A: App<I, Error = domain::Error>,
 {
-    pub fn new(infra: I, app: A, parser: RequestParser) -> Self {
-        Self {
-            infra: Arc::new(infra),
-            app: Arc::new(app),
-            parser,
-        }
+    pub fn new(infra: Arc<I>, app: Arc<A>, parser: RequestParser) -> Self {
+        Self { infra, app, parser }
     }
 }
 
-pub fn make_router<I, A>(verification_token: &str, infra: I, app: A) -> Router
+pub fn make_router<I, A>(verification_token: &str, infra: Arc<I>, app: Arc<A>) -> Router
 where
     I: Infra<Error = domain::Error>,
     A: App<I, Error = domain::Error>,
