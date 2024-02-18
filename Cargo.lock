@@ -1890,7 +1890,6 @@ dependencies = [
  "serde",
  "sqlx",
  "thiserror",
- "usecases",
  "uuid",
 ]
 

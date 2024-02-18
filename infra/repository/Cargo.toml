@@ -12,7 +12,6 @@ uuid.workspace = true
 thiserror.workspace = true
 
 domain.workspace = true
-usecases.workspace = true
 
 [dependencies.sqlx]
 version = "0.7"
