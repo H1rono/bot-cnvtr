@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
@@ -31,11 +31,17 @@ async fn main() -> anyhow::Result<()> {
     let client = ClientImpl::new(&client_config.bot_access_token);
     let repo = RepositoryImpl::connect(&repo_config.database_url()).await?;
     repo.migrate().await?;
-    let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client);
+
+    let (tx, _rx) = cron::channel(100);
+    // TODO: rx.run() in background
+
+    let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client, tx);
+    let infra = Arc::new(infra);
 
     let bot = BotImpl::new(bot_config.bot_id, bot_config.bot_user_id);
     let wh = WebhookHandlerImpl::new();
     let app = bot_cnvtr::app::AppImpl::new_wrapped(bot, wh);
+    let app = Arc::new(app);
 
     let router = make_router(&router_config.verification_token, infra, app)
         .layer(TraceLayer::new_for_http());
