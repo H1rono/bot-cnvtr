@@ -31,12 +31,19 @@ async fn main() -> anyhow::Result<()> {
     let client = ClientImpl::new(&client_config.bot_access_token);
     let repo = RepositoryImpl::connect(&repo_config.database_url()).await?;
     repo.migrate().await?;
-
-    let (tx, _rx) = cron::channel(100);
-    // TODO: rx.run() in background
-
+    let (tx, rx) = cron::channel(100);
     let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client, tx);
     let infra = Arc::new(infra);
+
+    // run notifier in background
+    let handle = {
+        let infra = infra.clone();
+        tokio::task::spawn(async move {
+            use std::time::Duration;
+            let mut rx = rx;
+            rx.run(infra, Duration::from_secs(10)).await;
+        })
+    };
 
     let bot = BotImpl::new(bot_config.bot_id, bot_config.bot_user_id);
     let wh = WebhookHandlerImpl::new();
@@ -48,8 +55,17 @@ async fn main() -> anyhow::Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     tracing::info!("listening on {} ...", addr);
-    router::serve(listener, router)
-        .with_graceful_shutdown(bot_cnvtr::signal::signal())
-        .await?;
+    let serve = async move {
+        router::serve(listener, router)
+            .with_graceful_shutdown(bot_cnvtr::signal::signal())
+            .await
+    };
+
+    tokio::select! {
+        res = serve => {
+            res?;
+        }
+        _ = handle => {}
+    }
     Ok(())
 }
