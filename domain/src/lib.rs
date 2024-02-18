@@ -1,4 +1,5 @@
 pub mod error;
+mod event;
 mod group;
 mod infra;
 pub(crate) mod macros;
@@ -9,6 +10,7 @@ mod user;
 mod webhook;
 
 pub use error::{Error, Result};
+pub use event::{Event, EventSubscriber};
 pub use group::{Group, GroupId};
 pub use infra::Infra;
 pub use owner::{Owner, OwnerId, OwnerKind};
