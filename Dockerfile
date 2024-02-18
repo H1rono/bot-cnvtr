@@ -14,6 +14,7 @@ COPY domain/Cargo.toml            ./domain/
 COPY usecases/Cargo.toml          ./usecases/
 COPY infra/repository/Cargo.toml  ./infra/repository/
 COPY infra/traq-client/Cargo.toml ./infra/traq-client/
+COPY cron/Cargo.toml              ./cron/
 COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
 COPY app/bot/Cargo.toml           ./app/bot/
 COPY router/Cargo.toml            ./router/
