@@ -3,6 +3,7 @@ use std::str::from_utf8;
 use github_webhook::payload_types as gh;
 use http::HeaderMap;
 use indoc::formatdoc;
+use itertools::Itertools;
 use paste::paste;
 use serde_json::Value;
 
@@ -31,7 +32,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         pull_request, pull_request_review_comment,
         pull_request_review, pull_request_review_thread,
         star,
-        workflow_run
+        workflow_run, workflow_job
     );
     Ok(message)
 }
@@ -457,6 +458,92 @@ fn star(payload: gh::StarEvent) -> Option<String> {
     Some(message)
 }
 
+/// X-GitHub-Event: workflow_job
+fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
+    use gh::WorkflowJobEvent::*;
+    let message = match &payload {
+        Completed(p) => {
+            use gh::WorkflowJobCompletedEventWorkflowJobConclusion as Conclusion;
+            let gh::WorkflowJobCompletedEvent {
+                repository,
+                workflow_job,
+                ..
+            } = p;
+            let conclusion = match workflow_job.conclusion {
+                Conclusion::Cancelled => "cancelled",
+                Conclusion::Failure => "failed",
+                Conclusion::Skipped => "skipped",
+                Conclusion::Success => "success",
+            };
+            let workflow_job = &workflow_job.workflow_job;
+            let steps = workflow_steps_str(&workflow_job.steps);
+            formatdoc! {
+                r#"
+                    [{}] workflow job {} completed as {}
+                    {}
+                "#,
+                repo_str(repository), workflow_job_str(workflow_job), conclusion, steps
+            }
+        }
+        InProgress(p) => {
+            use gh::WorkflowJobInProgressEventWorkflowJobStatus as Status;
+            let gh::WorkflowJobInProgressEvent {
+                repository,
+                workflow_job,
+                ..
+            } = p;
+            let status = match workflow_job.status {
+                Status::InProgress => "in progress",
+                Status::Queued => "queued",
+            };
+            let workflow_job = &workflow_job.workflow_job;
+            let steps = workflow_steps_str(&workflow_job.steps);
+            formatdoc! {
+                r#"
+                    [{}] workflow job {} {}
+                    {}
+                "#,
+                repo_str(repository), workflow_job_str(workflow_job), status, steps
+            }
+            .trim_end()
+            .to_string()
+        }
+        Queued(p) => {
+            use gh::WorkflowJobQueuedEventWorkflowJobStatus as Status;
+            let gh::WorkflowJobQueuedEvent {
+                repository,
+                workflow_job,
+                ..
+            } = p;
+            let status = match workflow_job.status {
+                Status::Queued => "queued",
+                Status::Waiting => "waiting",
+            };
+            let workflow_job = &workflow_job.workflow_job;
+            formatdoc! {
+                r#"
+                    [{}] workflow job {} {}
+                "#,
+                repo_str(repository), workflow_job_str(workflow_job), status
+            }
+        }
+        Waiting(p) => {
+            let gh::WorkflowJobWaitingEvent {
+                repository,
+                workflow_job,
+                ..
+            } = p;
+            formatdoc! {
+                r#"
+                    [{}] workflow job {} waiting
+                "#,
+                repo_str(repository), workflow_job_str(workflow_job)
+            }
+        }
+    };
+    Some(message)
+}
+
 /// X-GitHub-Event: workflow_run
 fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
     use gh::WorkflowRunEvent::{Completed, InProgress, Requested};
@@ -610,4 +697,53 @@ fn workflow_run_str(workflow_run: &gh::WorkflowRun) -> String {
         ..
     } = workflow_run;
     format!("[{}]({})", display_title, html_url)
+}
+
+/// workflow_job -> `[workflow_job.workflow_name / workflow_job.name](workflow_job.html_url)`
+fn workflow_job_str(workflow_job: &gh::WorkflowJob) -> String {
+    let gh::WorkflowJob {
+        workflow_name,
+        name,
+        html_url,
+        ..
+    } = workflow_job;
+    match workflow_name.as_deref() {
+        None => format!("[{}]({})", name, html_url),
+        Some(workflow_name) => format!("[{} / {}]({})", workflow_name, name, html_url),
+    }
+}
+
+fn workflow_steps_str<'a, I>(steps: I) -> String
+where
+    I: IntoIterator<Item = &'a gh::WorkflowStep>,
+{
+    use gh::WorkflowStep::*;
+    steps
+        .into_iter()
+        .map(|step| match step {
+            Completed(s) => {
+                use gh::WorkflowStepCompletedConclusion as Conclusion;
+                let gh::WorkflowStepCompleted {
+                    number,
+                    name,
+                    conclusion,
+                    ..
+                } = s;
+                let conclusion = match conclusion {
+                    Conclusion::Failure => "failed",
+                    Conclusion::Skipped => "skipped",
+                    Conclusion::Success => "success",
+                };
+                format!("{}. `{}`: completed as {}", number, name, conclusion)
+            }
+            InProgress(s) => {
+                let gh::WorkflowStepInProgress { number, name, .. } = s;
+                format!("{}. `{}`: in progress", number, name)
+            }
+            Queued(s) => {
+                let gh::WorkflowStepQueued { number, name, .. } = s;
+                format!("{}. `{}`: queued", number, name)
+            }
+        })
+        .join("\n")
 }
