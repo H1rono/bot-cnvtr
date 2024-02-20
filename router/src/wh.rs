@@ -5,7 +5,7 @@ use axum::{
     Json,
 };
 use http::{request::Parts, HeaderMap, StatusCode};
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, warn};
 
 use domain::{Repository, Webhook, WebhookId};
 use usecases::WebhookHandler;
@@ -80,7 +80,8 @@ where
     let infra = st.infra();
     st.webhook_handler()
         .github_webhook(infra, webhook, headers, &payload)
-        .await?;
+        .await
+        .inspect_err(|e| warn!("{e}"))?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -99,7 +100,8 @@ where
     let infra = st.infra();
     st.webhook_handler()
         .gitea_webhook(infra, webhook, headers, &payload)
-        .await?;
+        .await
+        .inspect_err(|e| warn!("{e}"))?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -118,6 +120,7 @@ where
     let infra = st.infra();
     st.webhook_handler()
         .clickup_webhook(infra, webhook, headers, &payload)
-        .await?;
+        .await
+        .inspect_err(|e| warn!("{e}"))?;
     Ok(StatusCode::NO_CONTENT)
 }
