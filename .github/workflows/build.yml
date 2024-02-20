@@ -12,7 +12,8 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v5
+      - name: Setup go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21.4'
           cache: false
@@ -30,18 +31,25 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v25
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install nix
+        uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:release-23.11
-      - uses: cachix/cachix-action@v14
+      - name: Setup cachix
+        uses: cachix/cachix-action@v14
         with:
           name: h1rono
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - run: nix build .#otherDeps
-      - run: nix build .#cargoDeps
-      - run: nix build
-      - run: nix flake check
+      - name: Build @1
+        run: nix build .#otherDeps
+      - name: Build @2
+        run: nix build .#cargoDeps
+      - name: Build @3
+        run: nix build
+      - name: Checks
+        run: nix flake check
 
   ghcr:
     runs-on: ubuntu-latest
@@ -55,7 +63,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v3
       - name: Collect metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -87,26 +96,32 @@ jobs:
       REPOSITORY: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.PAT }}
     steps:
-      - uses: actions/checkout@v4
-      - run: mkdir ./tmp
-      - id: get-hook-id
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare
+        run: mkdir ./tmp
+      - name: Get webhook ID
+        id: get-hook-id
         run: |
           bash .github/scripts/ns-hook.sh hook-id > ./tmp/hook-id
           echo "result=$(cat ./tmp/hook-id)" >> "$GITHUB_OUTPUT"
-      - id: get-delivery-id
+      - name: Get delivery ID
+        id: get-delivery-id
         env:
           HOOK_ID: ${{ steps.get-hook-id.outputs.result }}
         run: |
           bash .github/scripts/ns-hook.sh push-delivery-id > ./tmp/delivery-id
           echo "result=$(cat ./tmp/delivery-id)" >> "$GITHUB_OUTPUT"
-      - id: get-request
+      - name: Get delivery contents
+        id: get-request
         env:
           HOOK_ID: ${{ steps.get-hook-id.outputs.result }}
           DELIVERY_ID: ${{ steps.get-delivery-id.outputs.result }}
         run: |
           bash .github/scripts/ns-hook.sh delivery-request > ./tmp/delivery.json
           echo "result_file=$(pwd)/tmp/delivery.json" >> "$GITHUB_OUTPUT"
-      - id: delivery-neoshowcase
+      - name: Deliver NeoShowcase
+        id: delivery-neoshowcase
         env:
           DELIVERY_FILE: ${{ steps.get-request.outputs.result_file }}
           NS_ENDPOINT: ${{ secrets.NS_ENDPOINT }}
