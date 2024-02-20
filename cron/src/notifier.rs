@@ -12,11 +12,19 @@ impl Notifier {
         &mut self,
         limit: impl Future<Output = ()> + Send,
     ) -> Vec<Event> {
-        let mut res = vec![];
+        let mut res = Vec::<Event>::new();
         let recv = async {
             while let Some(e) = self.0.recv().await {
-                // TODO: merge
-                res.push(e);
+                let mut new_event = Some(e);
+                for event in &mut res {
+                    new_event = event.merge(new_event.unwrap());
+                    if new_event.is_none() {
+                        break;
+                    }
+                }
+                if let Some(e) = new_event {
+                    res.push(e);
+                }
             }
         };
         select! {
