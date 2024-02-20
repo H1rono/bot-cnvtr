@@ -1,6 +1,6 @@
 use http::HeaderMap;
 
-use domain::{Error, Infra, TraqClient, Webhook};
+use domain::{Error, Event, EventSubscriber, Infra, Webhook};
 use usecases::WebhookHandler;
 
 mod clickup;
@@ -36,14 +36,17 @@ where
         headers: HeaderMap,
         payload: &str,
     ) -> Result<(), Self::Error> {
-        let client = infra.traq_client();
+        let subscriber = infra.event_subscriber();
         let Some(message) = github::handle(headers, payload)? else {
             return Ok(());
         };
-        client
-            .send_message(&webhook.channel_id, message.trim(), false)
-            .await
-            .map_err(Error::from)?;
+        let kind = "github".to_string(); // TODO: event_type
+        let event = Event {
+            channel_id: webhook.channel_id,
+            kind,
+            body: message,
+        };
+        subscriber.send(event).await.map_err(Error::from)?;
         Ok(())
     }
 
@@ -54,14 +57,17 @@ where
         headers: HeaderMap,
         payload: &str,
     ) -> Result<(), Self::Error> {
-        let client = infra.traq_client();
+        let subscriber = infra.event_subscriber();
         let Some(message) = gitea::handle(headers, payload)? else {
             return Ok(());
         };
-        client
-            .send_message(&webhook.channel_id, message.trim(), false)
-            .await
-            .map_err(Error::from)?;
+        let kind = "gitea".to_string(); // TODO: event_type
+        let event = Event {
+            channel_id: webhook.channel_id,
+            kind,
+            body: message,
+        };
+        subscriber.send(event).await.map_err(Error::from)?;
         Ok(())
     }
 
@@ -72,14 +78,17 @@ where
         headers: HeaderMap,
         payload: &str,
     ) -> Result<(), Self::Error> {
-        let client = infra.traq_client();
+        let subscriber = infra.event_subscriber();
         let Some(message) = clickup::handle(headers, payload)? else {
             return Ok(());
         };
-        client
-            .send_message(&webhook.channel_id, message.trim(), false)
-            .await
-            .map_err(Error::from)?;
+        let kind = "clickup".to_string(); // TODO: event_type
+        let event = Event {
+            channel_id: webhook.channel_id,
+            kind,
+            body: message,
+        };
+        subscriber.send(event).await.map_err(Error::from)?;
         Ok(())
     }
 }
