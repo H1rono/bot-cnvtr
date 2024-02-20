@@ -34,8 +34,8 @@ impl Event {
 
     pub fn merge(&mut self, other: Event) -> Option<Event> {
         if self.can_merged(&other) {
-            self.kind += "\n";
-            self.kind += &other.kind;
+            self.body += "\n\n";
+            self.body += &other.body;
             return None;
         }
         Some(other)
