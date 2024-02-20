@@ -30,6 +30,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         branch_protection_rule,
         pull_request, pull_request_review_comment,
         pull_request_review, pull_request_review_thread,
+        star,
         workflow_run
     );
     Ok(message)
@@ -435,6 +436,23 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
         release_str(release),
         action,
         user_str(sender)
+    };
+    Some(message)
+}
+
+/// X-GitHub-Event: star
+fn star(payload: gh::StarEvent) -> Option<String> {
+    let gh::StarEvent::Created(star) = &payload else {
+        return None; // FIXME: deleteを伝えるなんてできない...
+    };
+    let gh::StarCreatedEvent {
+        repository, sender, ..
+    } = star;
+    let message = formatdoc! {
+        r#"
+            [{}] :star: Repository starred by {} :star:
+        "#,
+        repo_str(repository), user_str(sender)
     };
     Some(message)
 }
