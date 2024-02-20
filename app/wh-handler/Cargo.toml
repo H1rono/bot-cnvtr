@@ -6,6 +6,7 @@ publish.workspace = true
 
 [dependencies]
 paste.workspace = true
+itertools.workspace = true
 indoc.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true

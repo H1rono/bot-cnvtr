@@ -3352,6 +3352,7 @@ dependencies = [
  "github-webhook",
  "http 1.0.0",
  "indoc",
+ "itertools",
  "paste",
  "serde",
  "serde_json",
