@@ -21,6 +21,7 @@ async fn main() -> anyhow::Result<()> {
         router_config,
         client_config,
         repo_config,
+        cron_config,
     } = ConfigComposite::from_env()
         .map_err(anyhow::Error::from)
         .or_else(|_| -> anyhow::Result<ConfigComposite> {
@@ -38,10 +39,10 @@ async fn main() -> anyhow::Result<()> {
     // run notifier in background
     let handle = {
         let infra = infra.clone();
+        let period = cron_config.try_into()?;
         tokio::task::spawn(async move {
-            use std::time::Duration;
             let mut rx = rx;
-            rx.run(infra, Duration::from_secs(10)).await;
+            rx.run(infra, period).await;
         })
     };
 
