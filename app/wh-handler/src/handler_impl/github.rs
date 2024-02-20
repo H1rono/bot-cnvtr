@@ -31,6 +31,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         branch_protection_rule,
         pull_request, pull_request_review_comment,
         pull_request_review, pull_request_review_thread,
+        repository,
         star,
         workflow_run, workflow_job
     );
@@ -439,6 +440,40 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
         user_str(sender)
     };
     Some(message)
+}
+
+/// X-GitHub-Event: repository
+fn repository(payload: gh::RepositoryEvent) -> Option<String> {
+    macro_rules! repository_event {
+        ($i:ident, $kind:ident) => {{
+            paste! {
+                let gh::[< Repository $kind:camel Event >] {
+                    repository, sender, ..
+                } = $i;
+                (repository, sender, stringify!([< $kind:snake:lower >]))
+            }
+        }};
+    }
+
+    use gh::RepositoryEvent::*;
+
+    let (repository, sender, action) = match &payload {
+        Created(r) => repository_event!(r, created),
+        Archived(r) => repository_event!(r, archived),
+        Deleted(r) => repository_event!(r, deleted),
+        Edited(r) => repository_event!(r, edited),
+        Privatized(r) => repository_event!(r, privatized),
+        Publicized(r) => repository_event!(r, publicized),
+        Renamed(r) => repository_event!(r, renamed),
+        Transferred(r) => repository_event!(r, transferred),
+        Unarchived(r) => repository_event!(r, unarchived),
+    };
+    Some(format!(
+        "Repository {} {} by {}",
+        repo_str(repository),
+        action,
+        user_str(sender)
+    ))
 }
 
 /// X-GitHub-Event: star
