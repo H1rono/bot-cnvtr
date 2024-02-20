@@ -470,16 +470,18 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
                 ..
             } = &p;
             let workflow_run = &workflow_run.workflow_run;
-            let conclusion = match workflow_run.conclusion {
-                None => "unknown conclusion",
-                Some(Conclusion::ActionRequired) => "action required",
-                Some(Conclusion::Cancelled) => "cancelled",
-                Some(Conclusion::Failure) => "failed",
-                Some(Conclusion::Neutral) => "neutral",
-                Some(Conclusion::Skipped) => "skipped",
-                Some(Conclusion::Stale) => "stale",
-                Some(Conclusion::Success) => "success",
-                Some(Conclusion::TimedOut) => "timed out",
+            let Some(conclusion) = &workflow_run.conclusion else {
+                return None;
+            };
+            let conclusion = match conclusion {
+                Conclusion::ActionRequired => "action required",
+                Conclusion::Cancelled => "cancelled",
+                Conclusion::Failure => "failed",
+                Conclusion::Neutral => "neutral",
+                Conclusion::Skipped => "skipped",
+                Conclusion::Stale => "stale",
+                Conclusion::Success => "success",
+                Conclusion::TimedOut => "timed out",
             };
             formatdoc! {
                 r#"
