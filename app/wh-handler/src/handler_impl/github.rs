@@ -29,7 +29,8 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
         create, delete, push, issues, ping, fork, release,
         branch_protection_rule,
         pull_request, pull_request_review_comment,
-        pull_request_review, pull_request_review_thread
+        pull_request_review, pull_request_review_thread,
+        workflow_run
     );
     Ok(message)
 }
@@ -438,6 +439,74 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
     Some(message)
 }
 
+/// X-GitHub-Event: workflow_run
+fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
+    use gh::WorkflowRunEvent::{Completed, InProgress, Requested};
+    let message = match payload {
+        Completed(p) => {
+            use gh::CheckRunCompletedEventCheckRunConclusion as Conclusion;
+            let gh::WorkflowRunCompletedEvent {
+                repository,
+                workflow,
+                workflow_run,
+                ..
+            } = &p;
+            let workflow_run = &workflow_run.workflow_run;
+            let conclusion = match workflow_run.conclusion {
+                None => "unknown conclusion",
+                Some(Conclusion::ActionRequired) => "action required",
+                Some(Conclusion::Cancelled) => "cancelled",
+                Some(Conclusion::Failure) => "failed",
+                Some(Conclusion::Neutral) => "neutral",
+                Some(Conclusion::Skipped) => "skipped",
+                Some(Conclusion::Stale) => "stale",
+                Some(Conclusion::Success) => "success",
+                Some(Conclusion::TimedOut) => "timed out",
+            };
+            formatdoc! {
+                r#"
+                    [{}:{}] Workflow run {} of {} completed as {}
+                "#,
+                repo_str(repository), workflow_run.head_branch,
+                workflow_run_str(workflow_run), workflow_str(workflow), conclusion
+            }
+        }
+        InProgress(p) => {
+            let gh::WorkflowRunInProgressEvent {
+                repository,
+                workflow,
+                workflow_run,
+                ..
+            } = &p;
+            formatdoc! {
+                r#"
+                    [{}:{}] Workflow run {} of {} is running
+                "#,
+                repo_str(repository), workflow_run.head_branch,
+                workflow_run_str(workflow_run), workflow_str(workflow)
+            }
+        }
+        Requested(p) => {
+            let gh::WorkflowRunRequestedEvent {
+                repository,
+                sender,
+                workflow,
+                workflow_run,
+                ..
+            } = &p;
+            formatdoc! {
+                r#"
+                    [{}:{}] Workflow run {} of {} requested by {}
+                "#,
+                repo_str(repository), workflow_run.head_branch,
+                workflow_str(workflow), workflow_run_str(workflow_run),
+                user_str(sender)
+            }
+        }
+    };
+    Some(message)
+}
+
 /// X-GitHub-Event: *
 fn default(_event_type: &str, _payload: Value) -> Option<String> {
     None
@@ -505,4 +574,20 @@ fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
 fn release_str(release: &gh::Release) -> String {
     let gh::Release { name, html_url, .. } = release;
     format!("[{}]({})", name, html_url)
+}
+
+/// workflow -> `[workflow.name](workflow.html_url)`
+fn workflow_str(workflow: &gh::Workflow) -> String {
+    let gh::Workflow { name, html_url, .. } = workflow;
+    format!("[{}]({})", name, html_url)
+}
+
+/// workflow_run -> `[workflow_run.diplay_title](worlflow_run.html_url)`
+fn workflow_run_str(workflow_run: &gh::WorkflowRun) -> String {
+    let gh::WorkflowRun {
+        display_title,
+        html_url,
+        ..
+    } = workflow_run;
+    format!("[{}]({})", display_title, html_url)
 }
