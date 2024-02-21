@@ -561,16 +561,24 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
                 Status::Queued => "queued",
             };
             let workflow_job = &workflow_job.workflow_job;
-            let steps = workflow_steps_str(&workflow_job.steps);
-            formatdoc! {
-                r#"
+            let steps = &workflow_job.steps;
+            if steps.is_empty() {
+                formatdoc! {
+                    r#"
+                        [{}] workflow job {} {}
+                    "#,
+                    repo_str(repository), workflow_job_str(workflow_job), status
+                }
+            } else {
+                let steps = workflow_steps_str(steps);
+                formatdoc! {
+                    r#"
                     [{}] workflow job {} {}
                     {}
                 "#,
-                repo_str(repository), workflow_job_str(workflow_job), status, steps
+                    repo_str(repository), workflow_job_str(workflow_job), status, steps
+                }
             }
-            .trim_end()
-            .to_string()
         }
         Queued(p) => {
             use gh::WorkflowJobQueuedEventWorkflowJobStatus as Status;
