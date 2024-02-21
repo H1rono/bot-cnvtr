@@ -46,7 +46,11 @@ async fn main() -> anyhow::Result<()> {
         })
     };
 
-    let bot = BotImpl::new(bot_config.bot_id, bot_config.bot_user_id);
+    let bot = BotImpl::new(
+        bot_config.bot_name,
+        bot_config.bot_id,
+        bot_config.bot_user_id,
+    );
     let wh = WebhookHandlerImpl::new();
     let app = bot_cnvtr::app::AppImpl::new_wrapped(bot, wh);
     let app = Arc::new(app);

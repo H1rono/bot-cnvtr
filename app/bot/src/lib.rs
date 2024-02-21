@@ -11,15 +11,21 @@ mod system;
 
 #[derive(Debug, Clone)]
 pub struct BotImpl {
+    pub name: String,
     pub id: String,
     pub user_id: String,
 }
 
 impl BotImpl {
-    pub fn new<'a>(id: impl Into<Cow<'a, str>>, user_id: impl Into<Cow<'a, str>>) -> Self {
+    pub fn new<'a>(
+        name: impl Into<Cow<'a, str>>,
+        id: impl Into<Cow<'a, str>>,
+        user_id: impl Into<Cow<'a, str>>,
+    ) -> Self {
+        let name = name.into().into_owned();
         let id = id.into().into_owned();
         let user_id = user_id.into().into_owned();
-        Self { id, user_id }
+        Self { name, id, user_id }
     }
 }
 

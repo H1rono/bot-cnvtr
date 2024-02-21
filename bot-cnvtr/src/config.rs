@@ -4,8 +4,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BotConfig {
+    #[serde(default = "BotConfig::default_bot_name")]
+    pub bot_name: String,
     pub bot_id: String,
     pub bot_user_id: String,
+}
+
+impl BotConfig {
+    fn default_bot_name() -> String {
+        "BOT_cnvtr".to_string()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
