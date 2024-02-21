@@ -8,7 +8,7 @@ use teahook as th;
 use domain::{Error, Event, EventSubscriber, Infra, Webhook};
 
 use super::utils::{extract_header_value, OptionExt};
-use crate::{Result, WebhookHandlerImpl};
+use crate::WebhookHandlerImpl;
 
 impl WebhookHandlerImpl {
     pub(crate) async fn handle_gitea<I>(
@@ -38,25 +38,25 @@ impl WebhookHandlerImpl {
 }
 
 #[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
-fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {{
             let local_event_type = $t;
             match local_event_type {
                 $(stringify!($i) => {
                     tracing::info!("X-Gitea-Event: {}", local_event_type);
-                    Some($i(from_str($p)?)?)
+                    Some($i(from_str($p).map_err(anyhow::Error::from)?)?)
                 })*
                 $(stringify!($di))|* => {
                     tracing::info!("X-Gitea-Event: {}", local_event_type);
-                    default($t, from_str($p)?)
+                    default($t, from_str($p).map_err(anyhow::Error::from)?)
                 }
                 ut => {
                     tracing::warn!(
                         "unexpected event: `X-Gitea-Event: {}`",
                         ut
                     );
-                    return Err(crate::Error::WrongType);
+                    return Err(Error::BadRequest);
                 }
             }}
         };
@@ -66,7 +66,7 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/services/webhook/deliver.go#L124-L138
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/modules/webhook/type.go#L11-L33
     let event_type = extract_header_value(&headers, "X-Gitea-Event")
-        .and_then(|v| from_utf8(v).map_err(|_| crate::Error::WrongType))?;
+        .and_then(|v| from_utf8(v).map_err(|_| Error::BadRequest))?;
     let message = match_event!(
         event_type => payload;
         create, delete, fork, push, issues, pull_request;
@@ -95,7 +95,7 @@ macro_rules! unwrap_opt_boxed {
 }
 
 /// X-Gitea-Event: create
-fn create(payload: th::CreatePayload) -> Result<String> {
+fn create(payload: th::CreatePayload) -> Result<String, Error> {
     let th::CreatePayload {
         r#ref,
         ref_type,
@@ -113,7 +113,7 @@ fn create(payload: th::CreatePayload) -> Result<String> {
 }
 
 /// X-Gitea-Event: delete
-fn delete(payload: th::DeletePayload) -> Result<String> {
+fn delete(payload: th::DeletePayload) -> Result<String, Error> {
     let th::DeletePayload {
         r#ref,
         ref_type,
@@ -131,7 +131,7 @@ fn delete(payload: th::DeletePayload) -> Result<String> {
 }
 
 /// X-Gitea-Event: fork
-fn fork(payload: th::ForkPayload) -> Result<String> {
+fn fork(payload: th::ForkPayload) -> Result<String, Error> {
     let th::ForkPayload {
         forkee,
         repo,
@@ -147,7 +147,7 @@ fn fork(payload: th::ForkPayload) -> Result<String> {
 }
 
 /// X-Gitea-Event: push
-fn push(payload: th::PushPayload) -> Result<String> {
+fn push(payload: th::PushPayload) -> Result<String, Error> {
     let th::PushPayload {
         r#ref,
         commits,
@@ -170,7 +170,7 @@ fn push(payload: th::PushPayload) -> Result<String> {
             let message = message.lines().next().unwrap();
             Ok(format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end()))
         })
-        .collect::<Result<Vec<_>>>()?
+        .collect::<Result<Vec<_>, Error>>()?
         .join("\n");
     Ok(formatdoc! {
         r#"
@@ -182,7 +182,7 @@ fn push(payload: th::PushPayload) -> Result<String> {
 }
 
 /// X-Gitea-Event: issues
-fn issues(payload: th::IssuePayload) -> Result<String> {
+fn issues(payload: th::IssuePayload) -> Result<String, Error> {
     let th::IssuePayload {
         action,
         index,
@@ -200,7 +200,7 @@ fn issues(payload: th::IssuePayload) -> Result<String> {
     })
 }
 
-fn pull_request(payload: th::PullRequestPayload) -> Result<String> {
+fn pull_request(payload: th::PullRequestPayload) -> Result<String, Error> {
     let th::PullRequestPayload {
         action,
         pull_request,

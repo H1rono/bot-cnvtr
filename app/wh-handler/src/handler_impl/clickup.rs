@@ -5,7 +5,7 @@ use serde_json::Value;
 use domain::{Error, Event, EventSubscriber, Infra, Webhook};
 
 use super::utils::ValueExt;
-use crate::{Result, WebhookHandlerImpl};
+use crate::WebhookHandlerImpl;
 
 impl WebhookHandlerImpl {
     pub(crate) async fn handle_clickup<I>(
@@ -35,8 +35,8 @@ impl WebhookHandlerImpl {
 }
 
 #[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
-fn handle(_headers: HeaderMap, payload: &str) -> Result<Option<String>> {
-    let payload: Value = serde_json::from_str(payload)?;
+fn handle(_headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
+    let payload: Value = serde_json::from_str(payload).map_err(anyhow::Error::from)?;
     let event = payload.get_or_err("event")?.as_str_or_err()?;
     tracing::info!("clickup event: {}", event);
     let message = formatdoc! {
