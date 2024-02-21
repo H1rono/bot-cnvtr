@@ -26,7 +26,7 @@ impl Notifier {
     async fn recv_many_with_limit(&mut self, limit: impl Future<Output = ()> + Send) -> Vec<Event> {
         let mut res = Vec::<Event>::new();
         select! {
-            _ = self.recv_many_unstop(&mut res) => {}
+            _ = self.recv_many_unstop(&mut res) => unreachable!(),
             _ = limit => {}
         }
         res

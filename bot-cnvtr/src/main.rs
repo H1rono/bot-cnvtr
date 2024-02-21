@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
     let infra = Arc::new(infra);
 
     // run notifier in background
-    let handle = {
+    let cron_handle = {
         let infra = infra.clone();
         let period = cron_config.try_into()?;
         tokio::task::spawn(async move {
@@ -66,7 +66,7 @@ async fn main() -> anyhow::Result<()> {
         res = serve => {
             res?;
         }
-        _ = handle => {}
+        _ = cron_handle => unreachable!(),
     }
     Ok(())
 }
