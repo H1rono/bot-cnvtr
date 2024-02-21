@@ -5,11 +5,40 @@ use indoc::formatdoc;
 use serde_json::Value;
 use teahook as th;
 
+use domain::{Error, Event, EventSubscriber, Infra, Webhook};
+
 use super::utils::{extract_header_value, OptionExt};
-use crate::{Error, Result};
+use crate::{Result, WebhookHandlerImpl};
+
+impl WebhookHandlerImpl {
+    pub(crate) async fn handle_gitea<I>(
+        &self,
+        infra: &I,
+        webhook: Webhook,
+        headers: HeaderMap,
+        payload: &str,
+    ) -> Result<(), Error>
+    where
+        I: Infra,
+        Error: From<I::Error>,
+    {
+        let subscriber = infra.event_subscriber();
+        let Some(message) = handle(headers, payload)? else {
+            return Ok(());
+        };
+        let kind = "gitea".to_string(); // TODO: event_type
+        let event = Event {
+            channel_id: webhook.channel_id,
+            kind,
+            body: message,
+        };
+        subscriber.send(event).await?;
+        Ok(())
+    }
+}
 
 #[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
-pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {{
             let local_event_type = $t;
@@ -27,7 +56,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
                         "unexpected event: `X-Gitea-Event: {}`",
                         ut
                     );
-                    return Err(Error::WrongType);
+                    return Err(crate::Error::WrongType);
                 }
             }}
         };
@@ -37,7 +66,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/services/webhook/deliver.go#L124-L138
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/modules/webhook/type.go#L11-L33
     let event_type = extract_header_value(&headers, "X-Gitea-Event")
-        .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
+        .and_then(|v| from_utf8(v).map_err(|_| crate::Error::WrongType))?;
     let message = match_event!(
         event_type => payload;
         create, delete, fork, push, issues, pull_request;

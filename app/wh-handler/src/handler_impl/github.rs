@@ -7,11 +7,40 @@ use itertools::Itertools;
 use paste::paste;
 use serde_json::Value;
 
+use domain::{Error, Event, EventSubscriber, Infra, Webhook};
+
 use super::utils::extract_header_value;
-use crate::{Error, Result};
+use crate::{Result, WebhookHandlerImpl};
+
+impl WebhookHandlerImpl {
+    pub(crate) async fn handle_github<I>(
+        &self,
+        infra: &I,
+        webhook: Webhook,
+        headers: HeaderMap,
+        payload: &str,
+    ) -> Result<(), Error>
+    where
+        I: Infra,
+        Error: From<I::Error>,
+    {
+        let subscriber = infra.event_subscriber();
+        let Some(message) = handle(headers, payload)? else {
+            return Ok(());
+        };
+        let kind = "github".to_string(); // TODO: event_type
+        let event = Event {
+            channel_id: webhook.channel_id,
+            kind,
+            body: message,
+        };
+        subscriber.send(event).await?;
+        Ok(())
+    }
+}
 
 #[tracing::instrument(target = "wh_handler::github::handle", skip_all)]
-pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
+fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),*) => {
             match $t {
@@ -23,7 +52,7 @@ pub(super) fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>
 
     use serde_json::from_str;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
-        .and_then(|v| from_utf8(v).map_err(|_| Error::WrongType))?;
+        .and_then(|v| from_utf8(v).map_err(|_| crate::Error::WrongType))?;
     tracing::info!("X-GitHub-Event: {}", event_type);
     let message = match_event!(
         event_type => payload;

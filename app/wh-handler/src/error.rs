@@ -8,6 +8,8 @@ pub enum Error {
     WrongType,
     #[error("error while parsing payload: {0}")]
     SerdeJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    Unexpected(#[from] anyhow::Error),
 }
 
 impl From<Error> for domain::Error {
@@ -22,6 +24,7 @@ impl From<Error> for domain::Error {
                 Category::Eof => domain::Error::BadRequest,
                 Category::Syntax => domain::Error::BadRequest,
             },
+            Error::Unexpected(e) => domain::Error::Unexpected(e),
         }
     }
 }
