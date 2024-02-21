@@ -29,7 +29,7 @@ impl BotImpl {
         let client = infra.traq_client();
         let repo = infra.repo();
 
-        if !create.channel_dm {
+        if create.channel_dm {
             let message = "エラー: Webhook投稿先にDMを指定することはできません";
             client
                 .send_message(&create.talking_channel_id, message, false)
