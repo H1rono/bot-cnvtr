@@ -177,7 +177,7 @@ impl BotImpl {
         }
         let message = serialized_webhooks.join("\n\n---\n\n");
         client
-            .send_direct_message(&list.user.id, &message, false)
+            .send_direct_message(&list.user.id, &message, true)
             .await?;
         Ok(())
     }
