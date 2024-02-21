@@ -63,11 +63,7 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        tracing::info!(
-            "{}さんがメッセージを投稿しました。\n内容: {}\n",
-            payload.message.user.display_name,
-            payload.message.text
-        );
+        tracing::info!("Message from {}", payload.message.user.display_name);
         let message = &payload.message;
         if message.user.bot {
             tracing::debug!("Ignore BOT");
@@ -84,6 +80,7 @@ impl BotImpl {
                 return Ok(());
             }
         };
+        tracing::debug!(cli = ?cli);
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
         self.run_command(infra, &mid, cmd).await
@@ -98,11 +95,7 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        tracing::info!(
-            "{}さんがダイレクトメッセージを投稿しました。\n内容: {}\n",
-            payload.message.user.display_name,
-            payload.message.text
-        );
+        tracing::info!("Direct Message from {}", payload.message.user.display_name);
         let message = &payload.message;
         if message.user.bot {
             tracing::debug!("Ignore BOT");
@@ -119,6 +112,7 @@ impl BotImpl {
                 return Ok(());
             }
         };
+        tracing::debug!(cli = ?cli);
         let mid = payload.message.id.into();
         let cmd = cli.cmd.complete(&payload);
         self.run_command(infra, &mid, cmd).await
