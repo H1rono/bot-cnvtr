@@ -4,4 +4,4 @@ mod wh_handler;
 
 pub use app::App;
 pub use bot::Bot;
-pub use wh_handler::WebhookHandler;
+pub use wh_handler::{WebhookHandler, WebhookKind};

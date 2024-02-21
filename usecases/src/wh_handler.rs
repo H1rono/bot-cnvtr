@@ -4,27 +4,19 @@ use http::HeaderMap;
 
 use domain::{Infra, Webhook};
 
+#[derive(Debug, Clone, Copy)]
+pub enum WebhookKind {
+    GitHub,
+    Gitea,
+    Clickup,
+}
+
 pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
     type Error: Into<domain::Error> + Send + Sync + 'static;
 
-    fn github_webhook(
+    fn handle(
         &self,
-        infra: &I,
-        webhook: Webhook,
-        headers: HeaderMap,
-        payload: &str,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
-
-    fn gitea_webhook(
-        &self,
-        infra: &I,
-        webhook: Webhook,
-        headers: HeaderMap,
-        payload: &str,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
-
-    fn clickup_webhook(
-        &self,
+        kind: WebhookKind,
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
