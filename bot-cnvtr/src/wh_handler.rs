@@ -22,8 +22,9 @@ where
 {
     type Error = domain::Error;
 
-    async fn github_webhook(
+    async fn handle(
         &self,
+        kind: usecases::WebhookKind,
         infra: &I,
         webhook: Webhook,
         headers: HeaderMap,
@@ -31,33 +32,7 @@ where
     ) -> Result<(), Self::Error> {
         Ok(self
             .0
-            .github_webhook(infra, webhook, headers, payload)
-            .await?)
-    }
-
-    async fn gitea_webhook(
-        &self,
-        infra: &I,
-        webhook: Webhook,
-        headers: HeaderMap,
-        payload: &str,
-    ) -> Result<(), Self::Error> {
-        Ok(self
-            .0
-            .gitea_webhook(infra, webhook, headers, payload)
-            .await?)
-    }
-
-    async fn clickup_webhook(
-        &self,
-        infra: &I,
-        webhook: Webhook,
-        headers: HeaderMap,
-        payload: &str,
-    ) -> Result<(), Self::Error> {
-        Ok(self
-            .0
-            .clickup_webhook(infra, webhook, headers, payload)
+            .handle(kind, infra, webhook, headers, payload)
             .await?)
     }
 }
