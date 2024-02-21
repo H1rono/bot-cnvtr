@@ -47,6 +47,14 @@ pub struct CronConfig {
     pub cron_period: String,
 }
 
+impl Default for CronConfig {
+    fn default() -> Self {
+        Self {
+            cron_period: "10s".to_string(),
+        }
+    }
+}
+
 impl TryFrom<CronConfig> for Duration {
     type Error = anyhow::Error;
 
@@ -77,7 +85,7 @@ impl ConfigComposite {
             router_config: envy::from_env()?,
             client_config: envy::from_env()?,
             repo_config: RepoConfig::from_env()?,
-            cron_config: envy::from_env()?,
+            cron_config: envy::from_env().unwrap_or_default(),
         })
     }
 }
