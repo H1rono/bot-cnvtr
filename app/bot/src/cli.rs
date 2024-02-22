@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
 
+pub mod help;
 pub mod sudo;
 pub mod webhook;
 
@@ -22,6 +23,8 @@ pub enum Commands {
         #[command(subcommand)]
         sudo: sudo::Sudo,
     },
+    #[command(about = "cat help.md")]
+    PrintHelp,
 }
 
 impl<'a> Incomplete<&'a MessageCreatedPayload> for Commands {
@@ -31,6 +34,9 @@ impl<'a> Incomplete<&'a MessageCreatedPayload> for Commands {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
             Self::Sudo { sudo } => CompletedCmds::Sudo(sudo.complete(context)),
+            Self::PrintHelp => CompletedCmds::PrintHelp(help::CompleteHelp::Channel(
+                context.message.channel_id.into(),
+            )),
         }
     }
 }
@@ -42,6 +48,9 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
         match self {
             Self::Webhook { wh } => CompletedCmds::Webhook(wh.complete(context)),
             Self::Sudo { sudo } => CompletedCmds::Sudo(sudo.complete(context)),
+            Self::PrintHelp => {
+                CompletedCmds::PrintHelp(help::CompleteHelp::Dm(context.message.user.id.into()))
+            }
         }
     }
 }
@@ -50,6 +59,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
 pub enum CompletedCmds {
     Webhook(webhook::Complete),
     Sudo(sudo::SudoCompleted),
+    PrintHelp(help::CompleteHelp),
 }
 
 impl Completed for CompletedCmds {
@@ -63,6 +73,7 @@ impl Completed for CompletedCmds {
             Self::Sudo(sudo) => Commands::Sudo {
                 sudo: sudo.incomplete(),
             },
+            Self::PrintHelp(_) => Commands::PrintHelp,
         }
     }
 }

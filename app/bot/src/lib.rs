@@ -9,6 +9,8 @@ pub(crate) mod cli;
 mod messages;
 mod system;
 
+static HELP_TEMPLATE: &str = include_str!("help.md");
+
 #[derive(Debug, Clone)]
 pub struct BotImpl {
     pub name: String,

@@ -6,6 +6,7 @@ use domain::{Error, Infra, MessageId, Result, StampId, TraqClient};
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 use crate::BotImpl;
 
+mod cmd_help;
 mod cmd_sudo;
 mod cmd_webhook;
 
@@ -35,6 +36,7 @@ impl BotImpl {
         let res = match cmd {
             Webhook(w) => self.handle_webhook_command(infra, w).await,
             Sudo(s) => self.handle_sudo_command(infra, s).await,
+            PrintHelp(h) => self.handle_help_command(infra, h).await,
         };
         match res {
             Ok(_) => {
