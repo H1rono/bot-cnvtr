@@ -3,6 +3,7 @@ name = "bot-cnvtr"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+default-run = "bot-cnvtr"
 
 [dependencies]
 serde.workspace = true
