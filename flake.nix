@@ -55,7 +55,12 @@
         sha256 = "sha256-e4mlaJehWBymYxJGgnbuCObVlqMlQSilZ8FljG9zPHY=";
       };
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-      src = craneLib.cleanCargoSource (craneLib.path ./.);
+
+      markdownFilter = path: _type: builtins.match ".*md$" path != null;
+      src = lib.cleanSourceWith {
+        src = craneLib.path ./.;
+        filter = path: type: (markdownFilter path type) || (craneLib.filterCargoSources path type);
+      };
 
       teahook-transpiler = teahook-rs.packages.${system}.goBuild;
 
