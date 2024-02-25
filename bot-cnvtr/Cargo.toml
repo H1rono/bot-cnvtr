@@ -13,7 +13,7 @@ envy = "0.4"
 dotenvy = "0.15"
 
 tokio.workspace = true
-tower-http = { version = "0.5.1", features = ["trace"] }
+tower-http = { version = "0.5.2", features = ["trace"] }
 http.workspace = true
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
