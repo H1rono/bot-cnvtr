@@ -644,10 +644,10 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
             };
             formatdoc! {
                 r#"
-                    [{}:{}] Workflow run {} of {} completed as {}
+                    [{}:{}] Workflow run {} / {} completed as {}
                 "#,
                 repo_str(repository), workflow_run.head_branch,
-                workflow_run_str(workflow_run), workflow_str(workflow), conclusion
+                workflow_str(workflow), workflow_run_str(workflow_run), conclusion
             }
         }
         InProgress(p) => {
@@ -659,10 +659,10 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
             } = &p;
             formatdoc! {
                 r#"
-                    [{}:{}] Workflow run {} of {} is running
+                    [{}:{}] Workflow run {} / {} is running
                 "#,
                 repo_str(repository), workflow_run.head_branch,
-                workflow_run_str(workflow_run), workflow_str(workflow)
+                workflow_str(workflow), workflow_run_str(workflow_run)
             }
         }
         Requested(p) => {
@@ -675,7 +675,7 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
             } = &p;
             formatdoc! {
                 r#"
-                    [{}:{}] Workflow run {} of {} requested by {}
+                    [{}:{}] Workflow run {} / {} requested by {}
                 "#,
                 repo_str(repository), workflow_run.head_branch,
                 workflow_str(workflow), workflow_run_str(workflow_run),
