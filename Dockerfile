@@ -18,7 +18,6 @@ COPY cron/Cargo.toml              ./cron/
 COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
 COPY app/bot/Cargo.toml           ./app/bot/
 COPY router/Cargo.toml            ./router/
-COPY bot-cnvtr/Cargo.toml         ./bot-cnvtr/
 RUN nix build .#cargoDepsRelease
 
 COPY . .
