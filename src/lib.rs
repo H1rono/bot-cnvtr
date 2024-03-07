@@ -1,9 +1,4 @@
 pub mod app;
-pub mod bot;
 pub mod config;
-pub mod event_subscriber;
 pub mod infra;
-pub mod repo;
 pub mod signal;
-pub mod traq_client;
-pub mod wh_handler;

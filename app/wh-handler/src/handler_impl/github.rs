@@ -56,12 +56,13 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     tracing::info!("X-GitHub-Event: {}", event_type);
     let message = match_event!(
         event_type => payload;
-        create, delete, push, issues, ping, fork, release,
+        create, delete, push, issues, issue_comment,
+        ping, fork, release,
         branch_protection_rule,
         pull_request, pull_request_review_comment,
         pull_request_review, pull_request_review_thread,
         repository,
-        star,
+        star, watch,
         workflow_run, workflow_job
     );
     Ok(message)
@@ -198,6 +199,47 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
     };
     let message = format!("{}\n{}", message_headline, message_body);
     Some(message)
+}
+
+/// X-GitHub-Event: issue_comment
+fn issue_comment(payload: gh::IssueCommentEvent) -> Option<String> {
+    macro_rules! issue_comment {
+        ($i:ident, $kind:ident) => {{
+            paste! {
+                let gh::[< IssueComment $kind:camel Event >] {
+                    repository,
+                    sender,
+                    issue,
+                    comment,
+                    ..
+                } = $i;
+                let issue = &issue.issue;
+                (stringify!($kind), repository, sender, issue, comment)
+            }
+        }};
+    }
+
+    use gh::IssueCommentEvent::*;
+
+    let (action, repo, sender, issue, comment) = match &payload {
+        Created(c) => issue_comment!(c, created),
+        Edited(e) => issue_comment!(e, edited),
+        Deleted(d) => issue_comment!(d, deleted),
+    };
+    let message_body_lines = comment.body.lines().collect::<Vec<_>>();
+    let message_body = if message_body_lines.len() > 5 {
+        "..."
+    } else {
+        &comment.body
+    };
+    Some(formatdoc! {
+        r#"
+            [{}] Issue {}: comment [{}]({}) by {}
+            {}
+        "#,
+        repo_str(repo), issue_str(issue), action, comment.html_url, user_str(sender),
+        message_body
+    })
 }
 
 /// X-GitHub-Event: fork
@@ -520,6 +562,19 @@ fn star(payload: gh::StarEvent) -> Option<String> {
         repo_str(repository), user_str(sender)
     };
     Some(message)
+}
+
+/// X-GitHub-Event: watch
+fn watch(payload: gh::WatchEvent) -> Option<String> {
+    let gh::WatchEvent {
+        repository, sender, ..
+    } = &payload;
+    Some(formatdoc! {
+        r#"
+            [{}] {} started watching
+        "#,
+        repo_str(repository), user_str(sender)
+    })
 }
 
 /// X-GitHub-Event: workflow_job
