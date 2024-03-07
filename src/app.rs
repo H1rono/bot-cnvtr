@@ -1,10 +1,13 @@
+pub mod bot;
+pub mod wh_handler;
+
 use std::marker::PhantomData;
 
 use domain::Infra;
 use usecases::{App, Bot, WebhookHandler};
 
-use crate::bot::BotWrapper;
-use crate::wh_handler::WHandlerWrapper;
+use bot::BotWrapper;
+use wh_handler::WHandlerWrapper;
 
 pub struct AppImpl<B, W, I = ()>(pub B, pub W, PhantomData<I>);
 
