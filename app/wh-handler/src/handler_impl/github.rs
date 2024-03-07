@@ -62,7 +62,7 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
         pull_request, pull_request_review_comment,
         pull_request_review, pull_request_review_thread,
         repository,
-        star,
+        star, watch,
         workflow_run, workflow_job
     );
     Ok(message)
@@ -562,6 +562,19 @@ fn star(payload: gh::StarEvent) -> Option<String> {
         repo_str(repository), user_str(sender)
     };
     Some(message)
+}
+
+/// X-GitHub-Event: watch
+fn watch(payload: gh::WatchEvent) -> Option<String> {
+    let gh::WatchEvent {
+        repository, sender, ..
+    } = &payload;
+    Some(formatdoc! {
+        r#"
+            [{}] {} started watching
+        "#,
+        repo_str(repository), user_str(sender)
+    })
 }
 
 /// X-GitHub-Event: workflow_job
