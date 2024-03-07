@@ -1,8 +1,12 @@
+pub mod event_subscriber;
+pub mod repository;
+pub mod traq_client;
+
 use domain::{EventSubscriber, Infra, Repository, TraqClient};
 
-use crate::event_subscriber::EventSubWrapper;
-use crate::repo::RepoWrapper;
-use crate::traq_client::TraqClientWrapper;
+use event_subscriber::EventSubWrapper;
+use repository::RepoWrapper;
+use traq_client::TraqClientWrapper;
 
 pub struct InfraImpl<R, C, S>(pub R, pub C, pub S);
 
