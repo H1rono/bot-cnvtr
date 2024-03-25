@@ -4,7 +4,6 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
 use bot::BotImpl;
-use repository::RepositoryImpl;
 use router::make_router;
 use traq_client::ClientImpl;
 use wh_handler::WebhookHandlerImpl;
@@ -30,7 +29,8 @@ async fn main() -> anyhow::Result<()> {
         })?;
 
     let client = ClientImpl::new(&client_config.bot_access_token);
-    let repo = RepositoryImpl::connect(&repo_config.database_url()).await?;
+    let repo_opt: repository::opt::Opt = repo_config.try_into()?;
+    let repo = repo_opt.connect().await?;
     repo.migrate().await?;
     let (tx, rx) = cron::channel(100);
     let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client, tx);

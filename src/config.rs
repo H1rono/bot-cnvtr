@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use repository::opt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -37,6 +38,27 @@ impl RepoConfig {
             "mysql://{}:{}@{}:{}/{}",
             self.user, self.password, self.hostname, self.port, self.database
         )
+    }
+}
+
+impl TryFrom<RepoConfig> for opt::Opt {
+    type Error = <u16 as std::str::FromStr>::Err;
+
+    fn try_from(value: RepoConfig) -> Result<Self, Self::Error> {
+        let RepoConfig {
+            database,
+            hostname,
+            password,
+            port,
+            user,
+        } = value;
+        Ok(opt::Opt {
+            hostname,
+            user,
+            password,
+            port: port.parse()?,
+            database,
+        })
     }
 }
 
