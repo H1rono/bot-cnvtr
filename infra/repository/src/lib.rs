@@ -5,6 +5,7 @@ use domain::{ChannelId, Group, Owner, OwnerKind, Repository, User, Webhook, Webh
 
 pub mod error;
 pub(crate) mod model;
+pub mod opt;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
