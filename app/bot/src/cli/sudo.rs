@@ -24,6 +24,8 @@ impl<'a> Incomplete<&'a Message> for Sudo {
     }
 }
 
+// FIXME
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Clone)]
 pub enum SudoCompleted {
     Webhook(webhook::Completed),

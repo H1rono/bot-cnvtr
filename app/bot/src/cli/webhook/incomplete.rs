@@ -67,16 +67,13 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
             .channel
             .as_deref()
             .and_then(|c| embeds.iter().find(|e| e.raw == c))
-            .map(|e| e.id)
-            .unwrap_or(context.channel_id);
+            .map_or(context.channel_id, |e| e.id);
         let owner_name = self.owner.clone().unwrap_or_else(|| user.name.clone());
         let embed = embeds.iter().find(|e| e.raw == owner_name);
-        let owner_id = embed.map(|e| e.id).unwrap_or(user.id);
-        let owner_kind = if embed.map(|e| e.r#type == "group").unwrap_or_default() {
-            OwnerKind::Group
-        } else {
-            OwnerKind::SingleUser
-        };
+        let owner_id = embed.map_or(user.id, |e| e.id);
+        let owner_kind = embed
+            .and_then(|e| (e.r#type == "group").then_some(OwnerKind::Group))
+            .unwrap_or(OwnerKind::SingleUser);
         complete::WebhookCreate {
             user: User {
                 id: context.user.id.into(),

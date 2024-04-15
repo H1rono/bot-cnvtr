@@ -13,7 +13,7 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        use Webhook::*;
+        use Webhook::{Create, Delete, List};
         match wh {
             Create(create) => self.handle_webhook_create(infra, create).await,
             Delete(delete) => self.handle_webhook_delete(infra, delete).await,

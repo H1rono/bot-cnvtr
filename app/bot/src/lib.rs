@@ -39,7 +39,7 @@ where
 
     #[tracing::instrument(skip_all, fields(event_kind = %event.kind()))]
     async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
-        use Event::*;
+        use Event::{DirectMessageCreated, Joined, Left, MessageCreated};
         match event {
             Joined(payload) => self.on_joined(infra, payload).await,
             Left(payload) => self.on_left(infra, payload).await,

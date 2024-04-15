@@ -31,7 +31,7 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        use CompletedCmds::*;
+        use CompletedCmds::{PrintHelp, Sudo, Webhook};
         let client = infra.traq_client();
         let res = match cmd {
             Webhook(w) => self.handle_webhook_command(infra, w).await,
@@ -39,7 +39,7 @@ impl BotImpl {
             PrintHelp(h) => self.handle_help_command(infra, h).await,
         };
         match res {
-            Ok(_) => {
+            Ok(()) => {
                 // :done:
                 const STAMP_ID: StampId =
                     StampId(uuid::uuid!("aea52f9a-7484-47ed-ab8f-3b4cc84a474d"));

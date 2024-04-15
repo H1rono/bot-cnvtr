@@ -15,7 +15,7 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
-        use SudoCompleted::*;
+        use SudoCompleted::Webhook;
         match sudo {
             Webhook(Completed::ListAll(list_all)) => {
                 self.handle_sudo_wh_list_all(infra, list_all).await
@@ -53,15 +53,12 @@ impl BotImpl {
                 .await?;
             return Ok(());
         }
-        let webhook = match repo.find_webhook(&delete.id).await? {
-            Some(w) => w,
-            None => {
-                let message = format!("エラー: webhook {} は存在しません", delete.id);
-                client
-                    .send_message(&delete.talking_channel_id, &message, false)
-                    .await?;
-                return Ok(());
-            }
+        let Some(webhook) = repo.find_webhook(&delete.id).await? else {
+            let message = format!("エラー: webhook {} は存在しません", delete.id);
+            client
+                .send_message(&delete.talking_channel_id, &message, false)
+                .await?;
+            return Ok(());
         };
         let own_users = webhook.owner.users();
         repo.remove_webhook(&webhook).await?;
