@@ -684,9 +684,7 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
                 ..
             } = &p;
             let workflow_run = &workflow_run.workflow_run;
-            let Some(conclusion) = &workflow_run.conclusion else {
-                return None;
-            };
+            let conclusion = workflow_run.conclusion.as_ref()?;
             let conclusion = match conclusion {
                 Conclusion::ActionRequired => "action required",
                 Conclusion::Cancelled => "cancelled",
