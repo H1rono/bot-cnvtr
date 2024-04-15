@@ -34,6 +34,10 @@ wh-handler.path = "./app/wh-handler"
 bot.path = "./app/bot"
 router.path = "./router"
 
+[workspace.lints.clippy]
+pedantic = "deny"
+
+
 [package]
 name = "bot-cnvtr"
 version.workspace = true
