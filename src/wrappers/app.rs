@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
 use http::HeaderMap;
+use serde::{Deserialize, Serialize};
 use traq_bot_http::Event;
 
 use domain::{Infra, Webhook};
@@ -57,5 +58,21 @@ where
             .0
             .handle(kind, infra, webhook, headers, payload)
             .await?)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BotConfig {
+    #[serde(rename = "bot_name", default = "BotConfig::default_bot_name")]
+    pub name: String,
+    #[serde(rename = "bot_id")]
+    pub id: String,
+    #[serde(rename = "bot_user_id")]
+    pub user_id: String,
+}
+
+impl BotConfig {
+    fn default_bot_name() -> String {
+        "BOT_cnvtr".to_string()
     }
 }

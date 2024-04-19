@@ -1,7 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use domain::{
     ChannelId, Event, EventSubscriber, GroupId, MessageId, Repository, StampId, TraqClient, UserId,
     WebhookId,
 };
+use repository::opt;
 
 #[derive(Clone)]
 pub struct EventSubWrapper<S: EventSubscriber + Clone>(pub S);
@@ -131,4 +134,55 @@ where
             .add_message_stamp(message_id, stamp_id, count)
             .await?)
     }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RepoConfig {
+    pub database: String,
+    pub hostname: String,
+    pub password: String,
+    pub port: String,
+    pub user: String,
+}
+
+impl RepoConfig {
+    pub fn from_env() -> envy::Result<Self> {
+        envy::prefixed("NS_MARIADB_")
+            .from_env()
+            .or_else(|_| envy::prefixed("MYSQL_").from_env())
+    }
+
+    #[must_use]
+    pub fn database_url(&self) -> String {
+        format!(
+            "mysql://{}:{}@{}:{}/{}",
+            self.user, self.password, self.hostname, self.port, self.database
+        )
+    }
+}
+
+impl TryFrom<RepoConfig> for opt::Opt {
+    type Error = <u16 as std::str::FromStr>::Err;
+
+    fn try_from(value: RepoConfig) -> Result<Self, Self::Error> {
+        let RepoConfig {
+            database,
+            hostname,
+            password,
+            port,
+            user,
+        } = value;
+        Ok(opt::Opt {
+            hostname,
+            user,
+            password,
+            port: port.parse()?,
+            database,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TraqClientConfig {
+    pub bot_access_token: String,
 }

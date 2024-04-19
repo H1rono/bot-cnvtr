@@ -8,8 +8,7 @@ use router::make_router;
 use traq_client::ClientImpl;
 use wh_handler::WebhookHandlerImpl;
 
-use bot_cnvtr::config::ConfigComposite;
-use bot_cnvtr::wrappers;
+use bot_cnvtr::{wrappers, ConfigComposite};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -47,11 +46,7 @@ async fn main() -> anyhow::Result<()> {
         })
     };
 
-    let bot = BotImpl::new(
-        bot_config.bot_name,
-        bot_config.bot_id,
-        bot_config.bot_user_id,
-    );
+    let bot = BotImpl::new(bot_config.name, bot_config.id, bot_config.user_id);
     let wh = WebhookHandlerImpl::new();
     let app = wrappers::AppImpl::new_wrapped(bot, wh);
     let app = Arc::new(app);

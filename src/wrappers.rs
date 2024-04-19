@@ -1,5 +1,5 @@
-mod app;
-mod infra;
+pub mod app;
+pub mod infra;
 
 use std::marker::PhantomData;
 
