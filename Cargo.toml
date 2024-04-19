@@ -36,6 +36,7 @@ router.path = "./router"
 
 [workspace.lints.clippy]
 pedantic = "deny"
+missing-errors-doc = "allow"
 
 
 [package]
@@ -67,6 +68,9 @@ traq-client.workspace = true
 cron.workspace = true
 wh-handler.workspace = true
 bot.workspace = true
+
+[lints]
+workspace = true
 
 
 [patch.crates-io]
