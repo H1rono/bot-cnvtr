@@ -98,17 +98,16 @@ where
     I: Infra<Error = domain::Error>,
     A: App<I, Error = domain::Error>,
 {
+    use webhook::{get_wh, wh_clickup, wh_gitea, wh_github};
+
     let parser = RequestParser::new(verification_token);
     let state = AppStateImpl::new(infra, app, parser);
     Router::new()
         .route("/bot", post(bot::event::<AppStateImpl<I, A>>))
-        .route("/wh/:id", get(webhook::get_wh::<AppStateImpl<I, A>>))
-        .route("/wh/:id/github", post(webhook::wh_github::<AppStateImpl<I, A>>))
-        .route("/wh/:id/gitea", post(webhook::wh_gitea::<AppStateImpl<I, A>>))
-        .route(
-            "/wh/:id/clickup",
-            post(webhook::wh_clickup::<AppStateImpl<I, A>>),
-        )
+        .route("/wh/:id", get(get_wh::<AppStateImpl<I, A>>))
+        .route("/wh/:id/github", post(wh_github::<AppStateImpl<I, A>>))
+        .route("/wh/:id/gitea", post(wh_gitea::<AppStateImpl<I, A>>))
+        .route("/wh/:id/clickup", post(wh_clickup::<AppStateImpl<I, A>>))
         .with_state(state)
 }
 
