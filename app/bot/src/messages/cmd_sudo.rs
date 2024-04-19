@@ -1,5 +1,5 @@
 use anyhow::Context;
-use futures::{pin_mut, StreamExt};
+use futures::StreamExt;
 
 use domain::{Error, Infra, Repository, Result, TraqClient};
 
@@ -68,10 +68,10 @@ impl BotImpl {
                 yield client.send_direct_message(&u.id, &message, false).await;
             }
         };
-        pin_mut!(it);
-        while let Some(r) = it.next().await {
-            r?;
-        }
+        it.collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(())
     }
 }

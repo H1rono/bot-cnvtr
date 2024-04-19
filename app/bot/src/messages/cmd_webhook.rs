@@ -1,4 +1,4 @@
-use futures::{pin_mut, StreamExt};
+use futures::StreamExt;
 use indoc::formatdoc;
 use uuid::Uuid;
 
@@ -103,10 +103,10 @@ impl BotImpl {
                 yield client.send_direct_message(&u.id, msg, true).await;
             }
         };
-        pin_mut!(it);
-        while let Some(r) = it.next().await {
-            r?;
-        }
+        it.collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(())
     }
 
@@ -144,10 +144,10 @@ impl BotImpl {
                 yield client.send_direct_message(&u.id, &message, false).await;
             }
         };
-        pin_mut!(it);
-        while let Some(r) = it.next().await {
-            r?;
-        }
+        it.collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(())
     }
 
@@ -159,19 +159,24 @@ impl BotImpl {
         let client = infra.traq_client();
 
         let webhooks = infra.repo().filter_webhook_by_user(&list.user).await?;
-        let mut serialized_webhooks = vec![];
-        for w in webhooks {
-            let channel_path = client.get_channel_path(&w.channel_id).await?;
-            let ser_w = formatdoc! {
-                r#"
-                    Webhook ID: {}
-                    投稿先チャンネル: {}
-                "#,
-                w.id, channel_path
-            };
-            serialized_webhooks.push(ser_w);
-        }
-        let message = serialized_webhooks.join("\n\n---\n\n");
+        let webhooks = async_stream::stream! {
+            for w in webhooks {
+                let channel_path = client.get_channel_path(&w.channel_id).await?;
+                yield Ok(formatdoc! {
+                    r#"
+                        Webhook ID: {}
+                        投稿先チャンネル: {}
+                    "#,
+                    w.id, channel_path
+                });
+            }
+        };
+        let message = webhooks
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .join("\n---\n\n");
         client
             .send_direct_message(&list.user.id, &message, true)
             .await?;
