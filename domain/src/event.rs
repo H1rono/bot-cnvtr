@@ -2,6 +2,7 @@ use std::{borrow::Cow, future::Future};
 
 use crate::ChannelId;
 
+#[must_use]
 #[derive(Clone, Debug)]
 pub struct Event {
     pub channel_id: ChannelId,
@@ -9,6 +10,7 @@ pub struct Event {
     pub body: String,
 }
 
+#[must_use]
 pub trait EventSubscriber: Clone + Send + Sync + 'static {
     type Error: Into<crate::Error> + Send + Sync + 'static;
 
@@ -20,14 +22,17 @@ impl Event {
         &self.channel_id
     }
 
+    #[must_use]
     pub fn kind(&self) -> &str {
         &self.kind
     }
 
+    #[must_use]
     pub fn body(&self) -> Cow<'_, str> {
         Cow::Borrowed(&self.body)
     }
 
+    #[must_use]
     pub fn can_merged(&self, other: &Event) -> bool {
         self.channel_id == other.channel_id && self.kind == other.kind
     }

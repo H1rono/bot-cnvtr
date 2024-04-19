@@ -1,3 +1,4 @@
+#[must_use]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("ill-formatted request")]

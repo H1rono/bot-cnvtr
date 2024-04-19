@@ -5,6 +5,7 @@ use crate::Owner;
 crate::macros::newtype_id! {Webhook}
 crate::macros::newtype_id! {Channel}
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Webhook {
     pub id: WebhookId,

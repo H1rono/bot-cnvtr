@@ -1,6 +1,7 @@
 macro_rules! newtype_id {
     ($i:ident) => {
         ::paste::paste! {
+            #[must_use]
             #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd, ::serde::Serialize, ::serde::Deserialize)]
             #[serde(transparent)]
             pub struct [<$i:camel Id>](pub ::uuid::Uuid);

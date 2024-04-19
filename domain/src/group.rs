@@ -4,6 +4,7 @@ use crate::User;
 
 crate::macros::newtype_id! {Group}
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Group {
     pub id: GroupId,

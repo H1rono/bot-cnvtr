@@ -4,6 +4,7 @@ use crate::owner::Owner;
 use crate::user::User;
 use crate::webhook::{ChannelId, Webhook, WebhookId};
 
+#[must_use]
 pub trait Repository: Send + Sync + 'static {
     type Error: Into<crate::error::Error> + Send + Sync + 'static;
 
