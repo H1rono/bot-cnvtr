@@ -19,3 +19,6 @@ traq-bot-http.workspace = true
 
 domain.workspace = true
 usecases.workspace = true
+
+[lints]
+workspace = true

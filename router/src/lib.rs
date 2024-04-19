@@ -11,7 +11,7 @@ use usecases::App;
 
 mod bot;
 mod error;
-mod wh;
+mod webhook;
 
 trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra<Error = Self::Error>;
@@ -102,12 +102,12 @@ where
     let state = AppStateImpl::new(infra, app, parser);
     Router::new()
         .route("/bot", post(bot::event::<AppStateImpl<I, A>>))
-        .route("/wh/:id", get(wh::get_wh::<AppStateImpl<I, A>>))
-        .route("/wh/:id/github", post(wh::wh_github::<AppStateImpl<I, A>>))
-        .route("/wh/:id/gitea", post(wh::wh_gitea::<AppStateImpl<I, A>>))
+        .route("/wh/:id", get(webhook::get_wh::<AppStateImpl<I, A>>))
+        .route("/wh/:id/github", post(webhook::wh_github::<AppStateImpl<I, A>>))
+        .route("/wh/:id/gitea", post(webhook::wh_gitea::<AppStateImpl<I, A>>))
         .route(
             "/wh/:id/clickup",
-            post(wh::wh_clickup::<AppStateImpl<I, A>>),
+            post(webhook::wh_clickup::<AppStateImpl<I, A>>),
         )
         .with_state(state)
 }

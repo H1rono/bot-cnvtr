@@ -11,16 +11,16 @@ use usecases::Bot;
 use super::AppState;
 
 #[derive(Debug, Clone)]
-pub struct BotEvent(pub Event);
+pub struct EventRequest(pub Event);
 
 #[async_trait]
-impl<S> FromRequest<S> for BotEvent
+impl<S> FromRequest<S> for EventRequest
 where
     S: AppState<Error = domain::Error>,
 {
     type Rejection = StatusCode;
 
-    #[tracing::instrument(skip_all, target = "router::bot::BotEvent::from_request")]
+    #[tracing::instrument(skip_all, target = "router::bot::EventRequest::from_request")]
     async fn from_request(req: Request<Body>, state: &S) -> Result<Self, Self::Rejection> {
         let parser = state.parser();
         let (parts, body) = req.into_parts();
@@ -42,13 +42,13 @@ where
     skip_all,
     fields(event_kind = %event.kind()),
 )]
-pub(super) async fn event<S>(State(st): State<S>, BotEvent(event): BotEvent) -> StatusCode
+pub(super) async fn event<S>(State(st): State<S>, EventRequest(event): EventRequest) -> StatusCode
 where
     S: AppState<Error = domain::Error>,
 {
     tracing::info!("POST traQ BOT event");
     match st.bot().handle_event(st.infra(), event).await {
-        Ok(_) => StatusCode::NO_CONTENT,
+        Ok(()) => StatusCode::NO_CONTENT,
         Err(err) => {
             tracing::error!(%err);
             StatusCode::INTERNAL_SERVER_ERROR
