@@ -66,11 +66,7 @@ impl BotImpl {
         }
 
         // webhook生成してDBに追加
-        let mut id = Uuid::new_v4().into();
-        while repo.find_webhook(&id).await?.is_some() {
-            // 重複しないようにする
-            id = Uuid::new_v4().into();
-        }
+        let id = Uuid::new_v4().into();
         let channel_id = create.channel_id;
         let webhook = domain::Webhook::new(id, channel_id, owner);
         repo.add_webhook(&webhook).await?;
