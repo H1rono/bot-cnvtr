@@ -2,7 +2,10 @@ macro_rules! newtype_id {
     ($i:ident) => {
         ::paste::paste! {
             #[must_use]
-            #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd, ::serde::Serialize, ::serde::Deserialize)]
+            #[derive(
+                Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
+                ::serde::Serialize, ::serde::Deserialize
+            )]
             #[serde(transparent)]
             pub struct [<$i:camel Id>](pub ::uuid::Uuid);
 
@@ -19,8 +22,7 @@ macro_rules! newtype_id {
             }
 
             impl ::std::fmt::Display for [<$i:camel Id>] {
-                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>)
-                    -> ::std::result::Result<(), ::std::fmt::Error>
+                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result
                 {
                     <::uuid::Uuid as ::std::fmt::Display>::fmt(&self.0, f)
                 }
