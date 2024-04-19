@@ -9,6 +9,7 @@ use traq_client::ClientImpl;
 use wh_handler::WebhookHandlerImpl;
 
 use bot_cnvtr::config::ConfigComposite;
+use bot_cnvtr::wrappers;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -33,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let repo = repo_opt.connect().await?;
     repo.migrate().await?;
     let (tx, rx) = cron::channel(100);
-    let infra = bot_cnvtr::infra::InfraImpl::new_wrapped(repo, client, tx);
+    let infra = wrappers::InfraImpl::new_wrapped(repo, client, tx);
     let infra = Arc::new(infra);
 
     // run notifier in background
@@ -52,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         bot_config.bot_user_id,
     );
     let wh = WebhookHandlerImpl::new();
-    let app = bot_cnvtr::app::AppImpl::new_wrapped(bot, wh);
+    let app = wrappers::AppImpl::new_wrapped(bot, wh);
     let app = Arc::new(app);
 
     let router = make_router(&router_config.verification_token, infra, app)

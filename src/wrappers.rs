@@ -1,12 +1,13 @@
-pub mod event_subscriber;
-pub mod repository;
-pub mod traq_client;
+mod app;
+mod infra;
+
+use std::marker::PhantomData;
 
 use domain::{EventSubscriber, Infra, Repository, TraqClient};
+use usecases::{App, Bot, WebhookHandler};
 
-use event_subscriber::EventSubWrapper;
-use repository::RepoWrapper;
-use traq_client::TraqClientWrapper;
+use app::{BotWrapper, WHandlerWrapper};
+use infra::{EventSubWrapper, RepoWrapper, TraqClientWrapper};
 
 pub struct InfraImpl<R, C, S>(pub R, pub C, pub S);
 
@@ -55,5 +56,46 @@ where
 
     fn event_subscriber(&self) -> &Self::ESub {
         &self.2
+    }
+}
+
+pub struct AppImpl<B, W, I = ()>(pub B, pub W, PhantomData<I>);
+
+impl<B, W, I> AppImpl<B, W, I> {
+    pub fn new(b: B, w: W) -> Self {
+        AppImpl(b, w, PhantomData)
+    }
+}
+
+impl<I, B, W> AppImpl<B, W, I>
+where
+    I: Infra,
+    B: Bot<I>,
+    W: WebhookHandler<I>,
+    domain::Error: From<I::Error> + From<B::Error> + From<W::Error>,
+{
+    pub fn new_wrapped(b: B, w: W) -> AppImpl<BotWrapper<I, B>, WHandlerWrapper<I, W>> {
+        let b = BotWrapper::new(b);
+        let w = WHandlerWrapper::new(w);
+        AppImpl(b, w, PhantomData)
+    }
+}
+
+impl<I, B, W> App<I> for AppImpl<B, W>
+where
+    I: Infra<Error = domain::Error>,
+    B: Bot<I, Error = domain::Error>,
+    W: WebhookHandler<I, Error = domain::Error>,
+{
+    type Error = domain::Error;
+    type Bot = B;
+    type WebhookHandler = W;
+
+    fn bot(&self) -> &Self::Bot {
+        &self.0
+    }
+
+    fn webhook_handler(&self) -> &Self::WebhookHandler {
+        &self.1
     }
 }
