@@ -54,7 +54,7 @@ impl BotImpl {
             return Ok(());
         }
         let Some(webhook) = repo.find_webhook(&delete.id).await? else {
-            let message = format!("エラー: webhook {} は存在しません", delete.id);
+            let message = format!("エラー: webhook {id} は存在しません", id = delete.id);
             client
                 .send_message(&delete.talking_channel_id, &message, false)
                 .await?;
@@ -63,7 +63,7 @@ impl BotImpl {
         let own_users = webhook.owner.users();
         repo.remove_webhook(&webhook).await?;
         let it = async_stream::stream! {
-            let message = format!("Webhook {} を削除しました", delete.id);
+            let message = format!("Webhook {id} を削除しました", id = delete.id);
             for u in own_users {
                 yield client.send_direct_message(&u.id, &message, false).await;
             }

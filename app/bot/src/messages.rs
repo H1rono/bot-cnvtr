@@ -14,7 +14,7 @@ impl BotImpl {
     fn parse_command(&self, cmd: &str) -> Result<Cli, clap::Error> {
         let cmd = cmd.trim().to_string();
         let cmd = (!cmd.starts_with('@'))
-            .then(|| format!("@{} {}", &self.name, cmd))
+            .then(|| format!("@{name} {cmd}", name = &self.name))
             .unwrap_or(cmd)
             .replace('#', r"\#");
         let args = shlex::split(&cmd).unwrap_or_default();

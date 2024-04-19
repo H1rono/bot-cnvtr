@@ -58,7 +58,10 @@ impl BotImpl {
             Owner::SigleUser(u) => u.id == create.user.id,
         };
         if !owner_contain_self {
-            let message = format!("エラー: --ownerに @{} が含まれていません", create.user.name);
+            let message = format!(
+                "エラー: --ownerに @{name} が含まれていません",
+                name = create.user.name
+            );
             client
                 .send_message(&create.talking_channel_id, &message, true)
                 .await?;
@@ -72,29 +75,28 @@ impl BotImpl {
         repo.add_webhook(&webhook).await?;
 
         let message_title = match webhook.owner.kind() {
-            OwnerKind::Group => format!(":@{}:によってWebhookが作成されました", create.user.name),
+            OwnerKind::Group => format!(
+                ":@{name}:によってWebhookが作成されました",
+                name = create.user.name
+            ),
             OwnerKind::SingleUser => String::from("Webhookが作成されました"),
         };
         let channel_path = client.get_channel_path(&webhook.channel_id).await?;
         let message = formatdoc! {
             r##"
-                ### {}
+                ### {message_title}
 
-                Webhook ID: {}
-                投稿先チャンネル: {}
+                Webhook ID: {id}
+                投稿先チャンネル: {channel_path}
                 各サービスに対応するWebhookエンドポイントは以下の通りです:
 
-                - GitHub: https://cnvtr.trap.show/wh/{}/github
-                - Gitea: https://cnvtr.trap.show/wh/{}/gitea
-                - ClickUp: https://cnvtr.trap.show/wh/{}/clickup
+                - GitHub: https://cnvtr.trap.show/wh/{id}/github
+                - Gitea: https://cnvtr.trap.show/wh/{id}/gitea
+                - ClickUp: https://cnvtr.trap.show/wh/{id}/clickup
 
-                Webhookを削除する場合は `@BOT_cnvtr webhook delete {}` と投稿してください
+                Webhookを削除する場合は `@BOT_cnvtr webhook delete {id}` と投稿してください
             "##,
-            message_title,
-            webhook.id,
-            channel_path,
-            webhook.id, webhook.id, webhook.id,
-            webhook.id
+            id = webhook.id,
         };
         let msg = message.trim();
         let own_users = webhook.owner.users();
@@ -119,7 +121,10 @@ impl BotImpl {
         let client = infra.traq_client();
 
         let Some(webhook) = repo.find_webhook(&delete.webhook_id).await? else {
-            let message = format!("エラー: webhook {} は存在しません", delete.webhook_id);
+            let message = format!(
+                "エラー: webhook {id} は存在しません",
+                id = delete.webhook_id
+            );
             client
                 .send_message(&delete.talking_channel_id, &message, true)
                 .await?;
@@ -128,8 +133,8 @@ impl BotImpl {
         let own_users_contain_self = webhook.owner.users().iter().any(|u| u.id == delete.user.id);
         if !own_users_contain_self {
             let message = format!(
-                "エラー: webhook所有者に @{} が含まれていません",
-                delete.user.name,
+                "エラー: webhook所有者に @{name} が含まれていません",
+                name = delete.user.name,
             );
             client
                 .send_message(&delete.talking_channel_id, &message, true)
@@ -139,7 +144,7 @@ impl BotImpl {
         repo.remove_webhook(&webhook).await?;
         let own_users = webhook.owner.users();
         let it = async_stream::stream! {
-            let message = format!("Webhook {} を削除しました", delete.webhook_id);
+            let message = format!("Webhook {id} を削除しました", id = delete.webhook_id);
             for u in own_users {
                 yield client.send_direct_message(&u.id, &message, false).await;
             }
@@ -164,10 +169,10 @@ impl BotImpl {
                 let channel_path = client.get_channel_path(&w.channel_id).await?;
                 yield Ok(formatdoc! {
                     r#"
-                        Webhook ID: {}
-                        投稿先チャンネル: {}
+                        Webhook ID: {id}
+                        投稿先チャンネル: {channel_path}
                     "#,
-                    w.id, channel_path
+                    id = w.id
                 });
             }
         };
