@@ -88,8 +88,7 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_ignore_group_members(&self, gms: &[GroupMember]) -> Result<()> {
-        let gms_len = gms.len();
-        if gms_len == 0 {
+        if gms.is_empty() {
             return Ok(());
         }
         let query = formatdoc! {
@@ -98,7 +97,7 @@ impl RepositoryImpl {
                 INTO `group_members` (`group_id`, `user_id`)
                 VALUES {}
             "#,
-            iter::repeat("(?, ?)").take(gms_len).join(", ")
+            iter::repeat("(?, ?)").take(gms.len()).join(", ")
         };
         let query = gms.iter().fold(sqlx::query(&query), |q, gm| {
             q.bind(gm.group_id.to_string()).bind(gm.user_id.to_string())

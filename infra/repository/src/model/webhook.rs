@@ -121,8 +121,7 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_ignore_webhooks(&self, ws: &[Webhook]) -> Result<()> {
-        let ws_len = ws.len();
-        if ws_len == 0 {
+        if ws.is_empty() {
             return Ok(());
         }
         let query = formatdoc! {
@@ -131,7 +130,7 @@ impl RepositoryImpl {
                 INTO `webhooks` (`id`, `channel_id`, `owner_id`)
                 VALUES {}
             "#,
-            iter::repeat("(?, ?, ?)").take(ws_len).join(", ")
+            iter::repeat("(?, ?, ?)").take(ws.len()).join(", ")
         };
         let query = ws.iter().fold(sqlx::query(&query), |q, w| {
             q.bind(w.id.to_string())

@@ -60,8 +60,7 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
-        let us_len = us.len();
-        if us_len == 0 {
+        if us.is_empty() {
             return Ok(());
         }
         let query = formatdoc! {
@@ -70,7 +69,7 @@ impl RepositoryImpl {
                 INTO `users` (`id`, `name`)
                 VALUES {}
             "#,
-            iter::repeat("(?, ?)").take(us_len).join(", ")
+            iter::repeat("(?, ?)").take(us.len()).join(", ")
         };
         let query = us.iter().fold(sqlx::query(&query), |q, u| {
             q.bind(u.id.to_string()).bind(&u.name)

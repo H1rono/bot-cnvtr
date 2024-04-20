@@ -63,8 +63,7 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
-        let os_len = os.len();
-        if os_len == 0 {
+        if os.is_empty() {
             return Ok(());
         }
         let query = formatdoc! {
@@ -73,7 +72,7 @@ impl RepositoryImpl {
                 INTO `owners` (`id`, `name`, `group`)
                 VALUES {}
             "#,
-            iter::repeat("(?, ?, ?)").take(os_len).join(", ")
+            iter::repeat("(?, ?, ?)").take(os.len()).join(", ")
         };
         let query = os.iter().fold(sqlx::query(&query), |q, o| {
             q.bind(o.id.to_string()).bind(&o.name).bind(o.group)

@@ -60,8 +60,7 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
-        let gs_len = gs.len();
-        if gs_len == 0 {
+        if gs.is_empty() {
             return Ok(());
         }
         let query = formatdoc! {
@@ -70,7 +69,7 @@ impl RepositoryImpl {
                 INTO `groups` (`id`, `name`)
                 VALUES {}
             "#,
-            iter::repeat("(?, ?)").take(gs_len).join(", ")
+            iter::repeat("(?, ?)").take(gs.len()).join(", ")
         };
         let query = gs.iter().fold(sqlx::query(&query), |q, g| {
             q.bind(g.id.to_string()).bind(&g.name)
