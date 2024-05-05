@@ -47,10 +47,11 @@
     let
       pkgs = import nixpkgs {
         inherit system;
+        overlays = [ fenix.overlays.default ];
       };
       inherit (pkgs) lib dockerTools;
 
-      toolchain = fenix.packages.${system}.fromToolchainFile {
+      toolchain = pkgs.fenix.fromToolchainFile {
         file = ./rust-toolchain.toml;
         sha256 = "sha256-7QfkHty6hSrgNM0fspycYkRcB82eEqYa4CoAJ9qA3tU=";
       };
