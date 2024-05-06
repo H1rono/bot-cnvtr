@@ -94,8 +94,9 @@ impl BotImpl {
                 - Gitea: https://cnvtr.trap.show/wh/{id}/gitea
                 - ClickUp: https://cnvtr.trap.show/wh/{id}/clickup
 
-                Webhookを削除する場合は `@BOT_cnvtr webhook delete {id}` と投稿してください
+                Webhookを削除する場合は `@{bot_name} webhook delete {id}` と投稿してください
             "##,
+            bot_name = &self.name,
             id = webhook.id,
         };
         let msg = message.trim();
