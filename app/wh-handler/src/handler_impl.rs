@@ -3,13 +3,12 @@ use http::HeaderMap;
 use domain::{Infra, Webhook};
 use usecases::{WebhookHandler, WebhookKind};
 
+use crate::WebhookHandlerImpl;
+
 mod clickup;
 mod gitea;
 mod github;
 mod utils;
-
-#[derive(Debug, Clone)]
-pub struct WebhookHandlerImpl;
 
 impl WebhookHandlerImpl {
     pub fn new() -> Self {

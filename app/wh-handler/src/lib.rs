@@ -1,3 +1,5 @@
 mod handler_impl;
 
-pub use handler_impl::WebhookHandlerImpl;
+#[must_use]
+#[derive(Debug, Clone)]
+pub struct WebhookHandlerImpl;
