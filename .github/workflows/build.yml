@@ -48,8 +48,17 @@ jobs:
         run: nix build .#cargoDeps
       - name: Build @3
         run: nix build
+      - name: Build @4
+        run: |
+          nix build .#releaseImage
+          cp result bot-cnvtr.tar.gz
       - name: Checks
         run: nix flake check
+      - name: Upload release image
+        uses: actions/upload-artifact@v4
+        with:
+          name: cnvtr-nix-image
+          path: ./bot-cnvtr.tar.gz
 
   ghcr:
     runs-on: ubuntu-latest
@@ -87,6 +96,46 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  ghcr-nix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    needs:
+      - rust
+      - nix
+    if: ${{ github.ref_name == 'main' }}
+    env:
+      REPOSITORY: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.PAT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: cnvtr-nix-image
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: h1rono
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load image
+        run: |
+          docker load < bot-cnvtr.tar.gz
+          rm bot-cnvtr.tar.gz
+      - name: Rename image
+        run: |
+          docker image ls --format json bot-cnvtr:latest | jq -r -e '.ID' > image_id
+          docker image tag "$(cat image_id)" ghcr.io/h1rono/bot-cnvtr:nix-latest
+          docker image rm bot-cnvtr:latest
+          rm image_id
+      - name: Push image
+        run: docker push ghcr.io/h1rono/bot-cnvtr:nix-latest
 
   notify-ns:
     runs-on: ubuntu-latest
