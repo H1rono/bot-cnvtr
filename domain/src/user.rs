@@ -1,13 +1,5 @@
-use serde::{Deserialize, Serialize};
-
-crate::macros::newtype_id! {User}
-
-#[must_use]
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct User {
-    pub id: UserId,
-    pub name: String,
-}
+use crate::id::UserId;
+use crate::User;
 
 impl User {
     pub fn new(id: UserId, name: String) -> Self {

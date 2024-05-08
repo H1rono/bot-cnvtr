@@ -1,21 +1,6 @@
-use std::{borrow::Cow, future::Future};
+use std::borrow::Cow;
 
-use crate::ChannelId;
-
-#[must_use]
-#[derive(Clone, Debug)]
-pub struct Event {
-    pub channel_id: ChannelId,
-    pub kind: String,
-    pub body: String,
-}
-
-#[must_use]
-pub trait EventSubscriber: Clone + Send + Sync + 'static {
-    type Error: Into<crate::Error> + Send + Sync + 'static;
-
-    fn send(&self, event: Event) -> impl Future<Output = Result<(), Self::Error>> + Send;
-}
+use crate::{ChannelId, Event};
 
 impl Event {
     pub fn channel_id(&self) -> &ChannelId {
