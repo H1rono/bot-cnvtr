@@ -1,4 +1,4 @@
-use std::{future::Future, ops::Deref, sync::Arc, time::Duration};
+use std::{future::Future, sync::Arc, time::Duration};
 
 use tokio::select;
 use tokio::time::interval;
@@ -26,8 +26,8 @@ impl Notifier {
     async fn recv_many_with_limit(&mut self, limit: impl Future<Output = ()> + Send) -> Vec<Event> {
         let mut res = Vec::<Event>::new();
         select! {
-            _ = self.recv_many_unstop(&mut res) => unreachable!(),
-            _ = limit => {}
+            () = self.recv_many_unstop(&mut res) => unreachable!(),
+            () = limit => {}
         }
         res
     }
@@ -58,7 +58,7 @@ impl Notifier {
                 tracing::trace!("tick");
             };
             let events = self.recv_many_with_limit(tick).await;
-            self.send_events(infra.deref(), &events).await;
+            self.send_events(&*infra, &events).await;
         }
     }
 }

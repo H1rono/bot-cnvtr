@@ -5,9 +5,11 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 
 use domain::Event;
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct Subscriber(pub(crate) Sender<Event>);
 
+#[must_use]
 #[derive(Debug)]
 pub struct Notifier(pub(crate) Receiver<Event>);
 
