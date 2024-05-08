@@ -94,7 +94,7 @@ macro_rules! unwrap_opt_boxed {
     };
 }
 
-/// X-Gitea-Event: create
+/// `X-Gitea-Event: create`
 fn create(payload: th::CreatePayload) -> Result<String, Error> {
     let th::CreatePayload {
         r#ref,
@@ -112,7 +112,7 @@ fn create(payload: th::CreatePayload) -> Result<String, Error> {
     })
 }
 
-/// X-Gitea-Event: delete
+/// `X-Gitea-Event: delete`
 fn delete(payload: th::DeletePayload) -> Result<String, Error> {
     let th::DeletePayload {
         r#ref,
@@ -130,7 +130,7 @@ fn delete(payload: th::DeletePayload) -> Result<String, Error> {
     })
 }
 
-/// X-Gitea-Event: fork
+/// `X-Gitea-Event: fork`
 fn fork(payload: th::ForkPayload) -> Result<String, Error> {
     let th::ForkPayload {
         forkee,
@@ -146,7 +146,7 @@ fn fork(payload: th::ForkPayload) -> Result<String, Error> {
     })
 }
 
-/// X-Gitea-Event: push
+/// `X-Gitea-Event: push`
 fn push(payload: th::PushPayload) -> Result<String, Error> {
     let th::PushPayload {
         r#ref,
@@ -181,7 +181,7 @@ fn push(payload: th::PushPayload) -> Result<String, Error> {
     })
 }
 
-/// X-Gitea-Event: issues
+/// `X-Gitea-Event: issues`
 fn issues(payload: th::IssuePayload) -> Result<String, Error> {
     let th::IssuePayload {
         action,
@@ -200,6 +200,7 @@ fn issues(payload: th::IssuePayload) -> Result<String, Error> {
     })
 }
 
+// `X-Gitea-Event: pull_request`
 fn pull_request(payload: th::PullRequestPayload) -> Result<String, Error> {
     let th::PullRequestPayload {
         action,
@@ -217,7 +218,7 @@ fn pull_request(payload: th::PullRequestPayload) -> Result<String, Error> {
     })
 }
 
-/// X-Gitea-Event: *
+/// `X-Gitea-Event: *`
 fn default(_event_type: &str, _payload: Value) -> Option<String> {
     None
 }

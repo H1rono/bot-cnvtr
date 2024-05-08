@@ -68,12 +68,12 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     Ok(message)
 }
 
-/// X-GitHub-Event: ping
+/// `X-GitHub-Event: ping`
 fn ping(_: Value) -> Option<String> {
     None
 }
 
-/// X-GitHub-Event: create
+/// `X-GitHub-Event: create`
 fn create(payload: gh::CreateEvent) -> Option<String> {
     let gh::CreateEvent {
         ref_: ref_name,
@@ -91,7 +91,7 @@ fn create(payload: gh::CreateEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: delete
+/// `X-GitHub-Event: delete`
 fn delete(payload: gh::DeleteEvent) -> Option<String> {
     let ref_name = payload.ref_;
     let ref_type = payload.ref_type;
@@ -106,7 +106,7 @@ fn delete(payload: gh::DeleteEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: push
+/// `X-GitHub-Event: push`
 fn push(payload: gh::PushEvent) -> Option<String> {
     let gh::PushEvent {
         ref_: ref_name,
@@ -139,7 +139,7 @@ fn push(payload: gh::PushEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: issues
+/// `X-GitHub-Event: issues`
 fn issues(payload: gh::IssuesEvent) -> Option<String> {
     macro_rules! issue_event {
         ($i:ident, $kind:ident) => {{
@@ -201,7 +201,7 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: issue_comment
+/// `X-GitHub-Event: issue_comment`
 fn issue_comment(payload: gh::IssueCommentEvent) -> Option<String> {
     macro_rules! issue_comment {
         ($i:ident, $kind:ident) => {{
@@ -242,7 +242,7 @@ fn issue_comment(payload: gh::IssueCommentEvent) -> Option<String> {
     })
 }
 
-/// X-GitHub-Event: fork
+/// `X-GitHub-Event: fork`
 fn fork(payload: gh::ForkEvent) -> Option<String> {
     let gh::ForkEvent {
         forkee,
@@ -261,7 +261,7 @@ fn fork(payload: gh::ForkEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: branch_protection_rule
+/// `X-GitHub-Event: branch_protection_rule`
 fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Option<String> {
     macro_rules! branch_protection_rule_event {
         ($i:ident, $kind:ident) => {{
@@ -293,7 +293,7 @@ fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Option<Stri
     Some(message)
 }
 
-/// X-GitHub-Event: pull_request
+/// `X-GitHub-Event: pull_request`
 fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
     macro_rules! pull_request_event {
         ($i:ident, $kind:ident) => {{
@@ -365,7 +365,7 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: pull_request_review_comment
+/// `X-GitHub-Event: pull_request_review_comment`
 fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Option<String> {
     macro_rules! pr_review_comment_event {
         ($i:ident, $kind:ident) => {{
@@ -401,7 +401,7 @@ fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Op
     Some(message)
 }
 
-/// X-GitHub-Event: pull_request_review
+/// `X-GitHub-Event: pull_request_review`
 fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Option<String> {
     macro_rules! pr_review_event {
         ($i:ident, $kind:ident) => {{
@@ -435,7 +435,7 @@ fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: pull_request_review_thread
+/// `X-GitHub-Event: pull_request_review_thread`
 fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Option<String> {
     macro_rules! pr_review_thread_event {
         ($i:ident, $kind:ident) => {{
@@ -466,7 +466,7 @@ fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Opti
     Some(message)
 }
 
-/// X-GitHub-Event: release
+/// `X-GitHub-Event: release`
 fn release(payload: gh::ReleaseEvent) -> Option<String> {
     macro_rules! release_event {
         ($i:ident, $kind:ident) => {{
@@ -513,7 +513,7 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: repository
+/// `X-GitHub-Event: repository`
 fn repository(payload: gh::RepositoryEvent) -> Option<String> {
     macro_rules! repository_event {
         ($i:ident, $kind:ident) => {{
@@ -547,7 +547,7 @@ fn repository(payload: gh::RepositoryEvent) -> Option<String> {
     ))
 }
 
-/// X-GitHub-Event: star
+/// `X-GitHub-Event: star`
 fn star(payload: gh::StarEvent) -> Option<String> {
     let gh::StarEvent::Created(star) = &payload else {
         return None; // FIXME: deleteを伝えるなんてできない...
@@ -564,7 +564,7 @@ fn star(payload: gh::StarEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: watch
+/// `X-GitHub-Event: watch`
 fn watch(payload: gh::WatchEvent) -> Option<String> {
     let gh::WatchEvent {
         repository, sender, ..
@@ -577,7 +577,7 @@ fn watch(payload: gh::WatchEvent) -> Option<String> {
     })
 }
 
-/// X-GitHub-Event: workflow_job
+/// `X-GitHub-Event: workflow_job`
 fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
     use gh::WorkflowJobEvent::*;
     let message = match &payload {
@@ -671,7 +671,7 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: workflow_run
+/// `X-GitHub-Event: workflow_run`
 fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
     use gh::WorkflowRunEvent::{Completed, InProgress, Requested};
     let message = match payload {
@@ -739,12 +739,12 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
     Some(message)
 }
 
-/// X-GitHub-Event: *
+/// `X-GitHub-Event: *`
 fn default(_event_type: &str, _payload: Value) -> Option<String> {
     None
 }
 
-/// user -> `[user.login](user.html_url)`
+/// `user` -> `[user.login](user.html_url)`
 fn user_str(user: &gh::User) -> String {
     let gh::User {
         login, html_url, ..
@@ -752,7 +752,7 @@ fn user_str(user: &gh::User) -> String {
     format!("[{}]({})", login, html_url)
 }
 
-/// repository -> `[repository.full_name](repository.html_url)`
+/// `repository` -> `[repository.full_name](repository.html_url)`
 fn repo_str(repo: &gh::Repository) -> String {
     let gh::Repository {
         full_name,
@@ -769,7 +769,7 @@ fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
     }
 }
 
-/// pr -> `[#pr.number pr.title](pr.html_url)`
+/// `pr` -> `[#pr.number pr.title](pr.html_url)`
 fn pr_str(pr: &gh::PullRequest) -> String {
     let gh::PullRequest {
         number,
@@ -791,7 +791,7 @@ fn issue_str(issue: &gh::Issue) -> String {
     format!("[#{} {}]({})", number, title, html_url)
 }
 
-/// pr -> `[#pr.number pr.title](pr.html_url)`
+/// `pr` -> `[#pr.number pr.title](pr.html_url)`
 fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
     let gh::SimplePullRequest {
         number,
@@ -802,19 +802,19 @@ fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
     format!("[#{} {}]({})", number, title, html_url)
 }
 
-/// release -> `[release.name](release.html_url)`
+/// `release` -> `[release.name](release.html_url)`
 fn release_str(release: &gh::Release) -> String {
     let gh::Release { name, html_url, .. } = release;
     format!("[{}]({})", name, html_url)
 }
 
-/// workflow -> `[workflow.name](workflow.html_url)`
+/// `workflow` -> `[workflow.name](workflow.html_url)`
 fn workflow_str(workflow: &gh::Workflow) -> String {
     let gh::Workflow { name, html_url, .. } = workflow;
     format!("[{}]({})", name, html_url)
 }
 
-/// workflow_run -> `[workflow_run.diplay_title](worlflow_run.html_url)`
+/// `workflow_run` -> `[workflow_run.diplay_title](worlflow_run.html_url)`
 fn workflow_run_str(workflow_run: &gh::WorkflowRun) -> String {
     let gh::WorkflowRun {
         display_title,
@@ -824,7 +824,7 @@ fn workflow_run_str(workflow_run: &gh::WorkflowRun) -> String {
     format!("[{}]({})", display_title, html_url)
 }
 
-/// workflow_job -> `[workflow_job.workflow_name / workflow_job.name](workflow_job.html_url)`
+/// `workflow_job` -> `[workflow_job.workflow_name / workflow_job.name](workflow_job.html_url)`
 fn workflow_job_str(workflow_job: &gh::WorkflowJob) -> String {
     let gh::WorkflowJob {
         workflow_name,
