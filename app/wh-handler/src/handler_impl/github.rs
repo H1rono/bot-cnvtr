@@ -53,7 +53,7 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     use serde_json::from_str;
     let event_type = extract_header_value(&headers, "X-GitHub-Event")
         .and_then(|v| from_utf8(v).map_err(|_| Error::BadRequest))?;
-    tracing::info!("X-GitHub-Event: {}", event_type);
+    tracing::info!("X-GitHub-Event: {event_type}");
     let message = match_event!(
         event_type => payload;
         create, delete, push, issues, issue_comment,
@@ -82,26 +82,33 @@ fn create(payload: gh::CreateEvent) -> Option<String> {
         sender,
         ..
     } = &payload;
+    let repo = repo_str(repository);
+    let ref_type = ser_ref_type(ref_type);
+    let sender = user_str(sender);
     let message = formatdoc! {
         r##"
-            [{}] {} `{}` was created by {}
-        "##,
-        repo_str(repository), ser_ref_type(ref_type), ref_name, user_str(sender)
+            [{repo}] {ref_type} `{ref_name}` was created by {sender}
+        "##
     };
     Some(message)
 }
 
 /// `X-GitHub-Event: delete`
 fn delete(payload: gh::DeleteEvent) -> Option<String> {
-    let ref_name = payload.ref_;
-    let ref_type = payload.ref_type;
-    let repo = payload.repository;
-    let sender = payload.sender;
+    let gh::DeleteEvent {
+        ref_: ref_name,
+        ref_type,
+        repository,
+        sender,
+        ..
+    } = &payload;
+    let repo = repo_str(repository);
+    let ref_type = ser_ref_type(ref_type);
+    let sender = user_str(sender);
     let message = formatdoc! {
         r##"
-            [{}] {} `{}` was deleted by {}
-        "##,
-        repo_str(&repo), ser_ref_type(&ref_type), ref_name, user_str(&sender)
+            [{repo}] {ref_type} `{ref_name}` was deleted by {sender}
+        "##
     };
     Some(message)
 }
@@ -111,10 +118,11 @@ fn push(payload: gh::PushEvent) -> Option<String> {
     let gh::PushEvent {
         ref_: ref_name,
         commits,
-        repository: repo,
+        repository,
         sender,
         ..
     } = &payload;
+    let repo = repo_str(repository);
     let commit_count = commits.len();
     let commit_unit = if commit_count == 1 { "" } else { "s" };
     let commits = commits
@@ -128,13 +136,12 @@ fn push(payload: gh::PushEvent) -> Option<String> {
         })
         .collect::<Vec<_>>()
         .join("\n");
+    let sender = user_str(sender);
     let message = formatdoc! {
         r##"
-            [{}:{}] {} commit{} was pushed by {}
-            {}
-        "##,
-        repo_str(repo), ref_name, commit_count, commit_unit,
-        user_str(sender), commits
+            [{repo}:{ref_name}] {commit_count} commit{commit_unit} was pushed by {sender}
+            {commits}
+        "##
     };
     Some(message)
 }
@@ -184,11 +191,10 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
         Unpinned(i) => issue_event!(i, unpinned),
     };
     let message_headline = format!(
-        "[{}] Issue {} {} by {}",
-        repo_str(repository),
-        issue_str(issue),
-        action,
-        user_str(sender)
+        "[{repo}] Issue {issue} {action} by {sender}",
+        repo = repo_str(repository),
+        issue = issue_str(issue),
+        sender = user_str(sender)
     );
     let message_body = issue.body.as_deref().unwrap_or(&issue.html_url);
     let message_body_lines = message_body.lines().collect::<Vec<_>>();
@@ -197,7 +203,7 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
     } else {
         message_body
     };
-    let message = format!("{}\n{}", message_headline, message_body);
+    let message = format!("{message_headline}\n{message_body}");
     Some(message)
 }
 
@@ -232,14 +238,17 @@ fn issue_comment(payload: gh::IssueCommentEvent) -> Option<String> {
     } else {
         &comment.body
     };
-    Some(formatdoc! {
+    let message = formatdoc! {
         r#"
-            [{}] Issue {}: comment [{}]({}) by {}
-            {}
+            [{repo}] Issue {issue}: comment [{action}]({comment_url}) by {sender}
+            {message_body}
         "#,
-        repo_str(repo), issue_str(issue), action, comment.html_url, user_str(sender),
-        message_body
-    })
+        repo = repo_str(repo),
+        issue = issue_str(issue),
+        comment_url = comment.html_url,
+        sender = user_str(sender)
+    };
+    Some(message)
 }
 
 /// `X-GitHub-Event: fork`
@@ -250,14 +259,10 @@ fn fork(payload: gh::ForkEvent) -> Option<String> {
         sender,
         ..
     } = &payload;
-    let message = formatdoc! {
-        r##"
-            [{}] forked to {} by {}
-        "##,
-        repo_str(repository),
-        repo_str(forkee),
-        user_str(sender)
-    };
+    let repo = repo_str(repository);
+    let forkee = repo_str(forkee);
+    let sender = user_str(sender);
+    let message = format!("[{repo}] forked to {forkee} by {sender}\n");
     Some(message)
 }
 
@@ -281,14 +286,13 @@ fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Option<Stri
         Deleted(r) => branch_protection_rule_event!(r, deleted),
         Edited(r) => branch_protection_rule_event!(r, edited),
     };
+    let repo = repo_str(repository);
+    let rule_name = &rule.name;
+    let sender = user_str(sender);
     let message = formatdoc! {
         r##"
-            [{}:{}] branch protection rule {} by {}
-        "##,
-        repo_str(repository),
-        rule.name,
-        action,
-        user_str(sender)
+            [{repo}:{rule_name}] branch protection rule {action} by {sender}
+        "##
     };
     Some(message)
 }
@@ -344,11 +348,11 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
     };
 
     let message_headline = format!(
-        "[{}] Pull Request {} {} by {}",
-        repo_str(repository),
-        pr_str(pull_request),
-        action.replace('_', " "),
-        user_str(sender)
+        "[{repo}] Pull Request {pr} {action} by {sender}",
+        repo = repo_str(repository),
+        pr = pr_str(pull_request),
+        action = action.replace('_', " "),
+        sender = user_str(sender)
     );
     let message_body = pull_request
         .body
@@ -361,7 +365,7 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
         message_body
     };
 
-    let message = format!("{}\n{}", message_headline, message_body);
+    let message = format!("{message_headline}\n{message_body}");
     Some(message)
 }
 
@@ -387,16 +391,15 @@ fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Op
         Edited(r) => pr_review_comment_event!(r, edited),
     };
     let (number, title, url) = pull_request;
+    let repo = repo_str(repository);
+    let sender = user_str(sender);
+    let pr = format!("[#{number} {title}]({url})");
+    let comment_url = &comment.html_url;
     let message = formatdoc! {
         r##"
-            [{}] Pull Request comment {} in [#{} {}]({}) by {}
-            {}
+            [{repo}] Pull Request comment {action} in {pr} by {sender}
+            {comment_url}
         "##,
-        repo_str(repository),
-        action,
-        number, title, url,
-        user_str(sender),
-        comment.html_url
     };
     Some(message)
 }
@@ -421,16 +424,16 @@ fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Option<String> {
         Edited(r) => pr_review_event!(r, edited),
         Submitted(r) => pr_review_event!(r, submitted),
     };
+    let repo = repo_str(repository);
+    let pr = simple_pr_str(pull_request);
+    let action = action.replace('_', " ");
+    let sender = user_str(sender);
+    let review_url = &review.html_url;
     let message = formatdoc! {
         r##"
-            [{}] Pull Request review {} {} by {}
-            {}
-        "##,
-        repo_str(repository),
-        simple_pr_str(pull_request),
-        action.replace('_', " "),
-        user_str(sender),
-        review.html_url
+            [{repo}] Pull Request review {pr} {action} by {sender}
+            {review_url}
+        "##
     };
     Some(message)
 }
@@ -454,15 +457,11 @@ fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Opti
         Resolved(rt) => pr_review_thread_event!(rt, resolved),
         Unresolved(rt) => pr_review_thread_event!(rt, unresolved),
     };
-    let message = formatdoc! {
-        r##"
-            [{}] Pull Request review thread {} {} by {}
-        "##,
-        repo_str(repository),
-        simple_pr_str(pull_request),
-        action.replace('_', " "),
-        user_str(sender)
-    };
+    let repo = repo_str(repository);
+    let pr = simple_pr_str(pull_request);
+    let action = action.replace('_', " ");
+    let sender = user_str(sender);
+    let message = format!("[{repo}] Pull Request review thread {pr} {action} by {sender}\n");
     Some(message)
 }
 
@@ -501,15 +500,10 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
         Released(r) => release_event!(r, released),
         Unpublished(r) => release_event_nested!(r, unpublished),
     };
-    let message = formatdoc! {
-        r##"
-            [{}] Release {} {} by {}
-        "##,
-        repo_str(repository),
-        release_str(release),
-        action,
-        user_str(sender)
-    };
+    let repo = repo_str(repository);
+    let release = release_str(release);
+    let sender = user_str(sender);
+    let message = format!("[{repo}] Release {release} {action} by {sender}\n");
     Some(message)
 }
 
@@ -539,12 +533,10 @@ fn repository(payload: gh::RepositoryEvent) -> Option<String> {
         Transferred(r) => repository_event!(r, transferred),
         Unarchived(r) => repository_event!(r, unarchived),
     };
-    Some(format!(
-        "Repository {} {} by {}",
-        repo_str(repository),
-        action,
-        user_str(sender)
-    ))
+    let repo = repo_str(repository);
+    let sender = user_str(sender);
+    let message = format!("Repository {repo} {action} by {sender}\n");
+    Some(message)
 }
 
 /// `X-GitHub-Event: star`
@@ -555,12 +547,9 @@ fn star(payload: gh::StarEvent) -> Option<String> {
     let gh::StarCreatedEvent {
         repository, sender, ..
     } = star;
-    let message = formatdoc! {
-        r#"
-            [{}] :star: Repository starred by {} :star:
-        "#,
-        repo_str(repository), user_str(sender)
-    };
+    let repo = repo_str(repository);
+    let sender = user_str(sender);
+    let message = format!("[{repo}] :star: Repository starred by {sender} :star:\n");
     Some(message)
 }
 
@@ -569,12 +558,10 @@ fn watch(payload: gh::WatchEvent) -> Option<String> {
     let gh::WatchEvent {
         repository, sender, ..
     } = &payload;
-    Some(formatdoc! {
-        r#"
-            [{}] {} started watching
-        "#,
-        repo_str(repository), user_str(sender)
-    })
+    let repo = repo_str(repository);
+    let sender = user_str(sender);
+    let message = format!("[{repo}] {sender} started watching\n");
+    Some(message)
 }
 
 /// `X-GitHub-Event: workflow_job`
@@ -588,20 +575,20 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
                 workflow_job,
                 ..
             } = p;
+            let repo = repo_str(repository);
+            let job = workflow_job_str(&workflow_job.workflow_job);
             let conclusion = match workflow_job.conclusion {
                 Conclusion::Cancelled => "cancelled",
                 Conclusion::Failure => "failed",
                 Conclusion::Skipped => "skipped",
                 Conclusion::Success => "success",
             };
-            let workflow_job = &workflow_job.workflow_job;
-            let steps = workflow_steps_str(&workflow_job.steps);
+            let steps = workflow_steps_str(&workflow_job.workflow_job.steps);
             formatdoc! {
                 r#"
-                    [{}] workflow job {} completed as {}
-                    {}
-                "#,
-                repo_str(repository), workflow_job_str(workflow_job), conclusion, steps
+                    [{repo}] workflow job {job} completed as {conclusion}
+                    {steps}
+                "#
             }
         }
         InProgress(p) => {
@@ -611,27 +598,27 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
                 workflow_job,
                 ..
             } = p;
+            let repo = repo_str(repository);
+            let job = workflow_job_str(&workflow_job.workflow_job);
             let status = match workflow_job.status {
                 Status::InProgress => "in progress",
                 Status::Queued => "queued",
             };
-            let workflow_job = &workflow_job.workflow_job;
-            let steps = &workflow_job.steps;
+            let steps = &workflow_job.workflow_job.steps;
             if steps.is_empty() {
                 formatdoc! {
                     r#"
-                        [{}] workflow job {} {}
-                    "#,
-                    repo_str(repository), workflow_job_str(workflow_job), status
+                        [{repo}] workflow job {job} {status}
+                    "#
                 }
             } else {
+                // FIXME
                 let steps = workflow_steps_str(steps);
                 formatdoc! {
                     r#"
-                    [{}] workflow job {} {}
-                    {}
-                "#,
-                    repo_str(repository), workflow_job_str(workflow_job), status, steps
+                        [{repo}] workflow job {job} {status}
+                        {steps}
+                    "#
                 }
             }
         }
@@ -642,17 +629,13 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
                 workflow_job,
                 ..
             } = p;
+            let repo = repo_str(repository);
+            let job = workflow_job_str(&workflow_job.workflow_job);
             let status = match workflow_job.status {
                 Status::Queued => "queued",
                 Status::Waiting => "waiting",
             };
-            let workflow_job = &workflow_job.workflow_job;
-            formatdoc! {
-                r#"
-                    [{}] workflow job {} {}
-                "#,
-                repo_str(repository), workflow_job_str(workflow_job), status
-            }
+            format!("[{repo}] workflow job {job} {status}\n")
         }
         Waiting(p) => {
             let gh::WorkflowJobWaitingEvent {
@@ -660,12 +643,9 @@ fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
                 workflow_job,
                 ..
             } = p;
-            formatdoc! {
-                r#"
-                    [{}] workflow job {} waiting
-                "#,
-                repo_str(repository), workflow_job_str(workflow_job)
-            }
+            let repo = repo_str(repository);
+            let job = workflow_job_str(workflow_job);
+            format!("[{repo}] workflow job {job} waiting\n")
         }
     };
     Some(message)
@@ -680,12 +660,14 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
             let gh::WorkflowRunCompletedEvent {
                 repository,
                 workflow,
-                workflow_run,
+                workflow_run: gh::WorkflowRunCompletedEventWorkflowRun { workflow_run, .. },
                 ..
             } = &p;
-            let workflow_run = &workflow_run.workflow_run;
-            let conclusion = workflow_run.conclusion.as_ref()?;
-            let conclusion = match conclusion {
+            let repo = repo_str(repository);
+            let branch = &workflow_run.head_branch;
+            let wf = workflow_str(workflow);
+            let wf_run = workflow_run_str(workflow_run);
+            let conclusion = match workflow_run.conclusion.as_ref()? {
                 Conclusion::ActionRequired => "action required",
                 Conclusion::Cancelled => "cancelled",
                 Conclusion::Failure => "failed",
@@ -695,13 +677,7 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
                 Conclusion::Success => "success",
                 Conclusion::TimedOut => "timed out",
             };
-            formatdoc! {
-                r#"
-                    [{}:{}] Workflow run {} / {} completed as {}
-                "#,
-                repo_str(repository), workflow_run.head_branch,
-                workflow_str(workflow), workflow_run_str(workflow_run), conclusion
-            }
+            format!("[{repo}:{branch}] Workflow run {wf} / {wf_run} completed as {conclusion}\n")
         }
         InProgress(p) => {
             let gh::WorkflowRunInProgressEvent {
@@ -710,13 +686,11 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
                 workflow_run,
                 ..
             } = &p;
-            formatdoc! {
-                r#"
-                    [{}:{}] Workflow run {} / {} is running
-                "#,
-                repo_str(repository), workflow_run.head_branch,
-                workflow_str(workflow), workflow_run_str(workflow_run)
-            }
+            let repo = repo_str(repository);
+            let branch = &workflow_run.head_branch;
+            let wf = workflow_str(workflow);
+            let wf_run = workflow_run_str(workflow_run);
+            format!("[{repo}:{branch}] Workflow run {wf} / {wf_run} is running\n")
         }
         Requested(p) => {
             let gh::WorkflowRunRequestedEvent {
@@ -726,14 +700,12 @@ fn workflow_run(payload: gh::WorkflowRunEvent) -> Option<String> {
                 workflow_run,
                 ..
             } = &p;
-            formatdoc! {
-                r#"
-                    [{}:{}] Workflow run {} / {} requested by {}
-                "#,
-                repo_str(repository), workflow_run.head_branch,
-                workflow_str(workflow), workflow_run_str(workflow_run),
-                user_str(sender)
-            }
+            let repo = repo_str(repository);
+            let branch = &workflow_run.head_branch;
+            let wf = workflow_str(workflow);
+            let wf_run = workflow_run_str(workflow_run);
+            let sender = user_str(sender);
+            format!("[{repo}:{branch}] Workflow run {wf} / {wf_run} requested by {sender}\n")
         }
     };
     Some(message)
@@ -749,7 +721,7 @@ fn user_str(user: &gh::User) -> String {
     let gh::User {
         login, html_url, ..
     } = user;
-    format!("[{}]({})", login, html_url)
+    format!("[{login}]({html_url})")
 }
 
 /// `repository` -> `[repository.full_name](repository.html_url)`
@@ -759,7 +731,7 @@ fn repo_str(repo: &gh::Repository) -> String {
         html_url,
         ..
     } = repo;
-    format!("[{}]({})", full_name, html_url)
+    format!("[{full_name}]({html_url})")
 }
 
 fn ser_ref_type(rt: &gh::CreateEventRefType) -> &str {
@@ -777,7 +749,7 @@ fn pr_str(pr: &gh::PullRequest) -> String {
         html_url,
         ..
     } = pr;
-    format!("[#{} {}]({})", number, title, html_url)
+    format!("[#{number} {title}]({html_url})")
 }
 
 /// `[#issue.number issue.title](issue.html_url)`
@@ -788,7 +760,7 @@ fn issue_str(issue: &gh::Issue) -> String {
         html_url,
         ..
     } = issue;
-    format!("[#{} {}]({})", number, title, html_url)
+    format!("[#{number} {title}]({html_url})")
 }
 
 /// `pr` -> `[#pr.number pr.title](pr.html_url)`
@@ -799,19 +771,19 @@ fn simple_pr_str(pr: &gh::SimplePullRequest) -> String {
         html_url,
         ..
     } = pr;
-    format!("[#{} {}]({})", number, title, html_url)
+    format!("[#{number} {title}]({html_url})")
 }
 
 /// `release` -> `[release.name](release.html_url)`
 fn release_str(release: &gh::Release) -> String {
     let gh::Release { name, html_url, .. } = release;
-    format!("[{}]({})", name, html_url)
+    format!("[{name}]({html_url})")
 }
 
 /// `workflow` -> `[workflow.name](workflow.html_url)`
 fn workflow_str(workflow: &gh::Workflow) -> String {
     let gh::Workflow { name, html_url, .. } = workflow;
-    format!("[{}]({})", name, html_url)
+    format!("[{name}]({html_url})")
 }
 
 /// `workflow_run` -> `[workflow_run.diplay_title](worlflow_run.html_url)`
@@ -821,7 +793,7 @@ fn workflow_run_str(workflow_run: &gh::WorkflowRun) -> String {
         html_url,
         ..
     } = workflow_run;
-    format!("[{}]({})", display_title, html_url)
+    format!("[{display_title}]({html_url})")
 }
 
 /// `workflow_job` -> `[workflow_job.workflow_name / workflow_job.name](workflow_job.html_url)`
@@ -833,8 +805,8 @@ fn workflow_job_str(workflow_job: &gh::WorkflowJob) -> String {
         ..
     } = workflow_job;
     match workflow_name.as_deref() {
-        None => format!("[{}]({})", name, html_url),
-        Some(workflow_name) => format!("[{} / {}]({})", workflow_name, name, html_url),
+        None => format!("[{name}]({html_url})"),
+        Some(workflow_name) => format!("[{workflow_name} / {name}]({html_url})"),
     }
 }
 
@@ -859,15 +831,15 @@ where
                     Conclusion::Skipped => "skipped",
                     Conclusion::Success => "success",
                 };
-                format!("{}. `{}`: completed as {}", number, name, conclusion)
+                format!("{number}. `{name}`: completed as {conclusion}")
             }
             InProgress(s) => {
                 let gh::WorkflowStepInProgress { number, name, .. } = s;
-                format!("{}. `{}`: in progress", number, name)
+                format!("{number}. `{name}`: in progress")
             }
             Queued(s) => {
                 let gh::WorkflowStepQueued { number, name, .. } = s;
-                format!("{}. `{}`: queued", number, name)
+                format!("{number}. `{name}`: queued")
             }
         })
         .join("\n")
