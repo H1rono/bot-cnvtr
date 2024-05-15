@@ -9,7 +9,7 @@ pub(crate) fn extract_header_value<'a>(
 ) -> Result<&'a [u8], Error> {
     headers
         .get(name)
-        .map(|k| k.as_bytes())
+        .map(http::HeaderValue::as_bytes)
         .ok_or(Error::BadRequest)
 }
 

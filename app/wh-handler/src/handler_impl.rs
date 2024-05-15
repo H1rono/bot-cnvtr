@@ -40,11 +40,15 @@ where
         match kind {
             WebhookKind::Clickup => {
                 self.handle_clickup(infra, webhook, headers, payload)
-                    .await?
+                    .await?;
             }
-            WebhookKind::GitHub => self.handle_github(infra, webhook, headers, payload).await?,
-            WebhookKind::Gitea => self.handle_gitea(infra, webhook, headers, payload).await?,
-        };
+            WebhookKind::GitHub => {
+                self.handle_github(infra, webhook, headers, payload).await?;
+            }
+            WebhookKind::Gitea => {
+                self.handle_gitea(infra, webhook, headers, payload).await?;
+            }
+        }
         Ok(())
     }
 }

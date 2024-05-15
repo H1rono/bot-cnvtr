@@ -42,10 +42,9 @@ fn handle(_headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     let message = formatdoc! {
         r#"
             ClickUpからWebhookが送信されました。
-            イベント: {}
+            イベント: {event}
             実装は現在工事中です :construction:
         "#,
-        event
     };
     Ok(Some(message))
 }
