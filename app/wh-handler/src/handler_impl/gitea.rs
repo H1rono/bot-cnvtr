@@ -44,18 +44,15 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
             let local_event_type = $t;
             match local_event_type {
                 $(stringify!($i) => {
-                    tracing::info!("X-Gitea-Event: {}", local_event_type);
+                    tracing::info!("X-Gitea-Event: {local_event_type}");
                     Some($i(from_str($p).map_err(anyhow::Error::from)?)?)
                 })*
                 $(stringify!($di))|* => {
-                    tracing::info!("X-Gitea-Event: {}", local_event_type);
+                    tracing::info!("X-Gitea-Event: {local_event_type}");
                     default($t, from_str($p).map_err(anyhow::Error::from)?)
                 }
                 ut => {
-                    tracing::warn!(
-                        "unexpected event: `X-Gitea-Event: {}`",
-                        ut
-                    );
+                    tracing::warn!("unexpected event: `X-Gitea-Event: {ut}`");
                     return Err(Error::BadRequest);
                 }
             }}
@@ -104,12 +101,12 @@ fn create(payload: th::CreatePayload) -> Result<String, Error> {
         ..
     } = &payload;
     unwrap_opt_boxed! {repo, sender}
-    Ok(formatdoc! {
-        r##"
-            [{}] {} `{}` was created by {}
-        "##,
-        repo_str(repo), ref_type, r#ref, user_str(sender)
-    })
+    let message = format!(
+        "[{repo}] {ref_type} `{ref}` was created by {sender}\n",
+        repo = repo_str(repo),
+        sender = user_str(sender)
+    );
+    Ok(message)
 }
 
 /// `X-Gitea-Event: delete`
@@ -122,12 +119,12 @@ fn delete(payload: th::DeletePayload) -> Result<String, Error> {
         ..
     } = &payload;
     unwrap_opt_boxed! {repo, sender}
-    Ok(formatdoc! {
-        r#"
-            [{}] {} `{}` was deleted by {}
-        "#,
-        repo_str(repo), ref_type, r#ref, user_str(sender)
-    })
+    let message = format!(
+        "[{repo}] {ref_type} `{ref}` was deleted by {sender}\n",
+        repo = repo_str(repo),
+        sender = user_str(sender)
+    );
+    Ok(message)
 }
 
 /// `X-Gitea-Event: fork`
@@ -138,12 +135,13 @@ fn fork(payload: th::ForkPayload) -> Result<String, Error> {
         sender,
     } = &payload;
     unwrap_opt_boxed! {repo, sender, forkee}
-    Ok(formatdoc! {
-        r#"
-            [{}] forked to {} by {}
-        "#,
-        repo_str(repo), repo_str(forkee), user_str(sender)
-    })
+    let message = format!(
+        "[{repo}] forked to {forkee} by {sender}\n",
+        repo = repo_str(repo),
+        forkee = repo_str(forkee),
+        sender = user_str(sender),
+    );
+    Ok(message)
 }
 
 /// `X-Gitea-Event: push`
@@ -167,17 +165,19 @@ fn push(payload: th::PushPayload) -> Result<String, Error> {
             let th::PayloadCommit {
                 id, message, url, ..
             } = c;
-            let message = message.lines().next().unwrap();
-            Ok(format!("[`{}`]({}) {}", &id[0..7], url, message.trim_end()))
+            let id = &id[0..7];
+            let message = message.lines().next().unwrap().trim_end();
+            Ok(format!("[`{id}`]({url}) {message}"))
         })
         .collect::<Result<Vec<_>, Error>>()?
         .join("\n");
     Ok(formatdoc! {
         r#"
-            [{}:{}] {} commit{} was pushed by {}
-            {}
+            [{repo}:{ref}] {commit_count} commit{commit_unit} was pushed by {sender}
+            {commits}
         "#,
-        repo_str(repo), r#ref, commit_count, commit_unit, user_str(sender), commits
+        repo = repo_str(repo),
+        sender = user_str(sender)
     })
 }
 
@@ -192,12 +192,14 @@ fn issues(payload: th::IssuePayload) -> Result<String, Error> {
         ..
     } = &payload;
     unwrap_opt_boxed! {repo, sender, issue}
-    Ok(formatdoc! {
-        r#"
-            [{}] issue [#{} {}]({}) {} by {}
-        "#,
-        repo_str(repo), index, &issue.title, &issue.html_url, action, user_str(sender)
-    })
+    let message = format!(
+        "[{repo}] issue [#{index} {title}]({html_url}) {action} by {sender}\n",
+        repo = repo_str(repo),
+        title = &issue.title,
+        html_url = &issue.html_url,
+        sender = user_str(sender)
+    );
+    Ok(message)
 }
 
 // `X-Gitea-Event: pull_request`
@@ -210,12 +212,13 @@ fn pull_request(payload: th::PullRequestPayload) -> Result<String, Error> {
         ..
     } = &payload;
     unwrap_opt_boxed! {repo, sender, pull_request}
-    Ok(formatdoc! {
-        r#"
-            [{}] Pull Request {} {} by {}
-        "#,
-        repo_str(repo), pr_str(pull_request), action, user_str(sender)
-    })
+    let message = format!(
+        "[{repo}] Pull Request {pr} {action} by {sender}\n",
+        repo = repo_str(repo),
+        pr = pr_str(pull_request),
+        sender = user_str(sender)
+    );
+    Ok(message)
 }
 
 /// `X-Gitea-Event: *`
@@ -224,11 +227,21 @@ fn default(_event_type: &str, _payload: Value) -> Option<String> {
 }
 
 fn repo_str(repo: &th::Repository) -> String {
-    format!("[{}]({})", repo.full_name, repo.html_url)
+    let th::Repository {
+        full_name,
+        html_url,
+        ..
+    } = repo;
+    format!("[{full_name}]({html_url})")
 }
 
 fn user_str(user: &th::User) -> String {
-    format!("[{}]({})", user.user_name, user.avatar_url)
+    let th::User {
+        user_name,
+        avatar_url,
+        ..
+    } = user;
+    format!("[{user_name}]({avatar_url})")
 }
 
 fn pr_str(pr: &th::PullRequest) -> String {
@@ -238,5 +251,5 @@ fn pr_str(pr: &th::PullRequest) -> String {
         html_url,
         ..
     } = pr;
-    format!("[#{} {}]({})", id, title, html_url)
+    format!("[#{id} {title}]({html_url})")
 }
