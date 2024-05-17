@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   db:
     image: mariadb:lts
@@ -20,7 +18,7 @@ services:
           "mysqladmin",
           "ping",
           "-uroot",
-          "-p${MYSQL_USER_PASSWORD:-root}"
+          "-p${MYSQL_ROOT_PASSWORD:-root}"
         ]
       interval: 10s
       timeout: 5s
