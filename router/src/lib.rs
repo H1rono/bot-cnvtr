@@ -19,20 +19,8 @@ trait AppState: Clone + Send + Sync + 'static {
     type Error: Send + Sync + 'static;
 
     fn infra(&self) -> &Self::Infra;
-    fn repo(&self) -> &<Self::Infra as Infra>::Repo {
-        self.infra().repo()
-    }
-    fn traq_client(&self) -> &<Self::Infra as Infra>::TClient {
-        self.infra().traq_client()
-    }
 
     fn app(&self) -> &Self::App;
-    fn bot(&self) -> &<Self::App as App<Self::Infra>>::Bot {
-        self.app().bot()
-    }
-    fn webhook_handler(&self) -> &<Self::App as App<Self::Infra>>::WebhookHandler {
-        self.app().webhook_handler()
-    }
 
     fn parser(&self) -> &RequestParser;
 }

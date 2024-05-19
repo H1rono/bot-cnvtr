@@ -7,8 +7,8 @@ use axum::{
 use http::{request::Parts, HeaderMap, StatusCode};
 use tracing::{debug, instrument, warn};
 
-use domain::{Repository, Webhook, WebhookId};
-use usecases::{WebhookHandler, WebhookKind};
+use domain::{Infra, Repository, Webhook, WebhookId};
+use usecases::{App, WebhookHandler, WebhookKind};
 
 use crate::{
     error::{Error, Result},
@@ -45,6 +45,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let Path(id) = Path::<WebhookId>::from_request_parts(parts, state).await?;
         let webhook = state
+            .infra()
             .repo()
             .find_webhook(&id)
             .await
@@ -78,7 +79,8 @@ where
 {
     debug!("POST github webhook");
     let infra = st.infra();
-    st.webhook_handler()
+    st.app()
+        .webhook_handler()
         .handle(WebhookKind::GitHub, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;
@@ -98,7 +100,8 @@ where
 {
     debug!("POST gitea webhook");
     let infra = st.infra();
-    st.webhook_handler()
+    st.app()
+        .webhook_handler()
         .handle(WebhookKind::Gitea, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;
@@ -118,7 +121,8 @@ where
 {
     debug!("POST clickup webhook");
     let infra = st.infra();
-    st.webhook_handler()
+    st.app()
+        .webhook_handler()
         .handle(WebhookKind::Clickup, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;

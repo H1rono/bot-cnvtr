@@ -6,7 +6,7 @@ use axum::{
 use http::{Request, StatusCode};
 use traq_bot_http::Event;
 
-use usecases::Bot;
+use usecases::{App, Bot};
 
 use super::AppState;
 
@@ -47,7 +47,7 @@ where
     S: AppState<Error = domain::Error>,
 {
     tracing::info!("POST traQ BOT event");
-    match st.bot().handle_event(st.infra(), event).await {
+    match st.app().bot().handle_event(st.infra(), event).await {
         Ok(()) => StatusCode::NO_CONTENT,
         Err(err) => {
             tracing::error!(%err);
