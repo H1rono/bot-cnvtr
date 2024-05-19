@@ -26,6 +26,7 @@ impl<T> OptionExt for Option<T> {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) trait ValueExt {
     fn get_or_err<I>(&self, index: I) -> Result<&Value, Error>
     where
