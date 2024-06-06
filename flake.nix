@@ -27,7 +27,7 @@
       flake = false;
     };
     gitea = {
-      url = "github:traPtitech/gitea/traP-1.21.1-1";
+      url = "github:traPtitech/gitea/traP-1.22.0-1";
       flake = false;
     };
   };
