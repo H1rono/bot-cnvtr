@@ -76,13 +76,12 @@ impl RepositoryImpl {
         if cid_len == 0 {
             return Ok(vec![]);
         }
+        let ids_arg = iter::repeat('?').take(cid_len).join(", ");
         let query = formatdoc! {r"
-                SELECT *
-                FROM `webhooks`
-                WHERE `channel_id` IN ({})
-            ",
-            iter::repeat('?').take(cid_len).join(", ")
-        };
+            SELECT *
+            FROM `webhooks`
+            WHERE `channel_id` IN ({ids_arg})
+        "};
         cids.iter()
             .fold(sqlx::query_as(&query), |q, i| q.bind(i))
             .fetch_all(&self.0)
@@ -94,13 +93,12 @@ impl RepositoryImpl {
         if oid_len == 0 {
             return Ok(vec![]);
         }
-        let query = formatdoc! {r#"
-                SELECT *
-                FROM `webhooks`
-                WHERE `owner_id` IN ({})
-            "#,
-            iter::repeat('?').take(oid_len).join(", ")
-        };
+        let ids_arg = iter::repeat('?').take(oid_len).join(", ");
+        let query = formatdoc! {r"
+            SELECT *
+            FROM `webhooks`
+            WHERE `owner_id` IN ({ids_arg})
+        "};
         oids.iter()
             .fold(sqlx::query_as(&query), |q, i| q.bind(i.to_string()))
             .fetch_all(&self.0)
@@ -124,14 +122,12 @@ impl RepositoryImpl {
         if ws.is_empty() {
             return Ok(());
         }
-        let query = formatdoc! {
-            r"
-                INSERT IGNORE
-                INTO `webhooks` (`id`, `channel_id`, `owner_id`)
-                VALUES {}
-            ",
-            iter::repeat("(?, ?, ?)").take(ws.len()).join(", ")
-        };
+        let values_arg = iter::repeat("(?, ?, ?)").take(ws.len()).join(", ");
+        let query = formatdoc! {r"
+            INSERT IGNORE
+            INTO `webhooks` (`id`, `channel_id`, `owner_id`)
+            VALUES {values_arg}
+        "};
         let query = ws.iter().fold(sqlx::query(&query), |q, w| {
             q.bind(w.id.to_string())
                 .bind(w.channel_id.to_string())

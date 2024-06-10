@@ -63,14 +63,12 @@ impl RepositoryImpl {
         if gs.is_empty() {
             return Ok(());
         }
-        let query = formatdoc! {
-            r"
-                INSERT IGNORE
-                INTO `groups` (`id`, `name`)
-                VALUES {}
-            ",
-            iter::repeat("(?, ?)").take(gs.len()).join(", ")
-        };
+        let values_arg = iter::repeat("(?, ?)").take(gs.len()).join(", ");
+        let query = formatdoc! {r"
+            INSERT IGNORE
+            INTO `groups` (`id`, `name`)
+            VALUES {values_arg}
+        "};
         let query = gs.iter().fold(sqlx::query(&query), |q, g| {
             q.bind(g.id.to_string()).bind(&g.name)
         });

@@ -91,14 +91,12 @@ impl RepositoryImpl {
         if gms.is_empty() {
             return Ok(());
         }
-        let query = formatdoc! {
-            r#"
-                INSERT IGNORE
-                INTO `group_members` (`group_id`, `user_id`)
-                VALUES {}
-            "#,
-            iter::repeat("(?, ?)").take(gms.len()).join(", ")
-        };
+        let values_arg = iter::repeat("(?, ?)").take(gms.len()).join(", ");
+        let query = formatdoc! {r"
+            INSERT IGNORE
+            INTO `group_members` (`group_id`, `user_id`)
+            VALUES {values_arg}
+        "};
         let query = gms.iter().fold(sqlx::query(&query), |q, gm| {
             q.bind(gm.group_id.to_string()).bind(gm.user_id.to_string())
         });

@@ -66,14 +66,12 @@ impl RepositoryImpl {
         if os.is_empty() {
             return Ok(());
         }
-        let query = formatdoc! {
-            r"
-                INSERT IGNORE
-                INTO `owners` (`id`, `name`, `group`)
-                VALUES {}
-            ",
-            iter::repeat("(?, ?, ?)").take(os.len()).join(", ")
-        };
+        let values_arg = iter::repeat("(?, ?, ?)").take(os.len()).join(", ");
+        let query = formatdoc! {r"
+            INSERT IGNORE
+            INTO `owners` (`id`, `name`, `group`)
+            VALUES {values_arg}
+        "};
         let query = os.iter().fold(sqlx::query(&query), |q, o| {
             q.bind(o.id.to_string()).bind(&o.name).bind(o.group)
         });

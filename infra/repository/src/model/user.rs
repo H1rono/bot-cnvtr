@@ -63,14 +63,12 @@ impl RepositoryImpl {
         if us.is_empty() {
             return Ok(());
         }
-        let query = formatdoc! {
-            r"
-                INSERT IGNORE
-                INTO `users` (`id`, `name`)
-                VALUES {}
-            ",
-            iter::repeat("(?, ?)").take(us.len()).join(", ")
-        };
+        let values_arg = iter::repeat("(?, ?)").take(us.len()).join(", ");
+        let query = formatdoc! {r"
+            INSERT IGNORE
+            INTO `users` (`id`, `name`)
+            VALUES {values_arg}
+        "};
         let query = us.iter().fold(sqlx::query(&query), |q, u| {
             q.bind(u.id.to_string()).bind(&u.name)
         });
