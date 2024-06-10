@@ -27,10 +27,10 @@ impl<'r> FromRow<'r, MySqlRow> for GroupMember {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
-        "#})
+        "})
         .fetch_all(&self.0)
         .await
     }
@@ -40,12 +40,12 @@ impl RepositoryImpl {
         gid: &Uuid,
         uid: &Uuid,
     ) -> Result<Option<GroupMember>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?
             LIMIT 1
-        "#})
+        "})
         .bind(gid.to_string())
         .bind(uid.to_string())
         .fetch_optional(&self.0)
@@ -53,33 +53,33 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn filter_group_members_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
             WHERE `group_id` = ?
-        "#})
+        "})
         .bind(gid.to_string())
         .fetch_all(&self.0)
         .await
     }
 
     pub(crate) async fn filter_group_members_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
             WHERE `user_id` = ?
-        "#})
+        "})
         .bind(uid.to_string())
         .fetch_all(&self.0)
         .await
     }
 
     pub(crate) async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             INSERT
             INTO `group_members` (`group_id`, `user_id`)
             VALUES (?, ?)
-        "#})
+        "})
         .bind(gm.group_id.to_string())
         .bind(gm.user_id.to_string())
         .execute(&self.0)
@@ -112,11 +112,11 @@ impl RepositoryImpl {
         uid: &Uuid,
         gm: GroupMember,
     ) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             UPDATE `group_members`
             SET `group_id` = ?, `user_id` = ?
             WHERE `group_id` = ?, `user_id` = ?
-        "#})
+        "})
         .bind(gm.group_id.to_string())
         .bind(gm.user_id.to_string())
         .bind(gid.to_string())
@@ -127,10 +127,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn delete_group_member(&self, gm: GroupMember) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             DELETE FROM `group_members`
             WHERE `group_id` = ?, `user_id` = ?
-        "#})
+        "})
         .bind(gm.group_id.to_string())
         .bind(gm.user_id.to_string())
         .execute(&self.0)

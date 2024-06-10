@@ -27,31 +27,31 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_groups(&self) -> Result<Vec<Group>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `groups`
-        "#})
+        "})
         .fetch_all(&self.0)
         .await
     }
 
     pub(crate) async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `groups`
             WHERE `id` = ?
             LIMIT 1
-        "#})
+        "})
         .bind(id.to_string())
         .fetch_optional(&self.0)
         .await
     }
 
     pub(crate) async fn create_group(&self, g: Group) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             INSERT INTO `groups` (`id`, `name`)
             VALUES (?, ?)
-        "#})
+        "})
         .bind(g.id.to_string())
         .bind(g.name)
         .execute(&self.0)
@@ -64,11 +64,11 @@ impl RepositoryImpl {
             return Ok(());
         }
         let query = formatdoc! {
-            r#"
+            r"
                 INSERT IGNORE
                 INTO `groups` (`id`, `name`)
                 VALUES {}
-            "#,
+            ",
             iter::repeat("(?, ?)").take(gs.len()).join(", ")
         };
         let query = gs.iter().fold(sqlx::query(&query), |q, g| {
@@ -79,11 +79,11 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             UPDATE `groups`
             SET `id` = ?, `name` = ?
             WHERE `id` = ?
-        "#})
+        "})
         .bind(g.id.to_string())
         .bind(g.name)
         .bind(id.to_string())
@@ -93,10 +93,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn delete_group(&self, id: &Uuid) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             DELETE FROM `groups`
             WHERE `id` = ?
-        "#})
+        "})
         .bind(id.to_string())
         .execute(&self.0)
         .await?;

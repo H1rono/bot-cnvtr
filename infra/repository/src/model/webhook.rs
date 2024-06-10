@@ -29,43 +29,43 @@ impl<'r> FromRow<'r, MySqlRow> for Webhook {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_webhooks(&self) -> Result<Vec<Webhook>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `webhooks`
-        "#})
+        "})
         .fetch_all(&self.0)
         .await
     }
 
     pub(crate) async fn find_webhook(&self, id: &Uuid) -> Result<Option<Webhook>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `webhooks`
             WHERE `id` = ?
             LIMIT 1
-        "#})
+        "})
         .bind(id.to_string())
         .fetch_optional(&self.0)
         .await
     }
 
     pub(crate) async fn filter_webhooks_by_cid(&self, channel_id: Uuid) -> Result<Vec<Webhook>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `webhooks`
             WHERE `channel_id` = ?
-        "#})
+        "})
         .bind(channel_id.to_string())
         .fetch_all(&self.0)
         .await
     }
 
     pub(crate) async fn filter_webhooks_by_oid(&self, owner_id: Uuid) -> Result<Vec<Webhook>> {
-        sqlx::query_as(indoc! {r#"
+        sqlx::query_as(indoc! {r"
             SELECT *
             FROM `webhooks`
             WHERE `owner_id` = ?
-        "#})
+        "})
         .bind(owner_id.to_string())
         .fetch_all(&self.0)
         .await
@@ -76,11 +76,11 @@ impl RepositoryImpl {
         if cid_len == 0 {
             return Ok(vec![]);
         }
-        let query = formatdoc! {r#"
+        let query = formatdoc! {r"
                 SELECT *
                 FROM `webhooks`
                 WHERE `channel_id` IN ({})
-            "#,
+            ",
             iter::repeat('?').take(cid_len).join(", ")
         };
         cids.iter()
@@ -108,10 +108,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn create_webhook(&self, w: Webhook) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             INSERT INTO `webhooks` (`id`, `channel_id`, `owner_id`)
             VALUES (?, ?, ?)
-        "#})
+        "})
         .bind(w.id.to_string())
         .bind(w.channel_id.to_string())
         .bind(w.owner_id.to_string())
@@ -125,11 +125,11 @@ impl RepositoryImpl {
             return Ok(());
         }
         let query = formatdoc! {
-            r#"
+            r"
                 INSERT IGNORE
                 INTO `webhooks` (`id`, `channel_id`, `owner_id`)
                 VALUES {}
-            "#,
+            ",
             iter::repeat("(?, ?, ?)").take(ws.len()).join(", ")
         };
         let query = ws.iter().fold(sqlx::query(&query), |q, w| {
@@ -142,11 +142,11 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn update_webhook(&self, id: &Uuid, w: Webhook) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             UPDATE `users`
             SET `id` = ?, `channel_id` = ?, `owner_id` = ?
             WHERE `id` = ?
-        "#})
+        "})
         .bind(w.id.to_string())
         .bind(w.channel_id.to_string())
         .bind(w.owner_id.to_string())
@@ -157,10 +157,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn delete_webhook(&self, id: &Uuid) -> Result<()> {
-        sqlx::query(indoc! {r#"
+        sqlx::query(indoc! {r"
             DELETE FROM `webhooks`
             WHERE `id` = ?
-        "#})
+        "})
         .bind(id.to_string())
         .execute(&self.0)
         .await?;
