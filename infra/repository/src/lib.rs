@@ -9,6 +9,7 @@ pub mod opt;
 
 pub const MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
+#[must_use]
 pub struct RepositoryImpl(pub(crate) MySqlPool);
 
 impl RepositoryImpl {

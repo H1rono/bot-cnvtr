@@ -9,6 +9,7 @@ use uuid::Uuid;
 use super::parse_col_str2uuid;
 use crate::RepositoryImpl;
 
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Group {
     pub id: Uuid,

@@ -4,6 +4,7 @@ use sqlx::mysql::{MySqlConnectOptions, MySqlPool};
 use crate::error::Result;
 use crate::RepositoryImpl;
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Opt {
     pub hostname: String,
