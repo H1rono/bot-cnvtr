@@ -84,7 +84,7 @@ impl RepositoryImpl {
             WHERE `channel_id` IN ({ids_arg})
         "};
         cids.iter()
-            .fold(sqlx::query_as(&query), |q, i| q.bind(i))
+            .fold(sqlx::query_as(&query), sqlx::query::QueryAs::bind)
             .fetch_all(&self.0)
             .await
     }
