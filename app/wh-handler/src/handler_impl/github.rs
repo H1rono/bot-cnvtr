@@ -170,25 +170,25 @@ fn issues(payload: gh::IssuesEvent) -> Option<String> {
         }};
     }
 
-    use gh::IssuesEvent::*;
+    use gh::IssuesEvent as Ie;
 
     let (action, repository, sender, issue) = match &payload {
-        Assigned(i) => issue_event!(i, assigned),
-        Closed(i) => issue_event_nested!(i, closed),
-        Deleted(i) => issue_event!(i, deleted),
-        Demilestoned(i) => issue_event_nested!(i, demilestoned),
-        Edited(i) => issue_event!(i, edited),
-        Labeled(i) => issue_event!(i, labeled),
-        Locked(i) => issue_event_nested!(i, locked),
-        Milestoned(i) => issue_event_nested!(i, milestoned),
-        Opened(i) => issue_event_nested!(i, opened),
-        Pinned(i) => issue_event!(i, pinned),
-        Reopened(i) => issue_event!(i, reopened),
-        Transferred(i) => issue_event!(i, transferred),
-        Unassigned(i) => issue_event!(i, unassigned),
-        Unlabeled(i) => issue_event!(i, unlabeled),
-        Unlocked(i) => issue_event_nested!(i, unlocked),
-        Unpinned(i) => issue_event!(i, unpinned),
+        Ie::Assigned(i) => issue_event!(i, assigned),
+        Ie::Closed(i) => issue_event_nested!(i, closed),
+        Ie::Deleted(i) => issue_event!(i, deleted),
+        Ie::Demilestoned(i) => issue_event_nested!(i, demilestoned),
+        Ie::Edited(i) => issue_event!(i, edited),
+        Ie::Labeled(i) => issue_event!(i, labeled),
+        Ie::Locked(i) => issue_event_nested!(i, locked),
+        Ie::Milestoned(i) => issue_event_nested!(i, milestoned),
+        Ie::Opened(i) => issue_event_nested!(i, opened),
+        Ie::Pinned(i) => issue_event!(i, pinned),
+        Ie::Reopened(i) => issue_event!(i, reopened),
+        Ie::Transferred(i) => issue_event!(i, transferred),
+        Ie::Unassigned(i) => issue_event!(i, unassigned),
+        Ie::Unlabeled(i) => issue_event!(i, unlabeled),
+        Ie::Unlocked(i) => issue_event_nested!(i, unlocked),
+        Ie::Unpinned(i) => issue_event!(i, unpinned),
     };
     let message_headline = format!(
         "[{repo}] Issue {issue} {action} by {sender}",
@@ -225,7 +225,7 @@ fn issue_comment(payload: gh::IssueCommentEvent) -> Option<String> {
         }};
     }
 
-    use gh::IssueCommentEvent::*;
+    use gh::IssueCommentEvent::{Created, Deleted, Edited};
 
     let (action, repo, sender, issue, comment) = match &payload {
         Created(c) => issue_comment!(c, created),
@@ -279,7 +279,7 @@ fn branch_protection_rule(payload: gh::BranchProtectionRuleEvent) -> Option<Stri
         }};
     }
 
-    use gh::BranchProtectionRuleEvent::*;
+    use gh::BranchProtectionRuleEvent::{Created, Deleted, Edited};
 
     let (action, repository, sender, rule) = match &payload {
         Created(r) => branch_protection_rule_event!(r, created),
@@ -321,30 +321,30 @@ fn pull_request(payload: gh::PullRequestEvent) -> Option<String> {
         }};
     }
 
-    use gh::PullRequestEvent::*;
+    use gh::PullRequestEvent as PRe;
 
     let (action, repository, sender, pull_request) = match &payload {
-        Assigned(pr) => pull_request_event!(pr, assigned),
-        AutoMergeDisabled(pr) => pull_request_event!(pr, auto_merge_disabled),
-        AutoMergeEnabled(pr) => pull_request_event!(pr, auto_merge_enabled),
-        Closed(pr) => pull_request_event_nested!(pr, closed),
-        ConvertedToDraft(pr) => pull_request_event_nested!(pr, converted_to_draft),
-        Demilestoned(pr) => pull_request_event_nested!(pr, demilestoned),
-        Dequeued(pr) => pull_request_event!(pr, dequeued),
-        Edited(pr) => pull_request_event!(pr, edited),
-        Enqueued(pr) => pull_request_event!(pr, enqueued),
-        Labeled(pr) => pull_request_event!(pr, labeled),
-        Locked(pr) => pull_request_event!(pr, locked),
-        Milestoned(pr) => pull_request_event_nested!(pr, milestoned),
-        Opened(pr) => pull_request_event_nested!(pr, opened),
-        ReadyForReview(pr) => pull_request_event_nested!(pr, ready_for_review),
-        Reopened(pr) => pull_request_event_nested!(pr, reopened),
-        ReviewRequestRemoved(pr) => pull_request_event!(pr, review_request_removed),
-        ReviewRequested(pr) => pull_request_event!(pr, review_requested),
-        Synchronize(pr) => pull_request_event!(pr, synchronize),
-        Unassigned(pr) => pull_request_event!(pr, unassigned),
-        Unlabeled(pr) => pull_request_event!(pr, unlabeled),
-        Unlocked(pr) => pull_request_event!(pr, unlocked),
+        PRe::Assigned(pr) => pull_request_event!(pr, assigned),
+        PRe::AutoMergeDisabled(pr) => pull_request_event!(pr, auto_merge_disabled),
+        PRe::AutoMergeEnabled(pr) => pull_request_event!(pr, auto_merge_enabled),
+        PRe::Closed(pr) => pull_request_event_nested!(pr, closed),
+        PRe::ConvertedToDraft(pr) => pull_request_event_nested!(pr, converted_to_draft),
+        PRe::Demilestoned(pr) => pull_request_event_nested!(pr, demilestoned),
+        PRe::Dequeued(pr) => pull_request_event!(pr, dequeued),
+        PRe::Edited(pr) => pull_request_event!(pr, edited),
+        PRe::Enqueued(pr) => pull_request_event!(pr, enqueued),
+        PRe::Labeled(pr) => pull_request_event!(pr, labeled),
+        PRe::Locked(pr) => pull_request_event!(pr, locked),
+        PRe::Milestoned(pr) => pull_request_event_nested!(pr, milestoned),
+        PRe::Opened(pr) => pull_request_event_nested!(pr, opened),
+        PRe::ReadyForReview(pr) => pull_request_event_nested!(pr, ready_for_review),
+        PRe::Reopened(pr) => pull_request_event_nested!(pr, reopened),
+        PRe::ReviewRequestRemoved(pr) => pull_request_event!(pr, review_request_removed),
+        PRe::ReviewRequested(pr) => pull_request_event!(pr, review_requested),
+        PRe::Synchronize(pr) => pull_request_event!(pr, synchronize),
+        PRe::Unassigned(pr) => pull_request_event!(pr, unassigned),
+        PRe::Unlabeled(pr) => pull_request_event!(pr, unlabeled),
+        PRe::Unlocked(pr) => pull_request_event!(pr, unlocked),
     };
 
     let message_headline = format!(
@@ -383,7 +383,7 @@ fn pull_request_review_comment(payload: gh::PullRequestReviewCommentEvent) -> Op
         }};
     }
 
-    use gh::PullRequestReviewCommentEvent::*;
+    use gh::PullRequestReviewCommentEvent::{Created, Deleted, Edited};
 
     let (action, repository, sender, pull_request, comment) = match &payload {
         Created(r) => pr_review_comment_event!(r, created),
@@ -417,7 +417,7 @@ fn pull_request_review(payload: gh::PullRequestReviewEvent) -> Option<String> {
         }};
     }
 
-    use gh::PullRequestReviewEvent::*;
+    use gh::PullRequestReviewEvent::{Dismissed, Edited, Submitted};
 
     let (action, repository, sender, pull_request, review) = match &payload {
         Dismissed(r) => pr_review_event!(r, dismissed),
@@ -451,7 +451,7 @@ fn pull_request_review_thread(payload: gh::PullRequestReviewThreadEvent) -> Opti
         }};
     }
 
-    use gh::PullRequestReviewThreadEvent::*;
+    use gh::PullRequestReviewThreadEvent::{Resolved, Unresolved};
 
     let (action, repository, sender, pull_request) = match &payload {
         Resolved(rt) => pr_review_thread_event!(rt, resolved),
@@ -489,16 +489,16 @@ fn release(payload: gh::ReleaseEvent) -> Option<String> {
         }};
     }
 
-    use gh::ReleaseEvent::*;
+    use gh::ReleaseEvent as Re;
 
     let (action, repository, sender, release) = match &payload {
-        Created(r) => release_event!(r, created),
-        Deleted(r) => release_event!(r, deleted),
-        Edited(r) => release_event!(r, edited),
-        Prereleased(r) => release_event!(r, prereleased),
-        Published(r) => release_event_nested!(r, published),
-        Released(r) => release_event!(r, released),
-        Unpublished(r) => release_event_nested!(r, unpublished),
+        Re::Created(r) => release_event!(r, created),
+        Re::Deleted(r) => release_event!(r, deleted),
+        Re::Edited(r) => release_event!(r, edited),
+        Re::Prereleased(r) => release_event!(r, prereleased),
+        Re::Published(r) => release_event_nested!(r, published),
+        Re::Released(r) => release_event!(r, released),
+        Re::Unpublished(r) => release_event_nested!(r, unpublished),
     };
     let repo = repo_str(repository);
     let release = release_str(release);
@@ -520,18 +520,18 @@ fn repository(payload: gh::RepositoryEvent) -> Option<String> {
         }};
     }
 
-    use gh::RepositoryEvent::*;
+    use gh::RepositoryEvent as Re;
 
     let (repository, sender, action) = match &payload {
-        Created(r) => repository_event!(r, created),
-        Archived(r) => repository_event!(r, archived),
-        Deleted(r) => repository_event!(r, deleted),
-        Edited(r) => repository_event!(r, edited),
-        Privatized(r) => repository_event!(r, privatized),
-        Publicized(r) => repository_event!(r, publicized),
-        Renamed(r) => repository_event!(r, renamed),
-        Transferred(r) => repository_event!(r, transferred),
-        Unarchived(r) => repository_event!(r, unarchived),
+        Re::Created(r) => repository_event!(r, created),
+        Re::Archived(r) => repository_event!(r, archived),
+        Re::Deleted(r) => repository_event!(r, deleted),
+        Re::Edited(r) => repository_event!(r, edited),
+        Re::Privatized(r) => repository_event!(r, privatized),
+        Re::Publicized(r) => repository_event!(r, publicized),
+        Re::Renamed(r) => repository_event!(r, renamed),
+        Re::Transferred(r) => repository_event!(r, transferred),
+        Re::Unarchived(r) => repository_event!(r, unarchived),
     };
     let repo = repo_str(repository);
     let sender = user_str(sender);
@@ -566,7 +566,7 @@ fn watch(payload: gh::WatchEvent) -> Option<String> {
 
 /// `X-GitHub-Event: workflow_job`
 fn workflow_job(payload: gh::WorkflowJobEvent) -> Option<String> {
-    use gh::WorkflowJobEvent::*;
+    use gh::WorkflowJobEvent::{Completed, InProgress, Queued, Waiting};
     let message = match &payload {
         Completed(p) => {
             use gh::WorkflowJobCompletedEventWorkflowJobConclusion as Conclusion;
@@ -814,7 +814,7 @@ fn workflow_steps_str<'a, I>(steps: I) -> String
 where
     I: IntoIterator<Item = &'a gh::WorkflowStep>,
 {
-    use gh::WorkflowStep::*;
+    use gh::WorkflowStep::{Completed, InProgress, Queued};
     steps
         .into_iter()
         .map(|step| match step {

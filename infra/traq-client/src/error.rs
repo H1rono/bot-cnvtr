@@ -16,7 +16,7 @@ pub enum Error {
 
 impl<T> From<ApiError<T>> for Error {
     fn from(value: ApiError<T>) -> Self {
-        use ApiError::*;
+        use ApiError::{Io, Reqwest, ResponseError, Serde};
         match value {
             Reqwest(e) => e.into(),
             Serde(e) => e.into(),
