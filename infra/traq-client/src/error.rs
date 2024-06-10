@@ -2,6 +2,7 @@ use reqwest::StatusCode;
 use thiserror::Error as ThisError;
 use traq::apis::Error as ApiError;
 
+#[must_use]
 #[derive(Debug, ThisError)]
 pub enum Error {
     #[error("json parse failed: {0}")]

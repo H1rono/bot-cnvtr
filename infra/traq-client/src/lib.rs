@@ -9,6 +9,7 @@ pub mod error;
 
 pub use error::{Error, Result};
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct ClientImpl {
     pub config: Configuration,
