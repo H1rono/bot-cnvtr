@@ -15,10 +15,10 @@ services:
       test:
         [
           "CMD",
-          "mysqladmin",
-          "ping",
-          "-uroot",
-          "-p${MYSQL_ROOT_PASSWORD:-root}"
+          "healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
         ]
       interval: 10s
       timeout: 5s
