@@ -89,7 +89,7 @@ jobs:
           username: h1rono
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
