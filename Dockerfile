@@ -1,30 +1,18 @@
-# ref: https://marcopolo.io/code/nix-and-small-containers/
-FROM nixpkgs/nix-flakes:nixos-23.11 AS builder
+FROM golang:1.21.4-bookworm AS teahook-builder
 
 WORKDIR /app
 
-ENV NIX_CONFIG='filter-syscalls = false'
+# version is teahook's commit hash
+RUN go install github.com/H1rono/teahook-rs@cc4258d
+RUN mv "$(which teahook-rs)" ./teahook-rs
 
-COPY flake.nix flake.lock ./
-RUN nix build .#otherDeps
+FROM rust:bookworm AS builder
 
-COPY rust-toolchain.toml Cargo.toml Cargo.lock ./
-
-COPY domain/Cargo.toml            ./domain/
-COPY usecases/Cargo.toml          ./usecases/
-COPY infra/repository/Cargo.toml  ./infra/repository/
-COPY infra/traq-client/Cargo.toml ./infra/traq-client/
-COPY cron/Cargo.toml              ./cron/
-COPY app/wh-handler/Cargo.toml    ./app/wh-handler/
-COPY app/bot/Cargo.toml           ./app/bot/
-COPY router/Cargo.toml            ./router/
-RUN nix build .#cargoDepsRelease
+WORKDIR /app
 
 COPY . .
-RUN nix build .#release
-
-RUN mkdir /tmp/nix-store-closure
-RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
+COPY --from=teahook-builder /app/teahook-rs /usr/local/bin/teahook-rs
+RUN env GITEA_TRANSPILER_PATH=/usr/local/bin/teahook-rs cargo build --release
 
 FROM debian:bookworm-slim
 
@@ -35,7 +23,6 @@ RUN apt-get -y update \
     && update-ca-certificates --fresh
 WORKDIR /app
 
-COPY --from=builder /tmp/nix-store-closure /nix/store
-COPY --from=builder /app/result /app
+COPY --from=builder /app/target/release/bot-cnvtr /app/bin/bot-cnvtr
 
 CMD [ "/app/bin/bot-cnvtr" ]
