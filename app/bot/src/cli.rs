@@ -5,12 +5,14 @@ pub mod help;
 pub mod sudo;
 pub mod webhook;
 
+#[must_use]
 #[derive(Debug, Clone, Parser)]
 pub struct Cli {
     #[command(subcommand)]
     pub cmd: Commands,
 }
 
+#[must_use]
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
     #[command(about = "webhookを扱うコマンド")]
@@ -55,6 +57,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Commands {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub enum CompletedCmds {
     Webhook(webhook::Complete),

@@ -5,6 +5,7 @@ use super::{Completed, Incomplete};
 
 pub mod webhook;
 
+#[must_use]
 #[derive(Debug, Clone, Subcommand)]
 pub enum Sudo {
     #[command(about = "webhookを扱うコマンド")]
@@ -26,6 +27,7 @@ impl<'a> Incomplete<&'a Message> for Sudo {
 
 // FIXME
 #[allow(clippy::module_name_repetitions)]
+#[must_use]
 #[derive(Debug, Clone)]
 pub enum SudoCompleted {
     Webhook(webhook::Completed),

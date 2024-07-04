@@ -5,6 +5,7 @@ use domain::{ChannelId, OwnerId, OwnerKind, User, WebhookId};
 use super::incomplete;
 use crate::cli::Completed;
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub enum Webhook {
     Create(WebhookCreate),
@@ -25,6 +26,7 @@ impl Completed for Webhook {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookCreate {
     pub user: User,
@@ -49,6 +51,7 @@ impl Completed for WebhookCreate {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookList {
     pub user: User,
@@ -62,6 +65,7 @@ impl Completed for WebhookList {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub user: User,

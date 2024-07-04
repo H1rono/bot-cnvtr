@@ -9,6 +9,7 @@ use usecases::{App, Bot, WebhookHandler};
 use app::{BotWrapper, WHandlerWrapper};
 use infra::{EventSubWrapper, RepoWrapper, TraqClientWrapper};
 
+#[must_use]
 pub struct InfraImpl<R, C, S>(pub R, pub C, pub S);
 
 impl<R: Repository, C: TraqClient, S: EventSubscriber> InfraImpl<R, C, S> {
@@ -59,6 +60,7 @@ where
     }
 }
 
+#[must_use]
 pub struct AppImpl<B, W, I = ()>(pub B, pub W, PhantomData<I>);
 
 impl<B, W, I> AppImpl<B, W, I> {

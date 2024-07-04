@@ -10,6 +10,7 @@ use usecases::{App, Bot};
 
 use super::AppState;
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct EventRequest(pub Event);
 

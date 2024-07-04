@@ -4,6 +4,7 @@ use http::HeaderMap;
 
 use domain::{Infra, Webhook};
 
+#[must_use]
 #[derive(Debug, Clone, Copy)]
 pub enum WebhookKind {
     GitHub,

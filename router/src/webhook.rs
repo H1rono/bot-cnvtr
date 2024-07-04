@@ -15,9 +15,11 @@ use crate::{
     AppState,
 };
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct Wh(pub Webhook);
 
+#[must_use]
 #[derive(Debug, thiserror::Error)]
 pub enum WhRejection {
     #[error(transparent)]

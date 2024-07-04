@@ -9,6 +9,7 @@ use domain::User;
 use super::complete;
 use crate::cli::Incomplete;
 
+#[must_use]
 #[derive(Debug, Clone, Subcommand)]
 pub enum Webhook {
     Create(WebhookCreate),
@@ -40,6 +41,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for Webhook {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookCreate {
     #[arg(
@@ -107,6 +109,7 @@ impl<'a> Incomplete<&'a DirectMessageCreatedPayload> for WebhookCreate {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookList;
 
@@ -122,6 +125,7 @@ impl<'a> Incomplete<&'a Message> for WebhookList {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Args, Deserialize, Serialize)]
 pub struct WebhookDelete {
     pub id: Uuid,

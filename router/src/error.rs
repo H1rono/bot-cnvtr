@@ -1,6 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error as ThisError;
 
+#[must_use]
 #[derive(Debug, ThisError)]
 #[error(transparent)]
 pub struct Error(#[from] pub domain::Error);

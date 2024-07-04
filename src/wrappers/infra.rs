@@ -6,6 +6,7 @@ use domain::{
 };
 use repository::opt;
 
+#[must_use]
 #[derive(Clone)]
 pub struct EventSubWrapper<S: EventSubscriber + Clone>(pub S);
 
@@ -20,6 +21,7 @@ where
     }
 }
 
+#[must_use]
 pub struct RepoWrapper<R: Repository>(pub R);
 
 impl<R: Repository> Repository for RepoWrapper<R>
@@ -66,6 +68,7 @@ where
     }
 }
 
+#[must_use]
 pub struct TraqClientWrapper<C: TraqClient>(pub C);
 
 impl<C> TraqClient for TraqClientWrapper<C>
@@ -136,6 +139,7 @@ where
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RepoConfig {
     pub database: String,
@@ -182,6 +186,7 @@ impl TryFrom<RepoConfig> for opt::Opt {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraqClientConfig {
     pub bot_access_token: String,

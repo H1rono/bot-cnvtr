@@ -11,6 +11,7 @@ mod system;
 
 static HELP_TEMPLATE: &str = include_str!("help.md");
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct BotImpl {
     pub name: String,

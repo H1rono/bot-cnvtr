@@ -25,6 +25,7 @@ trait AppState: Clone + Send + Sync + 'static {
     fn parser(&self) -> &RequestParser;
 }
 
+#[must_use]
 struct AppStateImpl<I, A>
 where
     I: Infra<Error = domain::Error>,

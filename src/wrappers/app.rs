@@ -7,6 +7,7 @@ use traq_bot_http::Event;
 use domain::{Infra, Webhook};
 use usecases::{Bot, WebhookHandler};
 
+#[must_use]
 #[derive(Clone)]
 pub struct BotWrapper<I: Infra, B: Bot<I>>(pub B, PhantomData<I>);
 
@@ -29,6 +30,7 @@ where
     }
 }
 
+#[must_use]
 #[derive(Clone)]
 pub struct WHandlerWrapper<I: Infra, W: WebhookHandler<I>>(pub W, PhantomData<I>);
 
@@ -61,6 +63,7 @@ where
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BotConfig {
     #[serde(rename = "bot_name", default = "BotConfig::default_bot_name")]

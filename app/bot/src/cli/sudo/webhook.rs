@@ -8,6 +8,7 @@ fn validate(context: &Message) -> bool {
     context.user.name == "H1rono_K"
 }
 
+#[must_use]
 #[derive(Debug, Clone, Subcommand)]
 pub enum Incomplete {
     ListAll,
@@ -36,6 +37,7 @@ impl<'a> crate::cli::Incomplete<&'a Message> for Incomplete {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub enum Completed {
     ListAll(ListAll),
@@ -53,6 +55,7 @@ impl crate::cli::Completed for Completed {
     }
 }
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct ListAll {
     pub valid: bool,
@@ -60,6 +63,7 @@ pub struct ListAll {
     pub user_id: UserId,
 }
 
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct Delete {
     pub id: WebhookId,

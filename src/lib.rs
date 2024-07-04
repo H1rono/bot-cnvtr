@@ -5,11 +5,13 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RouterConfig {
     pub verification_token: String,
 }
 
+#[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CronConfig {
     pub cron_period: String,
@@ -38,6 +40,8 @@ impl TryFrom<CronConfig> for Duration {
     }
 }
 
+#[must_use]
+#[derive(Debug, Clone)]
 pub struct ConfigComposite {
     pub bot_config: wrappers::app::BotConfig,
     pub router_config: RouterConfig,
