@@ -23,7 +23,7 @@ tokio = { version = "1.37", features = ["full"] }
 futures = "0.3"
 http = "1.1"
 tracing = "0.1"
-traq-bot-http = { version = "0.8", features = ["uuid"] }
+traq-bot-http = { version = "0.9", features = ["uuid"] }
 
 domain.path = "./domain"
 usecases.path = "./usecases"
