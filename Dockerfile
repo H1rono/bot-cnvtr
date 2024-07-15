@@ -1,4 +1,4 @@
-FROM golang:1.21.4-bookworm AS teahook-builder
+FROM golang:1.22.5-bookworm AS teahook-builder
 
 WORKDIR /app
 
