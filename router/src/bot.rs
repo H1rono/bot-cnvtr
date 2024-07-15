@@ -29,7 +29,7 @@ where
         let body = to_bytes(body, usize::MAX)
             .await
             .map_err(|_| StatusCode::BAD_REQUEST)?;
-        match parser.parse(headers.iter(), &body) {
+        match parser.parse(&headers, &body) {
             Ok(event) => Ok(Self(event)),
             Err(err) => {
                 tracing::error!("failed to parse bot event: {}", err);
