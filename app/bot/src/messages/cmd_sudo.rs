@@ -29,6 +29,14 @@ impl BotImpl {
         I: Infra,
         Error: From<I::Error>,
     {
+        if !list_all.valid {
+            let message = "Permission denied.";
+            infra
+                .traq_client()
+                .send_code(&list_all.talking_channel_id, "", message)
+                .await?;
+            return Ok(());
+        }
         let webhooks = infra.repo().list_webhooks().await?;
         let code = serde_json::to_string_pretty(&webhooks)
             .with_context(|| format!("failed to format {:?}", &webhooks))?;
