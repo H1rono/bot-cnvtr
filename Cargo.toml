@@ -35,8 +35,11 @@ bot.path = "./app/bot"
 router.path = "./router"
 
 [workspace.lints.clippy]
-pedantic = "deny"
-missing-errors-doc = "allow"
+pedantic.level = "deny"
+pedantic.priority = 0
+
+missing_errors_doc.level = "allow"
+missing_errors_doc.priority = 1
 
 
 [package]
