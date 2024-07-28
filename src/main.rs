@@ -12,9 +12,11 @@ use bot_cnvtr::{wrappers, ConfigComposite};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or("info".into()))
-        .init();
+    let env_filter = EnvFilter::try_from_env("CNVTR_LOG")
+        .or_else(|_| EnvFilter::try_from_default_env())
+        .unwrap_or_else(|_| "info".into());
+    tracing_subscriber::fmt().with_env_filter(env_filter).init();
+
     let ConfigComposite {
         bot_config,
         router_config,

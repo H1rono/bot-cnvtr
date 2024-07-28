@@ -29,6 +29,7 @@ services:
     image: bot-cnvtr
     container_name: cnvtr
     environment:
+      - CNVTR_LOG=${CNVTR_LOG:-info}
       - BOT_ID=${BOT_ID?BOT_ID is not set}
       - BOT_USER_ID=${BOT_USER_ID?BOT_USER_ID is not set}
       - VERIFICATION_TOKEN=${VERIFICATION_TOKEN?VERIFICATION_TOKEN is not set}
