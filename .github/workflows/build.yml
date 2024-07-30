@@ -59,6 +59,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./docker/Dockerfile
           push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
