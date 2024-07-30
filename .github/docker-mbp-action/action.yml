@@ -1,0 +1,46 @@
+name: Metadata, Build and Push
+
+description: docker/metadata-action and docker/build-push-action
+
+inputs:
+  push:
+    description: whether to push to ghcr.io
+    required: true
+    default: "false"
+  tags:
+    description: "`tags` passed to docker/metadata-action"
+    required: true
+  cache:
+    description: whether to use cache
+    required: true
+    default: "false"
+  target:
+    description: Dockerfile build target
+    required: true
+    default: "server-distroless"
+
+outputs:
+  meta-json:
+    description: Metadata output in JSON format
+    value: ${{ steps.meta.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Collect metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/h1rono/bot-cnvtr
+        tags: ${{ inputs.tags }}
+    - name: Build and Push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./docker/Dockerfile
+        target: ${{ inputs.target }}
+        push: ${{ inputs.push }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: ${{ inputs.cache == 'true' && 'type=gha' || '' }}
+        cache-to: ${{ inputs.cache == 'true' && 'type=gha' || '' }}

@@ -47,46 +47,26 @@ jobs:
           registry: ghcr.io
           username: h1rono
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Collect metadata (distroless)
-        id: meta-distroless
-        uses: docker/metadata-action@v5
+      - name: distroless image
+        uses: ./.github/docker-mbp-action
         with:
-          images: ghcr.io/h1rono/bot-cnvtr
+          push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
           tags: |
             type=ref,event=branch,suffix=
             type=ref,event=pr,suffix=
             type=ref,event=branch,suffix=-distroless
             type=ref,event=pr,suffix=-distroless
-      - name: Build and Push (distroless)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile
           target: server-distroless
-          push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
-          tags: ${{ steps.meta-distroless.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Collect metadata (debian)
-        id: meta-debian-slim
-        uses: docker/metadata-action@v5
+          cache: "true"
+      - name: debian-slim image
+        uses: ./.github/docker-mbp-action
         with:
-          images: ghcr.io/h1rono/bot-cnvtr
+          push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
           tags: |
             type=ref,event=branch,suffix=-debian-slim
             type=ref,event=pr,suffix=-debian-slim
-      - name: Build and Push (debian)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile
           target: server-debian-slim
-          push: ${{ github.ref_name == 'main' && 'true' || 'false' }}
-          tags: ${{ steps.meta-debian-slim.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache: "true"
 
   notify-ns:
     runs-on: ubuntu-latest
