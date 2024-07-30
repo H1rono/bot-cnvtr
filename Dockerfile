@@ -23,10 +23,8 @@ RUN --mount=type=cache,target=/var/cache/cargo \
 FROM debian:bookworm-slim
 
 RUN apt-get -y update \
-    && apt-get install -y --no-install-recommends \
-    libssl-dev ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && update-ca-certificates --fresh
+    && apt-get install -y --no-install-recommends libgcc-s1 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
