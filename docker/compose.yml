@@ -25,8 +25,11 @@ services:
       start_period: 5s
       retries: 5
   cnvtr:
-    build: .
-    image: bot-cnvtr
+    build:
+      context: ./..
+      dockerfile: ./docker/Dockerfile
+      tags:
+        - cnvtr
     container_name: cnvtr
     environment:
       - CNVTR_LOG=${CNVTR_LOG:-info}
