@@ -20,7 +20,14 @@ RUN --mount=type=cache,target=/var/cache/cargo \
     --mount=type=bind,source=.,target=. \
     cargo build --release --locked
 
-FROM gcr.io/distroless/base-nossl-debian12:nonroot
+FROM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
+
+WORKDIR /app
+COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
+
+CMD [ "/app/bin/bot-cnvtr" ]
+
+FROM debian:bookworm-slim AS server-debian-slim
 
 WORKDIR /app
 COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
