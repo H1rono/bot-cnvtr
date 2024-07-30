@@ -30,6 +30,7 @@ services:
       dockerfile: ./docker/Dockerfile
       tags:
         - cnvtr
+      target: server-debian-slim
     container_name: cnvtr
     environment:
       - CNVTR_LOG=${CNVTR_LOG:-info}
