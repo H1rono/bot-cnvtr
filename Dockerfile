@@ -20,11 +20,7 @@ RUN --mount=type=cache,target=/var/cache/cargo \
     --mount=type=bind,source=.,target=. \
     cargo build --release --locked
 
-FROM debian:bookworm-slim
-
-RUN apt-get -y update \
-    && apt-get install -y --no-install-recommends libgcc-s1 \
-    && rm -rf /var/lib/apt/lists/*
+FROM gcr.io/distroless/base-nossl-debian12:nonroot
 
 WORKDIR /app
 COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
