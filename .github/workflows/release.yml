@@ -24,41 +24,23 @@ jobs:
           registry: ghcr.io
           username: h1rono
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Collect metadata (distroless)
-        uses: docker/metadata-action@v5
-        id: meta-distroless
+      - name: distroless image
+        uses: ./.github/docker-mbp-action
         with:
-          images: ghcr.io/h1rono/bot-cnvtr
+          push: true
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{version}}-distroless
             type=semver,pattern={{major}}.{{minor}}-distroless
-      - name: Build and Push (distroless)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
           target: server-distroless
-          tags: ${{ steps.meta-distroless.outputs.tags }}
-          labels: ${{ steps.meta-distroless.outputs.labels }}
-
-      - name: Collect metadata (debian-slim)
-        uses: docker/metadata-action@v5
-        id: meta-debian-slim
+          cache: "false"
+      - name: debian-slim image
+        uses: ./.github/docker-mbp-action
         with:
-          images: ghcr.io/h1rono/bot-cnvtr
+          push: true
           tags: |
             type=semver,pattern={{version}}-debian-slim
             type=semver,pattern={{major}}.{{minor}}-debian-slim
-      - name: Build and Push (debian-slim)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
           target: server-debian-slim
-          tags: ${{ steps.meta-debian-slim.outputs.tags }}
-          labels: ${{ steps.meta-debian-slim.outputs.labels }}
+          cache: "false"
