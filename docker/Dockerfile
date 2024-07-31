@@ -15,8 +15,10 @@ COPY --from=teahook-builder /app/teahook-rs /usr/local/bin/teahook-rs
 
 ENV GITEA_TRANSPILER_PATH=/usr/local/bin/teahook-rs \
     CARGO_TARGET_DIR=/artifact \
+    RUSTUP_HOME=/var/cache/rustup \
     CARGO_HOME=/var/cache/cargo
-RUN --mount=type=cache,target=/var/cache/cargo \
+RUN --mount=type=cache,target=/var/cache/rustup \
+    --mount=type=cache,target=/var/cache/cargo \
     --mount=type=bind,source=.,target=. \
     cargo build --release --locked
 
