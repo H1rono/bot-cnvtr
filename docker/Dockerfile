@@ -21,11 +21,11 @@ RUN --mount=type=bind,source=docker,target=src \
     > rust-platform
 
 RUN --mount=type=bind,source=docker,target=src \
-    python3 src/target-triple.py gcc-pkgname \
+    python3 src/target-triple.py crossbuild-essential \
     --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
-    > gcc-pkgname
+    > crossbuild-essential
 
-CMD [ "cat", "/app/rust-platform", "/app/gcc-pkgname" ]
+CMD [ "cat", "/app/rust-platform", "/app/crossbuild-essential" ]
 
 FROM rust:bookworm AS builder
 

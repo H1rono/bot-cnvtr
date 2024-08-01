@@ -6,9 +6,9 @@ from typing import Any, Literal, Self, Type
 
 
 CMD_RUST_PLATFORM_T = Literal["rust-platform"]
-CMD_GCC_PKGNAME_T = Literal["gcc-pkgname"]
+CMD_CROSSBUILD_ESS_T = Literal["crossbuild-essential"]
 CMD_RUST_PLATFORM: CMD_RUST_PLATFORM_T = "rust-platform"
-CMD_GCC_PKGNAME: CMD_GCC_PKGNAME_T = "gcc-pkgname"
+CMD_CROSSBUILD_ESS: CMD_CROSSBUILD_ESS_T = "crossbuild-essential"
 
 
 @dataclass(frozen=True)
@@ -59,20 +59,16 @@ class Platform:
                 assert False, f"unexpected input: {self}"
         return f"{arch}-{vendor}-{self.os}-{abi}"
 
-    def gcc_pkgname(self) -> str:
-        match self.rust_platform():
-            case "x86_64-unknown-linux-gnu":
-                return "gcc-x86-64-linux-gnu"
-            case (
-                "aarch64-unknown-linux-gnu"
-                | "arm-unknown-linux-gnueabihf"
-                | "armv7-unknown-linux-gnueabihf"
-            ):
-                return "gcc-aarch64-linux-gnu"
-            case "powerpc64le-unknown-linux-gnu":
-                return "gcc-powerpc64-linux-gnu"
-            case "s390x-unknown-linux-gnu":
-                return "gcc-s390x-linux-gnu"
+    def crossbuild_essential(self) -> str:
+        match self.arch:
+            case "amd64" | "386":
+                return "crossbuild-essential-amd64"
+            case "arm64" | "arm":
+                return "crossbuild-essential-arm64"
+            case "ppc64le":
+                return "crossbuild-essential-ppc64el"
+            case "s390x":
+                return "crossbuild-essential-s390x"
             case _:
                 assert False, f"unexpected input: {self}"
 
@@ -89,7 +85,7 @@ class Platform:
 
 @dataclass(frozen=True)
 class Args:
-    subcommand: CMD_RUST_PLATFORM_T | CMD_GCC_PKGNAME_T
+    subcommand: CMD_RUST_PLATFORM_T | CMD_CROSSBUILD_ESS_T
     platform: Platform
 
     @classmethod
@@ -100,7 +96,7 @@ class Args:
     @classmethod
     def gcc_pkgname_args(cls, args: Any) -> Self:
         platform = Platform.from_args(args)
-        return cls(CMD_GCC_PKGNAME, platform)
+        return cls(CMD_CROSSBUILD_ESS, platform)
 
 
 
@@ -116,7 +112,7 @@ def parse_args() -> Args:
     rust_platform_parser = subparsers.add_parser(CMD_RUST_PLATFORM)
     prepare_subcommand_parser(rust_platform_parser)
     rust_platform_parser.set_defaults(func=Args.rust_platform_args)
-    gcc_pkgname_parser = subparsers.add_parser(CMD_GCC_PKGNAME)
+    gcc_pkgname_parser = subparsers.add_parser(CMD_CROSSBUILD_ESS)
     prepare_subcommand_parser(gcc_pkgname_parser)
     gcc_pkgname_parser.set_defaults(func=Args.gcc_pkgname_args)
     args = parser.parse_args()
@@ -128,8 +124,8 @@ def parse_args() -> Args:
 def proc_args(args: Args) -> str:
     if args.subcommand == CMD_RUST_PLATFORM:
         return args.platform.rust_platform()
-    assert args.subcommand == CMD_GCC_PKGNAME
-    return args.platform.gcc_pkgname()
+    assert args.subcommand == CMD_CROSSBUILD_ESS
+    return args.platform.crossbuild_essential()
 
 
 def main() -> None:
