@@ -49,11 +49,11 @@ ENV GITEA_TRANSPILER_PATH=/usr/local/bin/teahook-rs \
     CARGO_TARGET_DIR=/artifact \
     RUSTUP_HOME=/var/cache/rustup \
     CARGO_HOME=/var/cache/cargo
-RUN --mount=type=cache,target=/var/cache/rustup \
+RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
     --mount=type=bind,source=.,target=. \
     rustup target add "$(cat /target)"
-RUN --mount=type=cache,target=/var/cache/rustup \
-    --mount=type=cache,target=/var/cache/cargo \
+RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
+    --mount=type=cache,target=/var/cache/cargo,sharing=locked \
     --mount=type=bind,source=.,target=. \
     cargo build --target "$(cat /target)" --release --locked \
     --config "env.CC_$(cat /target) = '$(cat /gcc-prefix)-gcc'" \
