@@ -1,4 +1,4 @@
-FROM golang:1.22.5-bookworm AS teahook-builder
+FROM --platform=$BUILDPLATFORM golang:1.22.5-bookworm AS teahook-builder
 
 WORKDIR /app
 
@@ -19,39 +19,59 @@ RUN --mount=type=bind,source=docker,target=src \
     python3 src/target-triple.py rust-platform \
     --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
     > rust-platform
-
 RUN --mount=type=bind,source=docker,target=src \
-    python3 src/target-triple.py gcc-pkgname \
+    python3 src/target-triple.py gcc-prefix \
     --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
-    > gcc-pkgname
+    > gcc-prefix
+RUN --mount=type=bind,source=docker,target=src \
+    python3 src/target-triple.py crossbuild-essential \
+    --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
+    > crossbuild-essential
 
-CMD [ "cat", "/app/rust-platform", "/app/gcc-pkgname" ]
+CMD [ "cat", "/app/rust-platform", "/app/crossbuild-essential" ]
 
-FROM rust:bookworm AS builder
+FROM --platform=$BUILDPLATFORM rust:bookworm AS builder
 
 WORKDIR /app
 
 COPY --from=teahook-builder /app/teahook-rs /usr/local/bin/teahook-rs
+COPY --from=target-triple /app/rust-platform /target
+COPY --from=target-triple /app/gcc-prefix /gcc-prefix
+COPY --from=target-triple /app/crossbuild-essential /crossbuild-essential
+
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    dpkg --add-architecture amd64 \
+    && apt-get -y update \
+    && apt-get install -y --no-install-recommends \
+    "$(cat /crossbuild-essential)"
 
 ENV GITEA_TRANSPILER_PATH=/usr/local/bin/teahook-rs \
     CARGO_TARGET_DIR=/artifact \
     RUSTUP_HOME=/var/cache/rustup \
     CARGO_HOME=/var/cache/cargo
-RUN --mount=type=cache,target=/var/cache/rustup \
-    --mount=type=cache,target=/var/cache/cargo \
+RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
     --mount=type=bind,source=.,target=. \
-    cargo build --release --locked
+    rustup target add "$(cat /target)"
+RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
+    --mount=type=cache,target=/var/cache/cargo,sharing=locked \
+    --mount=type=bind,source=.,target=. \
+    cargo build --target "$(cat /target)" --release --locked \
+    --config "env.CC_$(cat /target) = '$(cat /gcc-prefix)-gcc'" \
+    --config "env.CXX_$(cat /target) = '$(cat /gcc-prefix)-g++'" \
+    --config "target.$(cat /target).linker = '$(cat /gcc-prefix)-gcc'"
 
-FROM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
+RUN cp "/artifact/$(cat /target)/release/bot-cnvtr" /bot-cnvtr
+
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
 
 WORKDIR /app
-COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
+COPY --from=builder /bot-cnvtr /app/bin/bot-cnvtr
 
 CMD [ "/app/bin/bot-cnvtr" ]
 
-FROM debian:bookworm-slim AS server-debian-slim
+FROM --platform=$TARGETPLATFORM debian:bookworm-slim AS server-debian-slim
 
 WORKDIR /app
-COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
+COPY --from=builder /bot-cnvtr /app/bin/bot-cnvtr
 
 CMD [ "/app/bin/bot-cnvtr" ]
