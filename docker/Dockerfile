@@ -19,7 +19,10 @@ RUN --mount=type=bind,source=docker,target=src \
     python3 src/target-triple.py rust-platform \
     --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
     > rust-platform
-
+RUN --mount=type=bind,source=docker,target=src \
+    python3 src/target-triple.py gcc-prefix \
+    --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \
+    > gcc-prefix
 RUN --mount=type=bind,source=docker,target=src \
     python3 src/target-triple.py crossbuild-essential \
     --os "$TARGETOS" --arch "$TARGETARCH" --variant "$TARGETVARIANT" \

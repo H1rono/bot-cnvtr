@@ -6,9 +6,12 @@ from typing import Any, Literal, Self, Type
 
 
 CMD_RUST_PLATFORM_T = Literal["rust-platform"]
+CMD_GCC_PREFIX_T = Literal["gcc-prefix"]
 CMD_CROSSBUILD_ESS_T = Literal["crossbuild-essential"]
+
 CMD_RUST_PLATFORM: CMD_RUST_PLATFORM_T = "rust-platform"
 CMD_CROSSBUILD_ESS: CMD_CROSSBUILD_ESS_T = "crossbuild-essential"
+CMD_GCC_PREFIX: CMD_GCC_PREFIX_T = "gcc-prefix"
 
 
 @dataclass(frozen=True)
@@ -59,6 +62,19 @@ class Platform:
                 assert False, f"unexpected input: {self}"
         return f"{arch}-{vendor}-{self.os}-{abi}"
 
+    def gcc_toolchain_prefix(self) -> str:
+        match self.arch:
+            case "amd64" | "386":
+                return "x86_64-linux-gnu"
+            case "arm64" | "arm":
+                return "aarch64-linux-gnu"
+            case "ppc64le":
+                return "powerpc64le-linux-gnu"
+            case "s390x":
+                return "s390x-linux-gnu"
+            case _:
+                assert False, f"unexpected input: {self}"
+
     def crossbuild_essential(self) -> str:
         match self.arch:
             case "amd64" | "386":
@@ -85,13 +101,18 @@ class Platform:
 
 @dataclass(frozen=True)
 class Args:
-    subcommand: CMD_RUST_PLATFORM_T | CMD_CROSSBUILD_ESS_T
+    subcommand: CMD_RUST_PLATFORM_T | CMD_GCC_PREFIX_T | CMD_CROSSBUILD_ESS_T
     platform: Platform
 
     @classmethod
     def rust_platform_args(cls, args: Any) -> Self:
         platform = Platform.from_args(args)
         return cls(CMD_RUST_PLATFORM, platform)
+
+    @classmethod
+    def gcc_prefix_args(cls, args: Any) -> Self:
+        platform = Platform.from_args(args)
+        return cls(CMD_GCC_PREFIX, platform)
 
     @classmethod
     def gcc_pkgname_args(cls, args: Any) -> Self:
@@ -109,12 +130,19 @@ def prepare_subcommand_parser(parser: argparse.ArgumentParser) -> None:
 def parse_args() -> Args:
     parser = argparse.ArgumentParser("target-triple.py")
     subparsers = parser.add_subparsers()
+
     rust_platform_parser = subparsers.add_parser(CMD_RUST_PLATFORM)
     prepare_subcommand_parser(rust_platform_parser)
     rust_platform_parser.set_defaults(func=Args.rust_platform_args)
+
+    gcc_prefix_parser = subparsers.add_parser(CMD_GCC_PREFIX)
+    prepare_subcommand_parser(gcc_prefix_parser)
+    gcc_prefix_parser.set_defaults(func=Args.gcc_prefix_args)
+
     gcc_pkgname_parser = subparsers.add_parser(CMD_CROSSBUILD_ESS)
     prepare_subcommand_parser(gcc_pkgname_parser)
     gcc_pkgname_parser.set_defaults(func=Args.gcc_pkgname_args)
+
     args = parser.parse_args()
     ret = args.func(args)
     assert isinstance(ret, Args)
@@ -124,6 +152,8 @@ def parse_args() -> Args:
 def proc_args(args: Args) -> str:
     if args.subcommand == CMD_RUST_PLATFORM:
         return args.platform.rust_platform()
+    elif args.subcommand == CMD_GCC_PREFIX:
+        return args.platform.gcc_toolchain_prefix()
     assert args.subcommand == CMD_CROSSBUILD_ESS
     return args.platform.crossbuild_essential()
 
