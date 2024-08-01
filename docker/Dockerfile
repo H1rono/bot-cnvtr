@@ -1,4 +1,4 @@
-FROM golang:1.22.5-bookworm AS teahook-builder
+FROM --platform=$BUILDPLATFORM golang:1.22.5-bookworm AS teahook-builder
 
 WORKDIR /app
 
@@ -27,31 +27,43 @@ RUN --mount=type=bind,source=docker,target=src \
 
 CMD [ "cat", "/app/rust-platform", "/app/crossbuild-essential" ]
 
-FROM rust:bookworm AS builder
+FROM --platform=$BUILDPLATFORM rust:bookworm AS builder
 
 WORKDIR /app
 
 COPY --from=teahook-builder /app/teahook-rs /usr/local/bin/teahook-rs
+COPY --from=target-triple /app/rust-platform /target
+COPY --from=target-triple /app/crossbuild-essential /crossbuild-essential
+
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    apt-get -y update \
+    && apt-get install -y --no-install-recommends \
+    "$(cat /crossbuild-essential)"
 
 ENV GITEA_TRANSPILER_PATH=/usr/local/bin/teahook-rs \
     CARGO_TARGET_DIR=/artifact \
     RUSTUP_HOME=/var/cache/rustup \
     CARGO_HOME=/var/cache/cargo
 RUN --mount=type=cache,target=/var/cache/rustup \
+    --mount=type=bind,source=.,target=. \
+    rustup target add "$(cat /target)"
+RUN --mount=type=cache,target=/var/cache/rustup \
     --mount=type=cache,target=/var/cache/cargo \
     --mount=type=bind,source=.,target=. \
-    cargo build --release --locked
+    cargo build --target "$(cat /target)" --release --locked
 
-FROM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
+RUN cp "/artifact/$(cat /target)/release/bot-cnvtr" /bot-cnvtr
+
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
 
 WORKDIR /app
-COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
+COPY --from=builder /bot-cnvtr /app/bin/bot-cnvtr
 
 CMD [ "/app/bin/bot-cnvtr" ]
 
-FROM debian:bookworm-slim AS server-debian-slim
+FROM --platform=$TARGETPLATFORM debian:bookworm-slim AS server-debian-slim
 
 WORKDIR /app
-COPY --from=builder /artifact/release/bot-cnvtr /app/bin/bot-cnvtr
+COPY --from=builder /bot-cnvtr /app/bin/bot-cnvtr
 
 CMD [ "/app/bin/bot-cnvtr" ]
