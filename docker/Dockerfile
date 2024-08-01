@@ -36,10 +36,12 @@ WORKDIR /app
 
 COPY --from=teahook-builder /app/teahook-rs /usr/local/bin/teahook-rs
 COPY --from=target-triple /app/rust-platform /target
+COPY --from=target-triple /app/gcc-prefix /gcc-prefix
 COPY --from=target-triple /app/crossbuild-essential /crossbuild-essential
 
 RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    apt-get -y update \
+    dpkg --add-architecture amd64 \
+    && apt-get -y update \
     && apt-get install -y --no-install-recommends \
     "$(cat /crossbuild-essential)"
 
@@ -53,7 +55,10 @@ RUN --mount=type=cache,target=/var/cache/rustup \
 RUN --mount=type=cache,target=/var/cache/rustup \
     --mount=type=cache,target=/var/cache/cargo \
     --mount=type=bind,source=.,target=. \
-    cargo build --target "$(cat /target)" --release --locked
+    cargo build --target "$(cat /target)" --release --locked \
+    --config "env.CC_$(cat /target) = '$(cat /gcc-prefix)-gcc'" \
+    --config "env.CXX_$(cat /target) = '$(cat /gcc-prefix)-g++'" \
+    --config "target.$(cat /target).linker = '$(cat /gcc-prefix)-gcc'"
 
 RUN cp "/artifact/$(cat /target)/release/bot-cnvtr" /bot-cnvtr
 
