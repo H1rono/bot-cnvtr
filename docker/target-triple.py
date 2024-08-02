@@ -2,7 +2,7 @@
 
 import argparse
 from dataclasses import dataclass
-from typing import Any, Literal, Self, Type
+from typing import Any, Literal, Self
 
 
 CMD_RUST_PLATFORM_T = Literal["rust-platform"]
@@ -47,7 +47,7 @@ class Platform:
                 abi = "gnu"
             case ("386", None):
                 # FIXME: is this correct?
-                arch = "x86_64"
+                arch = "i686"
                 vendor = "unknown"
                 abi = "gnu"
             case ("ppc64le", None):
@@ -118,7 +118,6 @@ class Args:
     def gcc_pkgname_args(cls, args: Any) -> Self:
         platform = Platform.from_args(args)
         return cls(CMD_CROSSBUILD_ESS, platform)
-
 
 
 def prepare_subcommand_parser(parser: argparse.ArgumentParser) -> None:

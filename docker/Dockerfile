@@ -40,8 +40,7 @@ COPY --from=target-triple /app/gcc-prefix /gcc-prefix
 COPY --from=target-triple /app/crossbuild-essential /crossbuild-essential
 
 RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    dpkg --add-architecture amd64 \
-    && apt-get -y update \
+    apt-get -y update \
     && apt-get install -y --no-install-recommends \
     "$(cat /crossbuild-essential)"
 
