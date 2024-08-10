@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let repo_opt: repository::opt::Opt = repo_config.try_into()?;
     let repo = repo_opt.connect().await?;
     repo.migrate().await?;
-    let (tx, rx) = cron::channel(100);
+    let (tx, rx) = cron::channel();
     let infra = wrappers::InfraImpl::new_wrapped(repo, client, tx);
     let infra = Arc::new(infra);
 
