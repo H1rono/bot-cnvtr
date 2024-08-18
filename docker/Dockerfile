@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.22.5-bookworm AS teahook-builder
+FROM --platform=$BUILDPLATFORM golang:1.23.0-bookworm AS teahook-builder
 
 WORKDIR /app
 
