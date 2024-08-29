@@ -1,7 +1,7 @@
 use sqlx::migrate::Migrator;
 use sqlx::MySqlPool;
 
-use domain::{ChannelId, Group, Owner, OwnerKind, Repository, User, Webhook, WebhookId};
+use domain::{ChannelId, Group, Owner, OwnerId, OwnerKind, Repository, User, Webhook, WebhookId};
 
 pub mod error;
 pub(crate) mod model;
@@ -30,33 +30,35 @@ impl RepositoryImpl {
     async fn complete_webhook(&self, w: &crate::model::Webhook) -> Result<Webhook, sqlx::Error> {
         let o = self.find_owner(&w.owner_id).await?.unwrap();
         let owner = if o.group {
-            let g = self.find_group(&o.id).await?.unwrap();
+            let gid = o.id.0.into();
+            let g = self.find_group(&gid).await?.unwrap();
             let gms = self.filter_group_members_by_gid(&g.id).await?;
             let mut members = vec![];
             for gm in gms {
                 let u = self.find_user(&gm.user_id).await?.unwrap();
                 members.push(User {
-                    id: u.id.into(),
+                    id: u.id,
                     name: u.name,
                 });
             }
             let group = Group {
-                id: g.id.into(),
+                id: g.id,
                 name: g.name,
                 members,
             };
             Owner::Group(group)
         } else {
-            let u = self.find_user(&o.id).await?.unwrap();
+            let uid = o.id.0.into();
+            let u = self.find_user(&uid).await?.unwrap();
             let user = User {
-                id: u.id.into(),
+                id: u.id,
                 name: u.name,
             };
             Owner::SigleUser(user)
         };
         Ok(Webhook {
-            id: w.id.into(),
-            channel_id: w.channel_id.into(),
+            id: w.id,
+            channel_id: w.channel_id,
             owner,
         })
     }
@@ -79,13 +81,13 @@ impl Repository for RepositoryImpl {
 
     async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
         let w = crate::model::Webhook {
-            id: webhook.id.into(),
-            channel_id: webhook.channel_id.into(),
-            owner_id: webhook.owner.id().into(),
+            id: webhook.id,
+            channel_id: webhook.channel_id,
+            owner_id: webhook.owner.id(),
         };
         self.create_webhook(w).await?;
         let o = crate::model::Owner {
-            id: webhook.owner.id().into(),
+            id: webhook.owner.id(),
             name: webhook.owner.name().to_string(),
             group: webhook.owner.kind() == OwnerKind::Group,
         };
@@ -97,7 +99,7 @@ impl Repository for RepositoryImpl {
                 use crate::model::GroupMember;
                 use crate::model::User;
                 let g = Group {
-                    id: group.id.into(),
+                    id: group.id,
                     name: group.name.clone(),
                 };
                 self.create_ignore_groups(&[g]).await?;
@@ -105,8 +107,8 @@ impl Repository for RepositoryImpl {
                     .members
                     .iter()
                     .map(|u| GroupMember {
-                        user_id: u.id.into(),
-                        group_id: group.id.into(),
+                        user_id: u.id,
+                        group_id: group.id,
                     })
                     .collect::<Vec<_>>();
                 self.create_ignore_group_members(&gms).await?;
@@ -114,7 +116,7 @@ impl Repository for RepositoryImpl {
                     .members
                     .iter()
                     .map(|u| User {
-                        id: u.id.into(),
+                        id: u.id,
                         name: u.name.clone(),
                     })
                     .collect::<Vec<_>>();
@@ -122,7 +124,7 @@ impl Repository for RepositoryImpl {
             }
             Owner::SigleUser(user) => {
                 let u = crate::model::User {
-                    id: user.id.into(),
+                    id: user.id,
                     name: user.name.clone(),
                 };
                 self.create_ignore_users(&[u]).await?;
@@ -132,7 +134,7 @@ impl Repository for RepositoryImpl {
     }
 
     async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Self::Error> {
-        let webhook_id = webhook.id.into();
+        let webhook_id = webhook.id;
         Ok(self.delete_webhook(&webhook_id).await?)
     }
 
@@ -147,7 +149,7 @@ impl Repository for RepositoryImpl {
     }
 
     async fn find_webhook(&self, id: &WebhookId) -> Result<Option<Webhook>, Self::Error> {
-        let w = self.find_webhook(&id.0).await?;
+        let w = self.find_webhook(id).await?;
         if let Some(w) = w {
             let webhook = self.complete_webhook(&w).await?;
             Ok(Some(webhook))
@@ -157,7 +159,7 @@ impl Repository for RepositoryImpl {
     }
 
     async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = self.filter_webhooks_by_oid(owner.id().0).await?;
+        let ws = self.filter_webhooks_by_oid(owner.id()).await?;
         Ok(self.complete_webhooks(&ws).await?)
     }
 
@@ -165,14 +167,17 @@ impl Repository for RepositoryImpl {
         &self,
         channel_id: &ChannelId,
     ) -> Result<Vec<Webhook>, Self::Error> {
-        let ws = self.filter_webhooks_by_cid(channel_id.0).await?;
+        let ws = self.filter_webhooks_by_cid(*channel_id).await?;
         Ok(self.complete_webhooks(&ws).await?)
     }
 
     async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Self::Error> {
-        let gms = self.filter_group_members_by_uid(&user.id.0).await?;
-        let mut oids = gms.into_iter().map(|gm| gm.group_id).collect::<Vec<_>>();
-        oids.push(user.id.0);
+        let gms = self.filter_group_members_by_uid(&user.id).await?;
+        let mut oids = gms
+            .into_iter()
+            .map(|gm| gm.group_id.0.into())
+            .collect::<Vec<OwnerId>>();
+        oids.push(user.id.0.into());
         let ws = self.filter_webhooks_by_oids(&oids).await?;
         Ok(self.complete_webhooks(&ws).await?)
     }

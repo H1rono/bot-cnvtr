@@ -4,7 +4,8 @@ use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result};
-use uuid::Uuid;
+
+use domain::{GroupId, UserId};
 
 use super::parse_col_str2uuid;
 use crate::RepositoryImpl;
@@ -12,8 +13,8 @@ use crate::RepositoryImpl;
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GroupMember {
-    pub group_id: Uuid,
-    pub user_id: Uuid,
+    pub group_id: GroupId,
+    pub user_id: UserId,
 }
 
 impl<'r> FromRow<'r, MySqlRow> for GroupMember {
@@ -38,8 +39,8 @@ impl RepositoryImpl {
 
     pub(crate) async fn find_group_member(
         &self,
-        gid: &Uuid,
-        uid: &Uuid,
+        gid: &GroupId,
+        uid: &UserId,
     ) -> Result<Option<GroupMember>> {
         sqlx::query_as(indoc! {r"
             SELECT *
@@ -53,7 +54,10 @@ impl RepositoryImpl {
         .await
     }
 
-    pub(crate) async fn filter_group_members_by_gid(&self, gid: &Uuid) -> Result<Vec<GroupMember>> {
+    pub(crate) async fn filter_group_members_by_gid(
+        &self,
+        gid: &GroupId,
+    ) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
@@ -64,7 +68,10 @@ impl RepositoryImpl {
         .await
     }
 
-    pub(crate) async fn filter_group_members_by_uid(&self, uid: &Uuid) -> Result<Vec<GroupMember>> {
+    pub(crate) async fn filter_group_members_by_uid(
+        &self,
+        uid: &UserId,
+    ) -> Result<Vec<GroupMember>> {
         sqlx::query_as(indoc! {r"
             SELECT *
             FROM `group_members`
@@ -107,8 +114,8 @@ impl RepositoryImpl {
 
     pub(crate) async fn update_group_member(
         &self,
-        gid: &Uuid,
-        uid: &Uuid,
+        gid: &GroupId,
+        uid: &UserId,
         gm: GroupMember,
     ) -> Result<()> {
         sqlx::query(indoc! {r"

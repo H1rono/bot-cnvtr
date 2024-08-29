@@ -1,10 +1,10 @@
 use std::iter;
 
+use domain::{GroupId, UserId};
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
-use uuid::Uuid;
 
 use super::parse_col_str2uuid;
 use crate::RepositoryImpl;
@@ -12,7 +12,7 @@ use crate::RepositoryImpl;
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Group {
-    pub id: Uuid,
+    pub id: GroupId,
     pub name: String,
 }
 
@@ -36,7 +36,7 @@ impl RepositoryImpl {
         .await
     }
 
-    pub(crate) async fn find_group(&self, id: &Uuid) -> Result<Option<Group>> {
+    pub(crate) async fn find_group(&self, id: &GroupId) -> Result<Option<Group>> {
         sqlx::query_as(indoc! {r"
             SELECT *
             FROM `groups`
@@ -77,7 +77,7 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    pub(crate) async fn update_group(&self, id: &Uuid, g: Group) -> Result<()> {
+    pub(crate) async fn update_group(&self, id: &UserId, g: Group) -> Result<()> {
         sqlx::query(indoc! {r"
             UPDATE `groups`
             SET `id` = ?, `name` = ?
@@ -91,7 +91,7 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    pub(crate) async fn delete_group(&self, id: &Uuid) -> Result<()> {
+    pub(crate) async fn delete_group(&self, id: &GroupId) -> Result<()> {
         sqlx::query(indoc! {r"
             DELETE FROM `groups`
             WHERE `id` = ?

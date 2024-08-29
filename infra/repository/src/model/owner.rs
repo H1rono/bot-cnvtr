@@ -1,10 +1,10 @@
 use std::iter;
 
+use domain::OwnerId;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
-use uuid::Uuid;
 
 use super::parse_col_str2uuid;
 use crate::RepositoryImpl;
@@ -12,7 +12,7 @@ use crate::RepositoryImpl;
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Owner {
-    pub id: Uuid,
+    pub id: OwnerId,
     pub name: String,
     pub group: bool,
 }
@@ -38,7 +38,7 @@ impl RepositoryImpl {
         .await
     }
 
-    pub(crate) async fn find_owner(&self, id: &Uuid) -> Result<Option<Owner>> {
+    pub(crate) async fn find_owner(&self, id: &OwnerId) -> Result<Option<Owner>> {
         sqlx::query_as(indoc! {r"
             SELECT *
             FROM `owners`
@@ -80,7 +80,7 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    pub(crate) async fn update_owner(&self, id: &Uuid, o: Owner) -> Result<()> {
+    pub(crate) async fn update_owner(&self, id: &OwnerId, o: Owner) -> Result<()> {
         sqlx::query(indoc! {r"
             UPDATE `owners`
             SET `id` = ?, `name` = ?, `group` = ?
@@ -95,7 +95,7 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    pub(crate) async fn delete_owner(&self, id: &Uuid) -> Result<()> {
+    pub(crate) async fn delete_owner(&self, id: &OwnerId) -> Result<()> {
         sqlx::query(indoc! {r"
             DELETE FROM `owners`
             WHERE `id` = ?
