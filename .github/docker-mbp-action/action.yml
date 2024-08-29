@@ -45,3 +45,4 @@ runs:
         platforms: linux/arm64,linux/amd64,linux/ppc64le,linux/s390x
         cache-from: ${{ inputs.cache == 'true' && 'type=gha' || '' }}
         cache-to: ${{ inputs.cache == 'true' && 'type=gha' || '' }}
+        provenance: false
