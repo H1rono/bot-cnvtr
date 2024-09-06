@@ -38,12 +38,12 @@ impl RepositoryImpl {
                 let u = self.find_user(&gm.user_id).await?.unwrap();
                 members.push(User {
                     id: u.id,
-                    name: u.name,
+                    name: u.name.into(),
                 });
             }
             let group = Group {
                 id: g.id,
-                name: g.name,
+                name: g.name.into(),
                 members,
             };
             Owner::Group(group)
@@ -52,7 +52,7 @@ impl RepositoryImpl {
             let u = self.find_user(&uid).await?.unwrap();
             let user = User {
                 id: u.id,
-                name: u.name,
+                name: u.name.into(),
             };
             Owner::SigleUser(user)
         };
@@ -100,7 +100,7 @@ impl Repository for RepositoryImpl {
                 use crate::model::User;
                 let g = Group {
                     id: group.id,
-                    name: group.name.clone(),
+                    name: group.name.clone().into(),
                 };
                 self.create_ignore_groups(&[g]).await?;
                 let gms = group
@@ -117,7 +117,7 @@ impl Repository for RepositoryImpl {
                     .iter()
                     .map(|u| User {
                         id: u.id,
-                        name: u.name.clone(),
+                        name: u.name.clone().into(),
                     })
                     .collect::<Vec<_>>();
                 self.create_ignore_users(&us).await?;
@@ -125,7 +125,7 @@ impl Repository for RepositoryImpl {
             Owner::SigleUser(user) => {
                 let u = crate::model::User {
                     id: user.id,
-                    name: user.name.clone(),
+                    name: user.name.clone().into(),
                 };
                 self.create_ignore_users(&[u]).await?;
             }
