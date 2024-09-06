@@ -1,5 +1,5 @@
-macro_rules! newtype_id {
-    ($i:ident) => {
+macro_rules! newtype {
+    (id $i:ident) => {
         ::paste::paste! {
             #[must_use]
             #[derive(
@@ -31,4 +31,4 @@ macro_rules! newtype_id {
     };
 }
 
-pub(crate) use newtype_id;
+pub(crate) use newtype;
