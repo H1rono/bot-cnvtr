@@ -79,7 +79,7 @@ impl<'a> Incomplete<(bool, &'a Message)> for WebhookCreate {
         complete::WebhookCreate {
             user: User {
                 id: context.user.id.into(),
-                name: context.user.name.clone(),
+                name: context.user.name.clone().into(),
             },
             in_dm,
             talking_channel_id: context.channel_id.into(),
@@ -119,7 +119,7 @@ impl<'a> Incomplete<&'a Message> for WebhookList {
     fn complete(&self, context: &'a Message) -> Self::Completed {
         let user = User {
             id: context.user.id.into(),
-            name: context.user.name.clone(),
+            name: context.user.name.clone().into(),
         };
         complete::WebhookList { user }
     }
@@ -137,7 +137,7 @@ impl<'a> Incomplete<&'a Message> for WebhookDelete {
     fn complete(&self, context: &'a Message) -> Self::Completed {
         let user = User {
             id: context.user.id.into(),
-            name: context.user.name.clone(),
+            name: context.user.name.clone().into(),
         };
         complete::WebhookDelete {
             user,

@@ -46,7 +46,7 @@ impl BotImpl {
                 let user_id = create.owner_id.0.into();
                 let user = User {
                     id: user_id,
-                    name: create.owner_name,
+                    name: create.owner_name.into(),
                 };
                 Owner::SigleUser(user)
             }

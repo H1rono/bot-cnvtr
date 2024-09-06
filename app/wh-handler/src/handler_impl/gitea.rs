@@ -26,11 +26,11 @@ impl WebhookHandlerImpl {
         let Some(message) = handle(headers, payload)? else {
             return Ok(());
         };
-        let kind = "gitea".to_string(); // TODO: event_type
+        let kind = "gitea".to_string().into(); // TODO: event_type
         let event = Event {
             channel_id: webhook.channel_id,
             kind,
-            body: message,
+            body: message.into(),
         };
         subscriber.send(event).await?;
         Ok(())
