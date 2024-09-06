@@ -1,8 +1,8 @@
 pub mod error;
 mod event;
 mod group;
-mod id;
 pub(crate) mod macros;
+mod newtypes;
 mod owner;
 mod user;
 mod webhook;
@@ -12,14 +12,17 @@ use std::future::Future;
 use serde::{Deserialize, Serialize};
 
 pub use error::{Error, Result};
-pub use id::{ChannelId, GroupId, MessageId, OwnerId, StampId, UserId, WebhookId};
+// id
+pub use newtypes::{ChannelId, GroupId, MessageId, OwnerId, StampId, UserId, WebhookId};
+// string
+pub use newtypes::{EventBody, EventKind, GroupName, UserName};
 
 #[must_use]
 #[derive(Clone, Debug)]
 pub struct Event {
     pub channel_id: ChannelId,
-    pub kind: String,
-    pub body: String,
+    pub kind: EventKind,
+    pub body: EventBody,
 }
 
 #[must_use]
@@ -33,14 +36,14 @@ pub trait EventSubscriber: Clone + Send + Sync + 'static {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct User {
     pub id: UserId,
-    pub name: String,
+    pub name: UserName,
 }
 
 #[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Group {
     pub id: GroupId,
-    pub name: String,
+    pub name: GroupName,
     pub members: Vec<User>,
 }
 

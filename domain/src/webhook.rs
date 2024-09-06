@@ -1,4 +1,4 @@
-use crate::id::{ChannelId, WebhookId};
+use crate::newtypes::{ChannelId, WebhookId};
 use crate::{Owner, Webhook};
 
 impl Webhook {

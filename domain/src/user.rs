@@ -1,8 +1,8 @@
-use crate::id::UserId;
+use crate::newtypes::{UserId, UserName};
 use crate::User;
 
 impl User {
-    pub fn new(id: UserId, name: String) -> Self {
+    pub fn new(id: UserId, name: UserName) -> Self {
         Self { id, name }
     }
 }

@@ -9,12 +9,12 @@ impl Event {
 
     #[must_use]
     pub fn kind(&self) -> &str {
-        &self.kind
+        self.kind.as_ref()
     }
 
     #[must_use]
     pub fn body(&self) -> Cow<'_, str> {
-        Cow::Borrowed(&self.body)
+        Cow::Borrowed(self.body.as_ref())
     }
 
     #[must_use]
@@ -24,8 +24,8 @@ impl Event {
 
     pub fn merge(&mut self, other: Event) -> Option<Event> {
         if self.can_merged(&other) {
-            self.body += "\n";
-            self.body += &other.body;
+            self.body.0 += "\n";
+            self.body.0 += other.body.as_ref();
             return None;
         }
         Some(other)

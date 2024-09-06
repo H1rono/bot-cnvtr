@@ -1,4 +1,4 @@
-use crate::id::OwnerId;
+use crate::newtypes::OwnerId;
 use crate::{Group, Owner, OwnerKind, User};
 
 impl Owner {
@@ -19,8 +19,8 @@ impl Owner {
     #[must_use]
     pub fn name(&self) -> &str {
         match self {
-            Self::Group(g) => &g.name,
-            Self::SigleUser(u) => &u.name,
+            Self::Group(g) => g.name.as_ref(),
+            Self::SigleUser(u) => u.name.as_ref(),
         }
     }
 
