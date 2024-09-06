@@ -10,7 +10,7 @@ pub(crate) fn extract_header_value<'a>(
     headers
         .get(name)
         .map(http::HeaderValue::as_bytes)
-        .ok_or(Error::BadRequest)
+        .ok_or_err()
 }
 
 pub(crate) trait OptionExt {
