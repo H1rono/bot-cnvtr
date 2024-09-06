@@ -80,7 +80,7 @@ impl TraqClient for ClientImpl {
         }
         let group = Group {
             id: *group_id,
-            name: g.name,
+            name: g.name.into(),
             members,
         };
         Ok(group)
@@ -94,7 +94,7 @@ impl TraqClient for ClientImpl {
         let u = get_user(&self.config, &uid).await?;
         let user = User {
             id: u.id.into(),
-            name: u.name,
+            name: u.name.into(),
         };
         Ok(user)
     }
