@@ -68,13 +68,11 @@ impl BotImpl {
                 .await?;
             return Ok(());
         };
-        let own_users = webhook.owner.users();
+        let own_users = webhook.owner.iter_users();
         repo.remove_webhook(&webhook).await?;
 
         let message = format!("Webhook {id} を削除しました", id = delete.id);
-        let notifications = own_users
-            .iter()
-            .map(|u| client.send_direct_message(&u.id, &message, false));
+        let notifications = own_users.map(|u| client.send_direct_message(&u.id, &message, false));
         futures::future::try_join_all(notifications).await?;
 
         Ok(())

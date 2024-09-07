@@ -100,10 +100,8 @@ impl BotImpl {
             id = webhook.id,
         };
         let msg = message.trim();
-        let own_users = webhook.owner.users();
-        let notifications = own_users
-            .iter()
-            .map(|u| client.send_direct_message(&u.id, msg, true));
+        let own_users = webhook.owner.iter_users();
+        let notifications = own_users.map(|u| client.send_direct_message(&u.id, msg, true));
         futures::future::try_join_all(notifications).await?;
         Ok(())
     }
@@ -126,7 +124,7 @@ impl BotImpl {
                 .await?;
             return Ok(());
         };
-        let own_users_contain_self = webhook.owner.users().iter().any(|u| u.id == delete.user.id);
+        let own_users_contain_self = webhook.owner.iter_users().any(|u| u.id == delete.user.id);
         if !own_users_contain_self {
             let message = format!(
                 "エラー: webhook所有者に @{name} が含まれていません",
@@ -138,11 +136,9 @@ impl BotImpl {
             return Ok(());
         }
         repo.remove_webhook(&webhook).await?;
-        let own_users = webhook.owner.users();
+        let own_users = webhook.owner.iter_users();
         let message = format!("Webhook {id} を削除しました", id = delete.webhook_id);
-        let notifications = own_users
-            .iter()
-            .map(|u| client.send_direct_message(&u.id, &message, false));
+        let notifications = own_users.map(|u| client.send_direct_message(&u.id, &message, false));
         futures::future::try_join_all(notifications).await?;
         Ok(())
     }
