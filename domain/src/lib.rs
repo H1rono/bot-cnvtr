@@ -3,7 +3,7 @@ mod event;
 mod group;
 pub(crate) mod macros;
 mod newtypes;
-mod owner;
+pub mod owner;
 mod user;
 mod webhook;
 
@@ -52,7 +52,7 @@ pub struct Group {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Owner {
     Group(Group),
-    SigleUser(User),
+    SingleUser(User),
 }
 
 #[must_use]

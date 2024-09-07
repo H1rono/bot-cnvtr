@@ -54,7 +54,7 @@ impl RepositoryImpl {
                 id: u.id,
                 name: u.name.into(),
             };
-            Owner::SigleUser(user)
+            Owner::SingleUser(user)
         };
         Ok(Webhook {
             id: w.id,
@@ -122,7 +122,7 @@ impl Repository for RepositoryImpl {
                     .collect::<Vec<_>>();
                 self.create_ignore_users(&us).await?;
             }
-            Owner::SigleUser(user) => {
+            Owner::SingleUser(user) => {
                 let u = crate::model::User {
                     id: user.id,
                     name: user.name.clone().into(),

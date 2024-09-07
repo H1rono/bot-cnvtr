@@ -48,14 +48,14 @@ impl BotImpl {
                     id: user_id,
                     name: create.owner_name.into(),
                 };
-                Owner::SigleUser(user)
+                Owner::SingleUser(user)
             }
         };
 
         // ownerには投稿者自身が含まれている必要がある
         let owner_contain_self = match &owner {
             Owner::Group(g) => g.members.iter().any(|u| u.id == create.user.id),
-            Owner::SigleUser(u) => u.id == create.user.id,
+            Owner::SingleUser(u) => u.id == create.user.id,
         };
         if !owner_contain_self {
             let message = format!(

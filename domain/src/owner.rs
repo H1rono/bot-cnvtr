@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::newtypes::OwnerId;
 use crate::{Group, Owner, OwnerKind, User};
 
@@ -5,14 +7,14 @@ impl Owner {
     pub fn kind(&self) -> OwnerKind {
         match self {
             Self::Group(_) => OwnerKind::Group,
-            Self::SigleUser(_) => OwnerKind::SingleUser,
+            Self::SingleUser(_) => OwnerKind::SingleUser,
         }
     }
 
     pub fn id(&self) -> OwnerId {
         match self {
             Self::Group(g) => g.id.0.into(),
-            Self::SigleUser(u) => u.id.0.into(),
+            Self::SingleUser(u) => u.id.0.into(),
         }
     }
 
@@ -20,7 +22,7 @@ impl Owner {
     pub fn name(&self) -> &str {
         match self {
             Self::Group(g) => g.name.as_ref(),
-            Self::SigleUser(u) => u.name.as_ref(),
+            Self::SingleUser(u) => u.name.as_ref(),
         }
     }
 
@@ -28,7 +30,7 @@ impl Owner {
     pub fn users(&self) -> Vec<&User> {
         match self {
             Self::Group(g) => g.members.iter().collect(),
-            Self::SigleUser(u) => vec![u],
+            Self::SingleUser(u) => vec![u],
         }
     }
 }
@@ -41,6 +43,6 @@ impl From<Group> for Owner {
 
 impl From<User> for Owner {
     fn from(value: User) -> Self {
-        Owner::SigleUser(value)
+        Owner::SingleUser(value)
     }
 }
