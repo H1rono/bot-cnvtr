@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures::TryFutureExt;
 use indoc::formatdoc;
 use uuid::Uuid;
 
@@ -101,15 +101,10 @@ impl BotImpl {
         };
         let msg = message.trim();
         let own_users = webhook.owner.users();
-        let it = async_stream::stream! {
-            for u in own_users {
-                yield client.send_direct_message(&u.id, msg, true).await;
-            }
-        };
-        it.collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+        let notifications = own_users
+            .iter()
+            .map(|u| client.send_direct_message(&u.id, msg, true));
+        futures::future::try_join_all(notifications).await?;
         Ok(())
     }
 
@@ -144,16 +139,11 @@ impl BotImpl {
         }
         repo.remove_webhook(&webhook).await?;
         let own_users = webhook.owner.users();
-        let it = async_stream::stream! {
-            let message = format!("Webhook {id} を削除しました", id = delete.webhook_id);
-            for u in own_users {
-                yield client.send_direct_message(&u.id, &message, false).await;
-            }
-        };
-        it.collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+        let message = format!("Webhook {id} を削除しました", id = delete.webhook_id);
+        let notifications = own_users
+            .iter()
+            .map(|u| client.send_direct_message(&u.id, &message, false));
+        futures::future::try_join_all(notifications).await?;
         Ok(())
     }
 
@@ -165,23 +155,24 @@ impl BotImpl {
         let client = infra.traq_client();
 
         let webhooks = infra.repo().filter_webhook_by_user(&list.user).await?;
-        let webhooks = async_stream::stream! {
-            for w in webhooks {
-                let channel_path = client.get_channel_path(&w.channel_id).await?;
-                yield Ok(formatdoc! {
+        let channel_paths = webhooks.iter().map(|w| {
+            client
+                .get_channel_path(&w.channel_id)
+                .map_ok(move |c| (w, c))
+        });
+        let channel_paths = futures::future::try_join_all(channel_paths).await?;
+        let message = channel_paths
+            .into_iter()
+            .map(|(w, c)| {
+                formatdoc! {
                     r#"
                         Webhook ID: {id}
-                        投稿先チャンネル: {channel_path}
+                        投稿先チャンネル: {c}
                     "#,
                     id = w.id
-                });
-            }
-        };
-        let message = webhooks
+                }
+            })
             .collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?
             .join("\n---\n\n");
         client
             .send_direct_message(&list.user.id, &message, true)

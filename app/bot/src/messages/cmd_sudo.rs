@@ -1,5 +1,4 @@
 use anyhow::Context;
-use futures::StreamExt;
 
 use domain::{Error, Infra, Repository, Result, TraqClient};
 
@@ -54,6 +53,7 @@ impl BotImpl {
     {
         let repo = infra.repo();
         let client = infra.traq_client();
+
         if !delete.valid {
             let message = "Permission denied.";
             client
@@ -70,16 +70,13 @@ impl BotImpl {
         };
         let own_users = webhook.owner.users();
         repo.remove_webhook(&webhook).await?;
-        let it = async_stream::stream! {
-            let message = format!("Webhook {id} を削除しました", id = delete.id);
-            for u in own_users {
-                yield client.send_direct_message(&u.id, &message, false).await;
-            }
-        };
-        it.collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+
+        let message = format!("Webhook {id} を削除しました", id = delete.id);
+        let notifications = own_users
+            .iter()
+            .map(|u| client.send_direct_message(&u.id, &message, false));
+        futures::future::try_join_all(notifications).await?;
+
         Ok(())
     }
 }
