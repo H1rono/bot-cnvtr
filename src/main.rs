@@ -1,14 +1,10 @@
-use std::{net::SocketAddr, sync::Arc};
+use bot_cnvtr as lib;
 
-use tower_http::trace::TraceLayer;
+use std::sync::Arc;
+
 use tracing_subscriber::EnvFilter;
 
-use bot::BotImpl;
-use router::make_router;
-use traq_client::ClientImpl;
-use wh_handler::WebhookHandlerImpl;
-
-use bot_cnvtr::{wrappers, ConfigComposite};
+use lib::{wrappers, ConfigComposite};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,12 +21,12 @@ async fn main() -> anyhow::Result<()> {
         cron_config,
     } = ConfigComposite::from_env()
         .map_err(anyhow::Error::from)
-        .or_else(|_| -> anyhow::Result<ConfigComposite> {
+        .or_else(|_| -> anyhow::Result<_> {
             dotenvy::from_filename_override(".env")?;
             Ok(ConfigComposite::from_env()?)
         })?;
 
-    let client = ClientImpl::new(&client_config.bot_access_token);
+    let client = traq_client::ClientImpl::new(&client_config.bot_access_token);
     let repo_opt: repository::opt::Opt = repo_config.try_into()?;
     let repo = repo_opt.connect().await?;
     repo.migrate().await?;
@@ -40,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
 
     // run notifier in background
     let cron_handle = {
-        let infra = infra.clone();
+        let infra = Arc::clone(&infra);
         let period = cron_config.try_into()?;
         tokio::task::spawn(async move {
             let mut rx = rx;
@@ -48,21 +44,18 @@ async fn main() -> anyhow::Result<()> {
         })
     };
 
-    let bot = BotImpl::new(bot_config.name, bot_config.id, bot_config.user_id);
-    let wh = WebhookHandlerImpl::new();
+    let bot = bot::BotImpl::new(bot_config.name, bot_config.id, bot_config.user_id);
+    let wh = wh_handler::WebhookHandlerImpl::new();
     let app = wrappers::AppImpl::new_wrapped(bot, wh);
     let app = Arc::new(app);
 
-    let router = make_router(&router_config.verification_token, infra, app)
-        .layer(TraceLayer::new_for_http());
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let router = router::make_router(&router_config.verification_token, infra, app)
+        .layer(tower_http::trace::TraceLayer::new_for_http());
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    tracing::info!("listening on {} ...", addr);
-    let serve = async move {
-        router::serve(listener, router)
-            .with_graceful_shutdown(bot_cnvtr::signal::signal())
-            .await
-    };
+    tracing::info!("listening on {addr} ...");
+    let shutdown_signal = bot_cnvtr::signal::signal();
+    let serve = router::serve(listener, router).with_graceful_shutdown(shutdown_signal);
 
     tokio::select! {
         res = serve => {

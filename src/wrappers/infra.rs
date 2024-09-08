@@ -158,10 +158,14 @@ impl RepoConfig {
 
     #[must_use]
     pub fn database_url(&self) -> String {
-        format!(
-            "mysql://{}:{}@{}:{}/{}",
-            self.user, self.password, self.hostname, self.port, self.database
-        )
+        let Self {
+            database,
+            hostname,
+            password,
+            port,
+            user,
+        } = self;
+        format!("mysql://{user}:{password}@{hostname}:{port}/{database}")
     }
 }
 
