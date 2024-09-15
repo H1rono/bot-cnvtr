@@ -820,27 +820,19 @@ where
         .map(|step| match step {
             Completed(s) => {
                 use gh::WorkflowStepCompletedConclusion as Conclusion;
-                let gh::WorkflowStepCompleted {
-                    number,
-                    name,
-                    conclusion,
-                    ..
-                } = s;
-                let conclusion = match conclusion {
-                    Conclusion::Failure => "failed",
-                    Conclusion::Skipped => "skipped",
-                    Conclusion::Success => "success",
-                };
-                format!("{number}. `{name}`: completed as {conclusion}")
+                let gh::WorkflowStepCompleted { conclusion, .. } = s;
+                match conclusion {
+                    Conclusion::Failure => ":x:",                // ❌
+                    Conclusion::Skipped => ":no_entry_sign:",    // 🚫
+                    Conclusion::Success => ":white_check_mark:", // ✅
+                }
             }
-            InProgress(s) => {
-                let gh::WorkflowStepInProgress { number, name, .. } = s;
-                format!("{number}. `{name}`: in progress")
+            InProgress(_) => {
+                ":rocket:" // 🚀
             }
-            Queued(s) => {
-                let gh::WorkflowStepQueued { number, name, .. } = s;
-                format!("{number}. `{name}`: queued")
+            Queued(_) => {
+                ":construction:" // 🚧
             }
         })
-        .join("\n")
+        .join("")
 }
