@@ -812,7 +812,7 @@ fn workflow_job_str(workflow_job: &gh::WorkflowJob) -> String {
 
 fn workflow_steps_str<'a, I>(steps: I) -> String
 where
-    I: IntoIterator<Item = &'a gh::WorkflowStep>,
+    I: IntoIterator<Item = &'a gh::WorkflowStep<'a>>,
 {
     use gh::WorkflowStep::{Completed, InProgress, Queued};
     steps
