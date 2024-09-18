@@ -9,15 +9,9 @@ use crate::Notifier;
 
 impl Notifier {
     async fn recv_many_unstop(&mut self, res: &mut Vec<Event>) {
-        while let Some(e) = self.0.recv().await {
-            let mut new_event = Some(e);
-            for event in res.iter_mut() {
-                new_event = event.merge(new_event.unwrap());
-                if new_event.is_none() {
-                    break;
-                }
-            }
-            if let Some(e) = new_event {
+        while let Some(new_event) = self.0.recv().await {
+            let tried_merge = res.iter_mut().try_fold(new_event, |ne, e| e.merge(ne));
+            if let Some(e) = tried_merge {
                 res.push(e);
             }
         }
