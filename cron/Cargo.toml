@@ -7,6 +7,7 @@ publish.workspace = true
 [dependencies]
 anyhow.workspace = true
 tokio.workspace = true
+tokio-stream = { version = "0.1", features = ["time"] }
 tracing.workspace = true
 
 domain.workspace = true

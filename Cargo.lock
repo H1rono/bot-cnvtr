@@ -498,6 +498,7 @@ dependencies = [
  "anyhow",
  "domain",
  "tokio",
+ "tokio-stream",
  "tracing",
 ]
 
