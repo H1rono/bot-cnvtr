@@ -48,9 +48,7 @@ impl Notifier {
         let mut recv_stream = UnboundedReceiverStream::new(self.0).timeout_repeating(interval);
         loop {
             tracing::trace!("tick");
-            let event_stream = (&mut recv_stream)
-                .take_while(Result::is_ok)
-                .map(Result::unwrap);
+            let event_stream = (&mut recv_stream).map_while(Result::ok);
             let events = collect_event_stream(event_stream).await;
             send_events(&*infra, &events).await;
         }
