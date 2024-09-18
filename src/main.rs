@@ -39,7 +39,6 @@ async fn main() -> anyhow::Result<()> {
         let infra = Arc::clone(&infra);
         let period = cron_config.try_into()?;
         tokio::task::spawn(async move {
-            let mut rx = rx;
             rx.run(infra, period).await;
         })
     };
