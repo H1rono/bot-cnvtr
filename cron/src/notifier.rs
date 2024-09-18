@@ -1,11 +1,28 @@
 use std::{sync::Arc, time::Duration};
 
 use tokio::time::interval;
-use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
+use tokio_stream::{wrappers::UnboundedReceiverStream, Stream, StreamExt};
 
 use domain::{Event, Infra, TraqClient};
 
 use crate::Notifier;
+
+async fn collect_event_stream<S>(mut stream: S) -> Vec<Event>
+where
+    S: Stream<Item = Event> + Send + Unpin,
+{
+    let mut events = vec![];
+    while let Some(new_event) = stream.next().await {
+        let tried_merge = events
+            .iter_mut()
+            .try_fold(new_event, |ne, e| Event::merge(e, ne));
+        let Some(ne) = tried_merge else {
+            continue;
+        };
+        events.push(ne);
+    }
+    events
+}
 
 async fn send_events(infra: &impl Infra, events: &[Event]) {
     if !events.is_empty() {
@@ -31,11 +48,10 @@ impl Notifier {
         let mut recv_stream = UnboundedReceiverStream::new(self.0).timeout_repeating(interval);
         loop {
             tracing::trace!("tick");
-            let events = (&mut recv_stream)
+            let event_stream = (&mut recv_stream)
                 .take_while(Result::is_ok)
-                .collect::<Result<Vec<_>, _>>()
-                .await
-                .unwrap();
+                .map(Result::unwrap);
+            let events = collect_event_stream(event_stream).await;
             send_events(&*infra, &events).await;
         }
     }
