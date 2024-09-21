@@ -12,6 +12,7 @@ pub enum WebhookKind {
     Clickup,
 }
 
+#[must_use]
 pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
     type Error: Into<domain::Error> + Send + Sync + 'static;
 
