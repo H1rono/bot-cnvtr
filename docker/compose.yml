@@ -49,3 +49,22 @@ services:
         condition: service_healthy
     ports:
       - 8080:8080
+  dbgate:
+    # https://hub.docker.com/r/dbgate/dbgate
+    image: dbgate/dbgate
+    restart: always
+    environment:
+      # https://dbgate.org/docs/env-variables.html
+      - CONNECTIONS=db
+      - LABLE_db=MariaDB
+      - SERVER_db=db
+      - USER_db=root
+      - PASSWORD_db=${MYSQL_ROOT_PASSWORD:-root}
+      - PORT_db=mysql
+      - DATABASE_db=${MYSQL_DATABASE:-cnvtr}
+      - ENGINE_db=mysql@dbgate-plugin-mysql
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 3000:3000
