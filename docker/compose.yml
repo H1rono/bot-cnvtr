@@ -51,7 +51,7 @@ services:
       - 8080:8080
   dbgate:
     # https://hub.docker.com/r/dbgate/dbgate
-    image: dbgate/dbgate
+    image: dbgate/dbgate:5.4.4
     restart: always
     environment:
       # https://dbgate.org/docs/env-variables.html
