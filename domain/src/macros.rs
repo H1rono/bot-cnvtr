@@ -1,6 +1,7 @@
 macro_rules! newtype {
-    (id $i:ident) => {
+    ($(#[$m:meta])* id $i:ident) => {
         ::paste::paste! {
+            $(#[$m])*
             #[must_use]
             #[derive(
                 Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
@@ -30,8 +31,9 @@ macro_rules! newtype {
         }
     };
 
-    (string $i:ident) => {
+    ($(#[$m:meta])* string $i:ident) => {
         ::paste::paste! {
+            $(#[$m])*
             #[must_use]
             #[derive(
                 Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash,
