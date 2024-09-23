@@ -4,9 +4,10 @@ use domain::OwnerId;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Result, Row};
+use sqlx::{mysql::MySqlRow, FromRow, Row};
 
 use super::parse_col_str2uuid;
+use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 #[must_use]
@@ -36,6 +37,7 @@ impl RepositoryImpl {
         "})
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn find_owner(&self, id: &OwnerId) -> Result<Option<Owner>> {
@@ -48,6 +50,7 @@ impl RepositoryImpl {
         .bind(id.to_string())
         .fetch_optional(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn create_owner(&self, o: Owner) -> Result<()> {

@@ -3,11 +3,12 @@ use std::iter;
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Result};
+use sqlx::{mysql::MySqlRow, FromRow};
 
 use domain::{GroupId, UserId};
 
 use super::parse_col_str2uuid;
+use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 #[must_use]
@@ -35,6 +36,7 @@ impl RepositoryImpl {
         "})
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn find_group_member(
@@ -52,6 +54,7 @@ impl RepositoryImpl {
         .bind(uid.to_string())
         .fetch_optional(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn filter_group_members_by_gid(
@@ -66,6 +69,7 @@ impl RepositoryImpl {
         .bind(gid.to_string())
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn filter_group_members_by_uid(
@@ -80,6 +84,7 @@ impl RepositoryImpl {
         .bind(uid.to_string())
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn create_group_member(&self, gm: GroupMember) -> Result<()> {

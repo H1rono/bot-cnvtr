@@ -4,9 +4,10 @@ use domain::{ChannelId, OwnerId, WebhookId};
 use indoc::{formatdoc, indoc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Result};
+use sqlx::{mysql::MySqlRow, FromRow};
 
 use super::parse_col_str2uuid;
+use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 #[must_use]
@@ -36,6 +37,7 @@ impl RepositoryImpl {
         "})
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn find_webhook(&self, id: &WebhookId) -> Result<Option<Webhook>> {
@@ -48,6 +50,7 @@ impl RepositoryImpl {
         .bind(id.to_string())
         .fetch_optional(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn filter_webhooks_by_cid(
@@ -62,6 +65,7 @@ impl RepositoryImpl {
         .bind(channel_id.to_string())
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn filter_webhooks_by_oid(&self, owner_id: OwnerId) -> Result<Vec<Webhook>> {
@@ -73,6 +77,7 @@ impl RepositoryImpl {
         .bind(owner_id.to_string())
         .fetch_all(&self.0)
         .await
+        .map_err(Error::from)
     }
 
     pub(crate) async fn filter_webhooks_by_cids(&self, cids: &[ChannelId]) -> Result<Vec<Webhook>> {
@@ -91,6 +96,7 @@ impl RepositoryImpl {
             .fold(sqlx::query_as(&query), sqlx::query::QueryAs::bind)
             .fetch_all(&self.0)
             .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn filter_webhooks_by_oids(&self, oids: &[OwnerId]) -> Result<Vec<Webhook>> {
@@ -108,6 +114,7 @@ impl RepositoryImpl {
             .fold(sqlx::query_as(&query), |q, i| q.bind(i.to_string()))
             .fetch_all(&self.0)
             .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn create_webhook(&self, w: Webhook) -> Result<()> {
