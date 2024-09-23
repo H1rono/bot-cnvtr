@@ -25,7 +25,6 @@ impl Default for WebhookHandlerImpl {
 impl<I> WebhookHandler<I> for WebhookHandlerImpl
 where
     I: Infra,
-    domain::Error: From<I::Error>,
 {
     type Error = domain::Error;
 

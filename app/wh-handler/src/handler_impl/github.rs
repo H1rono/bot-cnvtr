@@ -22,7 +22,6 @@ impl WebhookHandlerImpl {
     ) -> Result<(), Error>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         let subscriber = infra.event_subscriber();
         let Some(message) = handle(headers, payload)? else {
