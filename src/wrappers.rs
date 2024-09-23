@@ -20,10 +20,6 @@ impl<R: Repository, C: TraqClient, S: EventSubscriber> InfraImpl<R, C, S> {
 
 impl<R: Repository, C: TraqClient, S: EventSubscriber>
     InfraImpl<RepoWrapper<R>, TraqClientWrapper<C>, EventSubWrapper<S>>
-where
-    domain::Error: From<R::Error>,
-    domain::Error: From<C::Error>,
-    domain::Error: From<S::Error>,
 {
     pub fn new_wrapped(repo: R, client: C, subscriber: S) -> Self {
         let repo = RepoWrapper(repo);
@@ -36,16 +32,12 @@ where
 impl<R, C, S> Infra for InfraImpl<RepoWrapper<R>, TraqClientWrapper<C>, EventSubWrapper<S>>
 where
     R: Repository,
-    domain::Error: From<R::Error>,
     C: TraqClient,
-    domain::Error: From<C::Error>,
     S: EventSubscriber + Clone,
-    domain::Error: From<S::Error>,
 {
     type Repo = RepoWrapper<R>;
     type TClient = TraqClientWrapper<C>;
     type ESub = EventSubWrapper<S>;
-    type Error = domain::Error;
 
     fn repo(&self) -> &Self::Repo {
         &self.0
@@ -74,7 +66,7 @@ where
     I: Infra,
     B: Bot<I>,
     W: WebhookHandler<I>,
-    domain::Error: From<I::Error> + From<B::Error> + From<W::Error>,
+    domain::Error: From<B::Error> + From<W::Error>,
 {
     pub fn new_wrapped(b: B, w: W) -> AppImpl<BotWrapper<I, B>, WHandlerWrapper<I, W>> {
         let b = BotWrapper::new(b);
@@ -85,7 +77,7 @@ where
 
 impl<I, B, W> App<I> for AppImpl<B, W>
 where
-    I: Infra<Error = domain::Error>,
+    I: Infra,
     B: Bot<I, Error = domain::Error>,
     W: WebhookHandler<I, Error = domain::Error>,
 {

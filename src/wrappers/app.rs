@@ -20,13 +20,12 @@ impl<I: Infra, B: Bot<I>> BotWrapper<I, B> {
 impl<I, B> Bot<I> for BotWrapper<I, B>
 where
     I: Infra,
-    B: Bot<I, Error = I::Error>,
-    domain::Error: From<I::Error>,
+    B: Bot<I, Error = domain::Error>,
 {
     type Error = domain::Error;
 
     async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
-        Ok(self.0.handle_event(infra, event).await?)
+        self.0.handle_event(infra, event).await
     }
 }
 
@@ -42,7 +41,7 @@ impl<I: Infra, W: WebhookHandler<I>> WHandlerWrapper<I, W> {
 
 impl<I, W> WebhookHandler<I> for WHandlerWrapper<I, W>
 where
-    I: Infra<Error = domain::Error>,
+    I: Infra,
     W: WebhookHandler<I>,
     domain::Error: From<W::Error>,
 {
