@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{error::Error as StdError, sync::Arc, time::Duration};
 
 use tokio::time::interval;
 use tokio_stream::{wrappers::UnboundedReceiverStream, Stream, StreamExt};
@@ -35,7 +35,7 @@ async fn send_events(infra: &impl Infra, events: &[Event]) {
             .send_message(event.channel_id(), &event.body(), false)
             .await;
         if let Err(e) = res {
-            tracing::error!("{}", e.into());
+            tracing::error!(error = (&e as &dyn StdError));
         }
     }
 }
