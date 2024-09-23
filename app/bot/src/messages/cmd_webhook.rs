@@ -2,7 +2,7 @@ use futures::TryFutureExt;
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use domain::{Error, Infra, Owner, OwnerKind, Repository, Result, TraqClient, User};
+use domain::{Infra, Owner, OwnerKind, Repository, Result, TraqClient, User};
 
 use super::BotImpl;
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
@@ -11,7 +11,6 @@ impl BotImpl {
     pub(super) async fn handle_webhook_command<I>(&self, infra: &I, wh: Webhook) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         use Webhook::{Create, Delete, List};
         match wh {
@@ -24,7 +23,6 @@ impl BotImpl {
     async fn handle_webhook_create<I>(&self, infra: &I, create: WebhookCreate) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         let client = infra.traq_client();
         let repo = infra.repo();
@@ -109,7 +107,6 @@ impl BotImpl {
     async fn handle_webhook_delete<I>(&self, infra: &I, delete: WebhookDelete) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         let repo = infra.repo();
         let client = infra.traq_client();
@@ -146,7 +143,6 @@ impl BotImpl {
     async fn handle_webhook_list<I>(&self, infra: &I, list: WebhookList) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         let client = infra.traq_client();
 

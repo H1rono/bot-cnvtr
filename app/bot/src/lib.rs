@@ -32,10 +32,7 @@ impl BotImpl {
     }
 }
 
-impl<I: Infra> Bot<I> for BotImpl
-where
-    Error: From<I::Error>,
-{
+impl<I: Infra> Bot<I> for BotImpl {
     type Error = Error;
 
     #[tracing::instrument(skip_all, fields(event_kind = %event.kind()))]

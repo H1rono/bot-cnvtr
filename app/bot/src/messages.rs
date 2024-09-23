@@ -1,7 +1,7 @@
 use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use domain::{Error, Infra, MessageId, Result, StampId, TraqClient};
+use domain::{Infra, MessageId, Result, StampId, TraqClient};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 use crate::BotImpl;
@@ -29,7 +29,6 @@ impl BotImpl {
     ) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         use CompletedCmds::{PrintHelp, Sudo, Webhook};
         let client = infra.traq_client();
@@ -63,7 +62,6 @@ impl BotImpl {
     ) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         tracing::info!("Message from {}", payload.message.user.display_name);
         let message = &payload.message;
@@ -95,7 +93,6 @@ impl BotImpl {
     ) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         tracing::info!("Direct Message from {}", payload.message.user.display_name);
         let message = &payload.message;

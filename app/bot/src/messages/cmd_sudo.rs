@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use domain::{Error, Infra, Repository, Result, TraqClient};
+use domain::{Infra, Repository, Result, TraqClient};
 
 use super::BotImpl;
 use crate::cli::sudo::{
@@ -12,7 +12,6 @@ impl BotImpl {
     pub(super) async fn handle_sudo_command<I>(&self, infra: &I, sudo: SudoCompleted) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         use SudoCompleted::Webhook;
         match sudo {
@@ -26,7 +25,6 @@ impl BotImpl {
     async fn handle_sudo_wh_list_all<I>(&self, infra: &I, list_all: ListAll) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         if !list_all.valid {
             let message = "Permission denied.";
@@ -49,7 +47,6 @@ impl BotImpl {
     async fn handle_sudo_wh_delete<I>(&self, infra: &I, delete: Delete) -> Result<()>
     where
         I: Infra,
-        Error: From<I::Error>,
     {
         let repo = infra.repo();
         let client = infra.traq_client();
