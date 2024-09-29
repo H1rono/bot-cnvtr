@@ -107,11 +107,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn filter_webhooks_by_cids(&self, cids: &[ChannelId]) -> Result<Vec<Webhook>> {
-        let cid_len = cids.len();
-        if cid_len == 0 {
+        if cids.is_empty() {
             return Ok(vec![]);
         }
-        let ids_arg = iter::repeat('?').take(cid_len).join(", ");
+        let ids_arg = iter::repeat('?').take(cids.len()).join(", ");
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_WEBHOOKS}`
@@ -126,11 +125,10 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn filter_webhooks_by_oids(&self, oids: &[OwnerId]) -> Result<Vec<Webhook>> {
-        let oid_len = oids.len();
-        if oid_len == 0 {
+        if oids.is_empty() {
             return Ok(vec![]);
         }
-        let ids_arg = iter::repeat('?').take(oid_len).join(", ");
+        let ids_arg = iter::repeat('?').take(oids.len()).join(", ");
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_WEBHOOKS}`
