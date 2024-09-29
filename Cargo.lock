@@ -1803,6 +1803,7 @@ name = "repository"
 version = "0.1.0"
 dependencies = [
  "domain",
+ "futures",
  "indoc",
  "itertools",
  "serde",

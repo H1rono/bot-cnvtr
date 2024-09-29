@@ -10,6 +10,7 @@ indoc.workspace = true
 serde.workspace = true
 uuid.workspace = true
 thiserror.workspace = true
+futures.workspace = true
 
 domain.workspace = true
 
