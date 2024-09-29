@@ -13,7 +13,7 @@ use domain::{OwnerId, OwnerKind};
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
-const TABLE_OWNERS: &str = "owners";
+const TABLE_OWNERS: &str = "owners_v2";
 
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, sqlx::Decode, sqlx::Encode)]

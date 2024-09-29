@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
-const TABLE_GROUPS: &str = "groups";
+const TABLE_GROUPS: &str = "groups_v2";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]

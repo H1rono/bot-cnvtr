@@ -11,7 +11,7 @@ use domain::{ChannelId, OwnerId, WebhookId};
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
-const TABLE_WEBHOOKS: &str = "webhooks";
+const TABLE_WEBHOOKS: &str = "webhooks_v2";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]

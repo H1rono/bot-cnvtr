@@ -11,7 +11,7 @@ use domain::{GroupId, UserId};
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
-const TABLE_GROUP_MEMBERS: &str = "group_members";
+const TABLE_GROUP_MEMBERS: &str = "group_members_v2";
 
 // FIXME: マクロ使いたいここ
 #[must_use]

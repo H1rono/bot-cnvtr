@@ -11,7 +11,7 @@ use domain::UserId;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
-const TABLE_USERS: &str = "users";
+const TABLE_USERS: &str = "users_v2";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
