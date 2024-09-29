@@ -2,8 +2,8 @@ use sqlx::migrate::Migrator;
 use sqlx::MySqlPool;
 
 use domain::{
-    ChannelId, Error as DomainError, Group, Owner, OwnerId, OwnerKind, Repository, User, Webhook,
-    WebhookId,
+    ChannelId, Error as DomainError, Group, GroupId, Owner, OwnerId, OwnerKind, Repository, User,
+    Webhook, WebhookId,
 };
 
 pub mod error;
@@ -30,20 +30,29 @@ impl RepositoryImpl {
         Ok(())
     }
 
+    async fn collect_group_members(&self, gid: &GroupId) -> error::Result<Vec<User>> {
+        use futures::TryFutureExt;
+
+        let group_members = self.filter_group_members_by_gid(gid).await?;
+        let members = group_members.iter().map(|gm| {
+            self.find_user(&gm.user_id).map_ok(|u| {
+                let crate::model::User { id, name } = u.unwrap();
+                User {
+                    id,
+                    name: name.into(),
+                }
+            })
+        });
+        let members = futures::future::try_join_all(members).await?;
+        Ok(members)
+    }
+
     async fn complete_webhook(&self, w: &crate::model::Webhook) -> error::Result<Webhook> {
         let o = self.find_owner(&w.owner_id).await?.unwrap();
         let owner = if o.kind == OwnerKind::Group {
             let gid = o.id.0.into();
             let g = self.find_group(&gid).await?.unwrap();
-            let gms = self.filter_group_members_by_gid(&g.id).await?;
-            let mut members = vec![];
-            for gm in gms {
-                let u = self.find_user(&gm.user_id).await?.unwrap();
-                members.push(User {
-                    id: u.id,
-                    name: u.name.into(),
-                });
-            }
+            let members = self.collect_group_members(&gid).await?;
             let group = Group {
                 id: g.id,
                 name: g.name.into(),
