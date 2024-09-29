@@ -135,7 +135,7 @@ impl RepositoryImpl {
 
     pub(crate) async fn create_owner(&self, o: Owner) -> Result<()> {
         let query = formatdoc! {r"
-            INSERT INTO `{TABLE_OWNERS}` (`id`, `name`, `group`)
+            INSERT INTO `{TABLE_OWNERS}` (`id`, `name`, `kind`)
             VALUES (?, ?, ?)
         "};
         sqlx::query(&query)
@@ -154,7 +154,7 @@ impl RepositoryImpl {
         let values_arg = iter::repeat("(?, ?, ?)").take(os.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
-            INTO `{TABLE_OWNERS}` (`id`, `name`, `group`)
+            INTO `{TABLE_OWNERS}` (`id`, `name`, `kind`)
             VALUES {values_arg}
         "};
         let query = os.iter().fold(sqlx::query(&query), |q, o| {
@@ -169,7 +169,7 @@ impl RepositoryImpl {
     pub(crate) async fn update_owner(&self, id: &OwnerId, o: Owner) -> Result<()> {
         let query = formatdoc! {r"
             UPDATE `{TABLE_OWNERS}`
-            SET `id` = ?, `name` = ?, `group` = ?
+            SET `id` = ?, `name` = ?, `kind` = ?
             WHERE `id` = ?
         "};
         sqlx::query(&query)
