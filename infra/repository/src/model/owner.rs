@@ -1,7 +1,7 @@
 use std::iter;
 
 use domain::OwnerId;
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Row};
@@ -9,6 +9,8 @@ use sqlx::{mysql::MySqlRow, FromRow, Row};
 use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
+
+const TABLE_OWNERS: &str = "owners";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -31,38 +33,41 @@ impl<'r> FromRow<'r, MySqlRow> for Owner {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_owners(&self) -> Result<Vec<Owner>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `owners`
-        "})
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+            FROM `{TABLE_OWNERS}`
+        "};
+        sqlx::query_as(&query)
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn find_owner(&self, id: &OwnerId) -> Result<Option<Owner>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `owners`
+            FROM `{TABLE_OWNERS}`
             WHERE `id` = ?
             LIMIT 1
-        "})
-        .bind(id.to_string())
-        .fetch_optional(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(id.to_string())
+            .fetch_optional(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn create_owner(&self, o: Owner) -> Result<()> {
-        sqlx::query(indoc! {r"
-            INSERT INTO `owners` (`id`, `name`, `group`)
+        let query = formatdoc! {r"
+            INSERT INTO `{TABLE_OWNERS}` (`id`, `name`, `group`)
             VALUES (?, ?, ?)
-        "})
-        .bind(o.id.to_string())
-        .bind(o.name)
-        .bind(o.group)
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(o.id.to_string())
+            .bind(o.name)
+            .bind(o.group)
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
@@ -73,7 +78,7 @@ impl RepositoryImpl {
         let values_arg = iter::repeat("(?, ?, ?)").take(os.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
-            INTO `owners` (`id`, `name`, `group`)
+            INTO `{TABLE_OWNERS}` (`id`, `name`, `group`)
             VALUES {values_arg}
         "};
         let query = os.iter().fold(sqlx::query(&query), |q, o| {
@@ -84,28 +89,30 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn update_owner(&self, id: &OwnerId, o: Owner) -> Result<()> {
-        sqlx::query(indoc! {r"
-            UPDATE `owners`
+        let query = formatdoc! {r"
+            UPDATE `{TABLE_OWNERS}`
             SET `id` = ?, `name` = ?, `group` = ?
             WHERE `id` = ?
-        "})
-        .bind(o.id.to_string())
-        .bind(o.name)
-        .bind(o.group)
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(o.id.to_string())
+            .bind(o.name)
+            .bind(o.group)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
     pub(crate) async fn delete_owner(&self, id: &OwnerId) -> Result<()> {
-        sqlx::query(indoc! {r"
-            DELETE FROM `owners`
+        let query = formatdoc! {r"
+            DELETE FROM `{TABLE_OWNERS}`
             WHERE `id` = ?
-        "})
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 }

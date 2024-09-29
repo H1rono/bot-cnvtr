@@ -1,7 +1,7 @@
 use std::iter;
 
 use domain::{GroupId, UserId};
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Row};
@@ -9,6 +9,8 @@ use sqlx::{mysql::MySqlRow, FromRow, Row};
 use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
+
+const TABLE_GROUPS: &str = "groups";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -29,37 +31,40 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_groups(&self) -> Result<Vec<Group>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `groups`
-        "})
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+            FROM `{TABLE_GROUPS}`
+        "};
+        sqlx::query_as(&query)
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn find_group(&self, id: &GroupId) -> Result<Option<Group>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `groups`
+            FROM `{TABLE_GROUPS}`
             WHERE `id` = ?
             LIMIT 1
-        "})
-        .bind(id.to_string())
-        .fetch_optional(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(id.to_string())
+            .fetch_optional(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn create_group(&self, g: Group) -> Result<()> {
-        sqlx::query(indoc! {r"
-            INSERT INTO `groups` (`id`, `name`)
+        let query = formatdoc! {r"
+            INSERT INTO `{TABLE_GROUPS}` (`id`, `name`)
             VALUES (?, ?)
-        "})
-        .bind(g.id.to_string())
-        .bind(g.name)
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(g.id.to_string())
+            .bind(g.name)
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
@@ -70,7 +75,7 @@ impl RepositoryImpl {
         let values_arg = iter::repeat("(?, ?)").take(gs.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
-            INTO `groups` (`id`, `name`)
+            INTO `{TABLE_GROUPS}` (`id`, `name`)
             VALUES {values_arg}
         "};
         let query = gs.iter().fold(sqlx::query(&query), |q, g| {
@@ -81,27 +86,29 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn update_group(&self, id: &UserId, g: Group) -> Result<()> {
-        sqlx::query(indoc! {r"
-            UPDATE `groups`
+        let query = formatdoc! {r"
+            UPDATE `{TABLE_GROUPS}`
             SET `id` = ?, `name` = ?
             WHERE `id` = ?
-        "})
-        .bind(g.id.to_string())
-        .bind(g.name)
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(g.id.to_string())
+            .bind(g.name)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
     pub(crate) async fn delete_group(&self, id: &GroupId) -> Result<()> {
-        sqlx::query(indoc! {r"
-            DELETE FROM `groups`
+        let query = formatdoc! {r"
+            DELETE FROM `{TABLE_GROUPS}`
             WHERE `id` = ?
-        "})
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 }

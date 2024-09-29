@@ -1,6 +1,6 @@
 use std::iter;
 
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
@@ -10,6 +10,8 @@ use domain::{GroupId, UserId};
 use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
+
+const TABLE_GROUP_MEMBERS: &str = "group_members";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -30,13 +32,14 @@ impl<'r> FromRow<'r, MySqlRow> for GroupMember {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_group_members(&self) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `group_members`
-        "})
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+            FROM `{TABLE_GROUP_MEMBERS}`
+        "};
+        sqlx::query_as(&query)
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn find_group_member(
@@ -44,59 +47,63 @@ impl RepositoryImpl {
         gid: &GroupId,
         uid: &UserId,
     ) -> Result<Option<GroupMember>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `group_members`
+            FROM `{TABLE_GROUP_MEMBERS}`
             WHERE `group_id` = ?, `user_id` = ?
             LIMIT 1
-        "})
-        .bind(gid.to_string())
-        .bind(uid.to_string())
-        .fetch_optional(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(gid.to_string())
+            .bind(uid.to_string())
+            .fetch_optional(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn filter_group_members_by_gid(
         &self,
         gid: &GroupId,
     ) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `group_members`
+            FROM `{TABLE_GROUP_MEMBERS}`
             WHERE `group_id` = ?
-        "})
-        .bind(gid.to_string())
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(gid.to_string())
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn filter_group_members_by_uid(
         &self,
         uid: &UserId,
     ) -> Result<Vec<GroupMember>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `group_members`
+            FROM `{TABLE_GROUP_MEMBERS}`
             WHERE `user_id` = ?
-        "})
-        .bind(uid.to_string())
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(uid.to_string())
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn create_group_member(&self, gm: GroupMember) -> Result<()> {
-        sqlx::query(indoc! {r"
+        let query = formatdoc! {r"
             INSERT
-            INTO `group_members` (`group_id`, `user_id`)
+            INTO `{TABLE_GROUP_MEMBERS}` (`group_id`, `user_id`)
             VALUES (?, ?)
-        "})
-        .bind(gm.group_id.to_string())
-        .bind(gm.user_id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(gm.group_id.to_string())
+            .bind(gm.user_id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
@@ -107,7 +114,7 @@ impl RepositoryImpl {
         let values_arg = iter::repeat("(?, ?)").take(gms.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
-            INTO `group_members` (`group_id`, `user_id`)
+            INTO `{TABLE_GROUP_MEMBERS}` (`group_id`, `user_id`)
             VALUES {values_arg}
         "};
         let query = gms.iter().fold(sqlx::query(&query), |q, gm| {
@@ -123,29 +130,31 @@ impl RepositoryImpl {
         uid: &UserId,
         gm: GroupMember,
     ) -> Result<()> {
-        sqlx::query(indoc! {r"
-            UPDATE `group_members`
+        let query = formatdoc! {r"
+            UPDATE `{TABLE_GROUP_MEMBERS}`
             SET `group_id` = ?, `user_id` = ?
             WHERE `group_id` = ?, `user_id` = ?
-        "})
-        .bind(gm.group_id.to_string())
-        .bind(gm.user_id.to_string())
-        .bind(gid.to_string())
-        .bind(uid.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(gm.group_id.to_string())
+            .bind(gm.user_id.to_string())
+            .bind(gid.to_string())
+            .bind(uid.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
     pub(crate) async fn delete_group_member(&self, gm: GroupMember) -> Result<()> {
-        sqlx::query(indoc! {r"
-            DELETE FROM `group_members`
+        let query = formatdoc! {r"
+            DELETE FROM `{TABLE_GROUP_MEMBERS}`
             WHERE `group_id` = ?, `user_id` = ?
-        "})
-        .bind(gm.group_id.to_string())
-        .bind(gm.user_id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(gm.group_id.to_string())
+            .bind(gm.user_id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 }

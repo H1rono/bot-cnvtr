@@ -1,7 +1,7 @@
 use std::iter;
 
 use domain::UserId;
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow, Row};
@@ -9,6 +9,8 @@ use sqlx::{mysql::MySqlRow, FromRow, Row};
 use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
+
+const TABLE_USERS: &str = "users";
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -29,37 +31,40 @@ impl<'r> FromRow<'r, MySqlRow> for User {
 #[allow(dead_code)]
 impl RepositoryImpl {
     pub(crate) async fn read_users(&self) -> Result<Vec<User>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `users`
-        "})
-        .fetch_all(&self.0)
-        .await
-        .map_err(Error::from)
+            FROM `{TABLE_USERS}`
+        "};
+        sqlx::query_as(&query)
+            .fetch_all(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn find_user(&self, id: &UserId) -> Result<Option<User>> {
-        sqlx::query_as(indoc! {r"
+        let query = formatdoc! {r"
             SELECT *
-            FROM `users`
+            FROM `{TABLE_USERS}`
             WHERE `id` = ?
             LIMIT 1
-        "})
-        .bind(id.to_string())
-        .fetch_optional(&self.0)
-        .await
-        .map_err(Error::from)
+        "};
+        sqlx::query_as(&query)
+            .bind(id.to_string())
+            .fetch_optional(&self.0)
+            .await
+            .map_err(Error::from)
     }
 
     pub(crate) async fn create_user(&self, u: User) -> Result<()> {
-        sqlx::query(indoc! {r"
-            INSERT INTO `users` (`id`, `name`)
+        let query = formatdoc! {r"
+            INSERT INTO `{TABLE_USERS}` (`id`, `name`)
             VALUES (?, ?)
-        "})
-        .bind(u.id.to_string())
-        .bind(u.name)
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(u.id.to_string())
+            .bind(u.name)
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
@@ -70,7 +75,7 @@ impl RepositoryImpl {
         let values_arg = iter::repeat("(?, ?)").take(us.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
-            INTO `users` (`id`, `name`)
+            INTO `{TABLE_USERS}` (`id`, `name`)
             VALUES {values_arg}
         "};
         let query = us.iter().fold(sqlx::query(&query), |q, u| {
@@ -81,27 +86,29 @@ impl RepositoryImpl {
     }
 
     pub(crate) async fn update_user(&self, id: &UserId, u: User) -> Result<()> {
-        sqlx::query(indoc! {r"
-            UPDATE `users`
+        let query = formatdoc! {r"
+            UPDATE `{TABLE_USERS}`
             SET `id` = ?, `name` = ?
             WHERE `id` = ?
-        "})
-        .bind(u.id.to_string())
-        .bind(u.name)
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(u.id.to_string())
+            .bind(u.name)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 
     pub(crate) async fn delete_user(&self, id: &UserId) -> Result<()> {
-        sqlx::query(indoc! {r"
-            DELETE FROM `users`
+        let query = formatdoc! {r"
+            DELETE FROM `{TABLE_USERS}`
             WHERE `id` = ?
-        "})
-        .bind(id.to_string())
-        .execute(&self.0)
-        .await?;
+        "};
+        sqlx::query(&query)
+            .bind(id.to_string())
+            .execute(&self.0)
+            .await?;
         Ok(())
     }
 }
