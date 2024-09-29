@@ -32,7 +32,7 @@ impl RepositoryImpl {
 
     async fn complete_webhook(&self, w: &crate::model::Webhook) -> error::Result<Webhook> {
         let o = self.find_owner(&w.owner_id).await?.unwrap();
-        let owner = if o.group {
+        let owner = if o.kind == OwnerKind::Group {
             let gid = o.id.0.into();
             let g = self.find_group(&gid).await?.unwrap();
             let gms = self.filter_group_members_by_gid(&g.id).await?;
@@ -87,7 +87,7 @@ impl Repository for RepositoryImpl {
         let o = crate::model::Owner {
             id: webhook.owner.id(),
             name: webhook.owner.name().to_string(),
-            group: webhook.owner.kind() == OwnerKind::Group,
+            kind: webhook.owner.kind(),
         };
         // 既に存在するかもしれないのでcreate_ignoreで
         self.create_ignore_owners(&[o]).await?;
