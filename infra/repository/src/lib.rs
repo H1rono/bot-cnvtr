@@ -67,11 +67,8 @@ impl RepositoryImpl {
     }
 
     async fn complete_webhooks(&self, ws: &[crate::model::Webhook]) -> error::Result<Vec<Webhook>> {
-        let mut webhooks = vec![];
-        for w in ws {
-            let webhook = self.complete_webhook(w).await?;
-            webhooks.push(webhook);
-        }
+        let it = ws.iter().map(|w| self.complete_webhook(w));
+        let webhooks = futures::future::try_join_all(it).await?;
         Ok(webhooks)
     }
 }
@@ -138,11 +135,7 @@ impl Repository for RepositoryImpl {
 
     async fn list_webhooks(&self) -> Result<Vec<Webhook>, DomainError> {
         let ws = self.read_webhooks().await?;
-        let mut webhooks = vec![];
-        for w in ws {
-            let webhook = self.complete_webhook(&w).await?;
-            webhooks.push(webhook);
-        }
+        let webhooks = self.complete_webhooks(&ws).await?;
         Ok(webhooks)
     }
 
