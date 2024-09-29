@@ -79,8 +79,8 @@ impl RepositoryImpl {
             LIMIT 1
         "};
         sqlx::query_as(&query)
-            .bind(gid.to_string())
-            .bind(uid.to_string())
+            .bind(gid.0)
+            .bind(uid.0)
             .fetch_optional(&self.0)
             .await
             .map_err(Error::from)
@@ -96,7 +96,7 @@ impl RepositoryImpl {
             WHERE `group_id` = ?
         "};
         sqlx::query_as(&query)
-            .bind(gid.to_string())
+            .bind(gid.0)
             .fetch_all(&self.0)
             .await
             .map_err(Error::from)
@@ -112,7 +112,7 @@ impl RepositoryImpl {
             WHERE `user_id` = ?
         "};
         sqlx::query_as(&query)
-            .bind(uid.to_string())
+            .bind(uid.0)
             .fetch_all(&self.0)
             .await
             .map_err(Error::from)
@@ -125,8 +125,8 @@ impl RepositoryImpl {
             VALUES (?, ?)
         "};
         sqlx::query(&query)
-            .bind(gm.group_id.to_string())
-            .bind(gm.user_id.to_string())
+            .bind(gm.group_id.0)
+            .bind(gm.user_id.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -143,7 +143,7 @@ impl RepositoryImpl {
             VALUES {values_arg}
         "};
         let query = gms.iter().fold(sqlx::query(&query), |q, gm| {
-            q.bind(gm.group_id.to_string()).bind(gm.user_id.to_string())
+            q.bind(gm.group_id.0).bind(gm.user_id.0)
         });
         query.execute(&self.0).await?;
         Ok(())
@@ -161,10 +161,10 @@ impl RepositoryImpl {
             WHERE `group_id` = ?, `user_id` = ?
         "};
         sqlx::query(&query)
-            .bind(gm.group_id.to_string())
-            .bind(gm.user_id.to_string())
-            .bind(gid.to_string())
-            .bind(uid.to_string())
+            .bind(gm.group_id.0)
+            .bind(gm.user_id.0)
+            .bind(gid.0)
+            .bind(uid.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -176,8 +176,8 @@ impl RepositoryImpl {
             WHERE `group_id` = ?, `user_id` = ?
         "};
         sqlx::query(&query)
-            .bind(gm.group_id.to_string())
-            .bind(gm.user_id.to_string())
+            .bind(gm.group_id.0)
+            .bind(gm.user_id.0)
             .execute(&self.0)
             .await?;
         Ok(())

@@ -127,7 +127,7 @@ impl RepositoryImpl {
             LIMIT 1
         "};
         sqlx::query_as(&query)
-            .bind(id.to_string())
+            .bind(id.0)
             .fetch_optional(&self.0)
             .await
             .map_err(Error::from)
@@ -139,7 +139,7 @@ impl RepositoryImpl {
             VALUES (?, ?, ?)
         "};
         sqlx::query(&query)
-            .bind(o.id.to_string())
+            .bind(o.id.0)
             .bind(o.name)
             .bind(OwnerKindCol::from(o.kind))
             .execute(&self.0)
@@ -158,7 +158,7 @@ impl RepositoryImpl {
             VALUES {values_arg}
         "};
         let query = os.iter().fold(sqlx::query(&query), |q, o| {
-            q.bind(o.id.to_string())
+            q.bind(o.id.0)
                 .bind(&o.name)
                 .bind(OwnerKindCol::from(o.kind))
         });
@@ -173,10 +173,10 @@ impl RepositoryImpl {
             WHERE `id` = ?
         "};
         sqlx::query(&query)
-            .bind(o.id.to_string())
+            .bind(o.id.0)
             .bind(o.name)
             .bind(OwnerKindCol::from(o.kind))
-            .bind(id.to_string())
+            .bind(id.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -187,10 +187,7 @@ impl RepositoryImpl {
             DELETE FROM `{TABLE_OWNERS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query)
-            .bind(id.to_string())
-            .execute(&self.0)
-            .await?;
+        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
         Ok(())
     }
 }

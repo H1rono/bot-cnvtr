@@ -75,7 +75,7 @@ impl RepositoryImpl {
             LIMIT 1
         "};
         sqlx::query_as(&query)
-            .bind(id.to_string())
+            .bind(id.0)
             .fetch_optional(&self.0)
             .await
             .map_err(Error::from)
@@ -87,7 +87,7 @@ impl RepositoryImpl {
             VALUES (?, ?)
         "};
         sqlx::query(&query)
-            .bind(g.id.to_string())
+            .bind(g.id.0)
             .bind(g.name)
             .execute(&self.0)
             .await?;
@@ -104,9 +104,9 @@ impl RepositoryImpl {
             INTO `{TABLE_GROUPS}` (`id`, `name`)
             VALUES {values_arg}
         "};
-        let query = gs.iter().fold(sqlx::query(&query), |q, g| {
-            q.bind(g.id.to_string()).bind(&g.name)
-        });
+        let query = gs
+            .iter()
+            .fold(sqlx::query(&query), |q, g| q.bind(g.id.0).bind(&g.name));
         query.execute(&self.0).await?;
         Ok(())
     }
@@ -118,9 +118,9 @@ impl RepositoryImpl {
             WHERE `id` = ?
         "};
         sqlx::query(&query)
-            .bind(g.id.to_string())
+            .bind(g.id.0)
             .bind(g.name)
-            .bind(id.to_string())
+            .bind(id.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -131,10 +131,7 @@ impl RepositoryImpl {
             DELETE FROM `{TABLE_GROUPS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query)
-            .bind(id.to_string())
-            .execute(&self.0)
-            .await?;
+        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
         Ok(())
     }
 }

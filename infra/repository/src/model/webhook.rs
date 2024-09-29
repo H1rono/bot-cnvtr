@@ -71,7 +71,7 @@ impl RepositoryImpl {
             LIMIT 1
         "};
         sqlx::query_as(&query)
-            .bind(id.to_string())
+            .bind(id.0)
             .fetch_optional(&self.0)
             .await
             .map_err(Error::from)
@@ -87,7 +87,7 @@ impl RepositoryImpl {
             WHERE `channel_id` = ?
         "};
         sqlx::query_as(&query)
-            .bind(channel_id.to_string())
+            .bind(channel_id.0)
             .fetch_all(&self.0)
             .await
             .map_err(Error::from)
@@ -100,7 +100,7 @@ impl RepositoryImpl {
             WHERE `owner_id` = ?
         "};
         sqlx::query_as(&query)
-            .bind(owner_id.to_string())
+            .bind(owner_id.0)
             .fetch_all(&self.0)
             .await
             .map_err(Error::from)
@@ -137,7 +137,7 @@ impl RepositoryImpl {
             WHERE `owner_id` IN ({ids_arg})
         "};
         oids.iter()
-            .fold(sqlx::query_as(&query), |q, i| q.bind(i.to_string()))
+            .fold(sqlx::query_as(&query), |q, i| q.bind(i.0))
             .fetch_all(&self.0)
             .await
             .map_err(Error::from)
@@ -149,9 +149,9 @@ impl RepositoryImpl {
             VALUES (?, ?, ?)
         "};
         sqlx::query(&query)
-            .bind(w.id.to_string())
-            .bind(w.channel_id.to_string())
-            .bind(w.owner_id.to_string())
+            .bind(w.id.0)
+            .bind(w.channel_id.0)
+            .bind(w.owner_id.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -168,9 +168,7 @@ impl RepositoryImpl {
             VALUES {values_arg}
         "};
         let query = ws.iter().fold(sqlx::query(&query), |q, w| {
-            q.bind(w.id.to_string())
-                .bind(w.channel_id.to_string())
-                .bind(w.owner_id.to_string())
+            q.bind(w.id.0).bind(w.channel_id.0).bind(w.owner_id.0)
         });
         query.execute(&self.0).await?;
         Ok(())
@@ -183,10 +181,10 @@ impl RepositoryImpl {
             WHERE `id` = ?
         "};
         sqlx::query(&query)
-            .bind(w.id.to_string())
-            .bind(w.channel_id.to_string())
-            .bind(w.owner_id.to_string())
-            .bind(id.to_string())
+            .bind(w.id.0)
+            .bind(w.channel_id.0)
+            .bind(w.owner_id.0)
+            .bind(id.0)
             .execute(&self.0)
             .await?;
         Ok(())
@@ -197,10 +195,7 @@ impl RepositoryImpl {
             DELETE FROM `{TABLE_WEBHOOKS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query)
-            .bind(id.to_string())
-            .execute(&self.0)
-            .await?;
+        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
         Ok(())
     }
 }
