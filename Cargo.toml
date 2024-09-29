@@ -1,6 +1,15 @@
 [workspace]
 resolver = "2"
-members = ["./."]
+members = [
+    "./.",
+    "./domain",
+    "./usecases",
+    "./infra/repository",
+    "./infra/traq-client",
+    "./cron",
+    "./app/*",
+    "./router"
+]
 
 [workspace.package]
 version = "0.1.0"
