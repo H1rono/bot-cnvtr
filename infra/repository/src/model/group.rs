@@ -4,13 +4,20 @@ use domain::{GroupId, UserId};
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Row};
+use sqlx::{mysql::MySqlRow, FromRow};
+use uuid::Uuid;
 
-use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_GROUPS: &str = "groups";
+
+#[must_use]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
+struct GroupRow {
+    pub id: Uuid,
+    pub name: String,
+}
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -19,12 +26,31 @@ pub struct Group {
     pub name: String,
 }
 
+impl From<GroupRow> for Group {
+    fn from(value: GroupRow) -> Self {
+        let GroupRow { id, name } = value;
+        #[allow(clippy::useless_conversion)]
+        Self {
+            id: id.into(),
+            name: name.into(),
+        }
+    }
+}
+
+impl From<Group> for GroupRow {
+    fn from(value: Group) -> Self {
+        let Group { id, name } = value;
+        #[allow(clippy::useless_conversion)]
+        Self {
+            id: id.into(),
+            name: name.into(),
+        }
+    }
+}
+
 impl<'r> FromRow<'r, MySqlRow> for Group {
     fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
-        Ok(Self {
-            id: parse_col_str2uuid(row, "id")?,
-            name: row.try_get("name")?,
-        })
+        GroupRow::from_row(row).map(Self::from)
     }
 }
 

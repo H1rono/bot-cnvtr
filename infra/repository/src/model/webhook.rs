@@ -1,16 +1,25 @@
 use std::iter;
 
-use domain::{ChannelId, OwnerId, WebhookId};
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
+use uuid::Uuid;
 
-use super::parse_col_str2uuid;
+use domain::{ChannelId, OwnerId, WebhookId};
+
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_WEBHOOKS: &str = "webhooks";
+
+#[must_use]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
+struct WebhookRow {
+    pub id: Uuid,
+    pub channel_id: Uuid,
+    pub owner_id: Uuid,
+}
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -20,13 +29,24 @@ pub struct Webhook {
     pub owner_id: OwnerId,
 }
 
+impl From<WebhookRow> for Webhook {
+    fn from(value: WebhookRow) -> Self {
+        let WebhookRow {
+            id,
+            channel_id,
+            owner_id,
+        } = value;
+        Self {
+            id: id.into(),
+            channel_id: channel_id.into(),
+            owner_id: owner_id.into(),
+        }
+    }
+}
+
 impl<'r> FromRow<'r, MySqlRow> for Webhook {
     fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
-        Ok(Self {
-            id: parse_col_str2uuid(row, "id")?,
-            channel_id: parse_col_str2uuid(row, "channel_id")?,
-            owner_id: parse_col_str2uuid(row, "owner_id")?,
-        })
+        WebhookRow::from_row(row).map(Self::from)
     }
 }
 

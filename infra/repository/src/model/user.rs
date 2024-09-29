@@ -1,16 +1,24 @@
 use std::iter;
 
-use domain::UserId;
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow, Row};
+use sqlx::{mysql::MySqlRow, FromRow};
+use uuid::Uuid;
 
-use super::parse_col_str2uuid;
+use domain::UserId;
+
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_USERS: &str = "users";
+
+#[must_use]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
+struct UserRow {
+    pub id: Uuid,
+    pub name: String,
+}
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -19,12 +27,20 @@ pub struct User {
     pub name: String,
 }
 
+impl From<UserRow> for User {
+    fn from(value: UserRow) -> Self {
+        let UserRow { id, name } = value;
+        #[allow(clippy::useless_conversion)]
+        Self {
+            id: id.into(),
+            name: name.into(),
+        }
+    }
+}
+
 impl<'r> FromRow<'r, MySqlRow> for User {
     fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
-        Ok(Self {
-            id: parse_col_str2uuid(row, "id")?,
-            name: row.try_get("name")?,
-        })
+        UserRow::from_row(row).map(Self::from)
     }
 }
 

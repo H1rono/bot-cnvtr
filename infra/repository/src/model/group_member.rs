@@ -4,14 +4,22 @@ use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
+use uuid::Uuid;
 
 use domain::{GroupId, UserId};
 
-use super::parse_col_str2uuid;
 use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_GROUP_MEMBERS: &str = "group_members";
+
+// FIXME: マクロ使いたいここ
+#[must_use]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
+struct GroupMemberRow {
+    pub group_id: Uuid,
+    pub user_id: Uuid,
+}
 
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -20,12 +28,29 @@ pub struct GroupMember {
     pub user_id: UserId,
 }
 
+impl From<GroupMemberRow> for GroupMember {
+    fn from(value: GroupMemberRow) -> Self {
+        let GroupMemberRow { group_id, user_id } = value;
+        Self {
+            group_id: group_id.into(),
+            user_id: user_id.into(),
+        }
+    }
+}
+
+impl From<GroupMember> for GroupMemberRow {
+    fn from(value: GroupMember) -> Self {
+        let GroupMember { group_id, user_id } = value;
+        Self {
+            group_id: group_id.into(),
+            user_id: user_id.into(),
+        }
+    }
+}
+
 impl<'r> FromRow<'r, MySqlRow> for GroupMember {
     fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
-        Ok(Self {
-            group_id: parse_col_str2uuid(row, "group_id")?,
-            user_id: parse_col_str2uuid(row, "user_id")?,
-        })
+        GroupMemberRow::from_row(row).map(Self::from)
     }
 }
 
