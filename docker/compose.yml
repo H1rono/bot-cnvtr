@@ -56,7 +56,7 @@ services:
     environment:
       # https://dbgate.org/docs/env-variables.html
       - CONNECTIONS=db
-      - LABLE_db=MariaDB
+      - LABEL_db=MariaDB
       - SERVER_db=db
       - USER_db=root
       - PASSWORD_db=${MYSQL_ROOT_PASSWORD:-root}
