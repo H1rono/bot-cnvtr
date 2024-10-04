@@ -15,7 +15,7 @@ mod webhook;
 
 trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra;
-    type App: App<Self::Infra, Error = Self::Error>;
+    type App: App<Self::Infra>;
     type Error: Send + Sync + 'static;
 
     fn infra(&self) -> &Self::Infra;
@@ -29,7 +29,7 @@ trait AppState: Clone + Send + Sync + 'static {
 struct AppStateImpl<I, A>
 where
     I: Infra,
-    A: App<I, Error = domain::Error>,
+    A: App<I>,
 {
     pub infra: Arc<I>,
     pub app: Arc<A>,
@@ -39,7 +39,7 @@ where
 impl<I, A> AppState for AppStateImpl<I, A>
 where
     I: Infra,
-    A: App<I, Error = domain::Error>,
+    A: App<I>,
 {
     type Infra = I;
     type App = A;
@@ -61,7 +61,7 @@ where
 impl<I, A> Clone for AppStateImpl<I, A>
 where
     I: Infra,
-    A: App<I, Error = domain::Error>,
+    A: App<I>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -75,7 +75,7 @@ where
 impl<I, A> AppStateImpl<I, A>
 where
     I: Infra,
-    A: App<I, Error = domain::Error>,
+    A: App<I>,
 {
     pub fn new(infra: Arc<I>, app: Arc<A>, parser: RequestParser) -> Self {
         Self { infra, app, parser }
@@ -85,7 +85,7 @@ where
 pub fn make_router<I, A>(verification_token: &str, infra: Arc<I>, app: Arc<A>) -> Router
 where
     I: Infra,
-    A: App<I, Error = domain::Error>,
+    A: App<I>,
 {
     use webhook::{get_wh, wh_clickup, wh_gitea, wh_github};
 

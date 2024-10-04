@@ -4,7 +4,6 @@ use crate::{Bot, WebhookHandler};
 
 #[must_use]
 pub trait App<I: Infra>: Send + Sync + 'static {
-    type Error: Into<domain::Error> + Send + Sync + 'static;
     type Bot: Bot<I>;
     type WebhookHandler: WebhookHandler<I>;
 

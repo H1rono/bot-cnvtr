@@ -80,7 +80,6 @@ where
     B: Bot<I>,
     W: WebhookHandler<I>,
 {
-    type Error = domain::Error;
     type Bot = B;
     type WebhookHandler = W;
 
