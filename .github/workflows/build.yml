@@ -59,7 +59,7 @@ jobs:
             type=ref,event=pr,suffix=-distroless
             type=sha,prefix=,suffix=-distroless
           target: server-distroless
-          cache: "true"
+          cache: ${{ github.ref_name == 'main' && 'true' || 'false' }}
       - name: debian-slim image
         uses: ./.github/docker-mbp-action
         with:
@@ -69,4 +69,4 @@ jobs:
             type=ref,event=pr,suffix=-debian-slim
             type=sha,prefix=,suffix=-debian-slim
           target: server-debian-slim
-          cache: "true"
+          cache: ${{ github.ref_name == 'main' && 'true' || 'false' }}
