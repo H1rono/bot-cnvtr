@@ -4,7 +4,7 @@ use http::HeaderMap;
 use serde::{Deserialize, Serialize};
 use traq_bot_http::Event;
 
-use domain::{Infra, Webhook};
+use domain::{Infra, Result, Webhook};
 use usecases::{Bot, WebhookHandler};
 
 #[must_use]
@@ -20,11 +20,9 @@ impl<I: Infra, B: Bot<I>> BotWrapper<I, B> {
 impl<I, B> Bot<I> for BotWrapper<I, B>
 where
     I: Infra,
-    B: Bot<I, Error = domain::Error>,
+    B: Bot<I>,
 {
-    type Error = domain::Error;
-
-    async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
+    async fn handle_event(&self, infra: &I, event: Event) -> Result<()> {
         self.0.handle_event(infra, event).await
     }
 }
@@ -43,10 +41,7 @@ impl<I, W> WebhookHandler<I> for WHandlerWrapper<I, W>
 where
     I: Infra,
     W: WebhookHandler<I>,
-    domain::Error: From<W::Error>,
 {
-    type Error = domain::Error;
-
     async fn handle(
         &self,
         kind: usecases::WebhookKind,
@@ -54,11 +49,8 @@ where
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<(), Self::Error> {
-        Ok(self
-            .0
-            .handle(kind, infra, webhook, headers, payload)
-            .await?)
+    ) -> Result<()> {
+        self.0.handle(kind, infra, webhook, headers, payload).await
     }
 }
 

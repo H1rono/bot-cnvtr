@@ -66,7 +66,6 @@ where
     I: Infra,
     B: Bot<I>,
     W: WebhookHandler<I>,
-    domain::Error: From<B::Error> + From<W::Error>,
 {
     pub fn new_wrapped(b: B, w: W) -> AppImpl<BotWrapper<I, B>, WHandlerWrapper<I, W>> {
         let b = BotWrapper::new(b);
@@ -78,8 +77,8 @@ where
 impl<I, B, W> App<I> for AppImpl<B, W>
 where
     I: Infra,
-    B: Bot<I, Error = domain::Error>,
-    W: WebhookHandler<I, Error = domain::Error>,
+    B: Bot<I>,
+    W: WebhookHandler<I>,
 {
     type Error = domain::Error;
     type Bot = B;
