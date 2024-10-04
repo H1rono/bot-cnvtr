@@ -40,7 +40,7 @@ impl IntoResponse for WhRejection {
 #[async_trait]
 impl<S> FromRequestParts<S> for Wh
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     type Rejection = WhRejection;
 
@@ -62,7 +62,7 @@ where
 #[instrument(skip_all, fields(webhook_id = %webhook.id))]
 pub(super) async fn get_wh<S>(Wh(webhook): Wh) -> Json<Webhook>
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     debug!("GET webhook info");
     Json(webhook)
@@ -77,7 +77,7 @@ pub(super) async fn wh_github<S>(
     payload: String,
 ) -> Result<StatusCode>
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     debug!("POST github webhook");
     let infra = st.infra();
@@ -98,7 +98,7 @@ pub(super) async fn wh_gitea<S>(
     payload: String,
 ) -> Result<StatusCode>
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     debug!("POST gitea webhook");
     let infra = st.infra();
@@ -119,7 +119,7 @@ pub(super) async fn wh_clickup<S>(
     payload: String,
 ) -> Result<StatusCode>
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     debug!("POST clickup webhook");
     let infra = st.infra();

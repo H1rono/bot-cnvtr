@@ -16,7 +16,6 @@ mod webhook;
 trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra;
     type App: App<Self::Infra>;
-    type Error: Send + Sync + 'static;
 
     fn infra(&self) -> &Self::Infra;
 
@@ -43,7 +42,6 @@ where
 {
     type Infra = I;
     type App = A;
-    type Error = domain::Error;
 
     fn infra(&self) -> &Self::Infra {
         &self.infra

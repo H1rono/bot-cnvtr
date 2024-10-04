@@ -17,7 +17,7 @@ pub struct EventRequest(pub Event);
 #[async_trait]
 impl<S> FromRequest<S> for EventRequest
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     type Rejection = StatusCode;
 
@@ -45,7 +45,7 @@ where
 )]
 pub(super) async fn event<S>(State(st): State<S>, EventRequest(event): EventRequest) -> StatusCode
 where
-    S: AppState<Error = domain::Error>,
+    S: AppState,
 {
     tracing::info!("POST traQ BOT event");
     match st.app().bot().handle_event(st.infra(), event).await {
