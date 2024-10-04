@@ -1,6 +1,6 @@
 use http::HeaderMap;
 
-use domain::{Infra, Webhook};
+use domain::{Infra, Result, Webhook};
 use usecases::{WebhookHandler, WebhookKind};
 
 use crate::WebhookHandlerImpl;
@@ -26,8 +26,6 @@ impl<I> WebhookHandler<I> for WebhookHandlerImpl
 where
     I: Infra,
 {
-    type Error = domain::Error;
-
     async fn handle(
         &self,
         kind: WebhookKind,
@@ -35,7 +33,7 @@ where
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<()> {
         match kind {
             WebhookKind::Clickup => {
                 self.handle_clickup(infra, webhook, headers, payload)

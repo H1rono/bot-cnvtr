@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use traq_bot_http::Event;
 
-use domain::{Error, Infra};
+use domain::{Infra, Result};
 use usecases::Bot;
 
 pub(crate) mod cli;
@@ -33,10 +33,8 @@ impl BotImpl {
 }
 
 impl<I: Infra> Bot<I> for BotImpl {
-    type Error = Error;
-
     #[tracing::instrument(skip_all, fields(event_kind = %event.kind()))]
-    async fn handle_event(&self, infra: &I, event: Event) -> Result<(), Self::Error> {
+    async fn handle_event(&self, infra: &I, event: Event) -> Result<()> {
         use Event::{DirectMessageCreated, Joined, Left, MessageCreated};
         match event {
             Joined(payload) => self.on_joined(infra, payload).await,
