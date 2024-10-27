@@ -7,7 +7,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     go install github.com/H1rono/teahook-rs@cc4258d
 RUN mv "$(which teahook-rs)" ./teahook-rs
 
-FROM --platform=$BUILDPLATFORM python:3.12-slim-bookworm AS target-triple
+FROM --platform=$BUILDPLATFORM python:3.13-slim-bookworm AS target-triple
 
 ARG TARGETOS
 ARG TARGETARCH
