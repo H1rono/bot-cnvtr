@@ -7,9 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct RouterConfig {
-    pub verification_token: String,
-}
+pub struct RouterConfig {}
 
 #[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]

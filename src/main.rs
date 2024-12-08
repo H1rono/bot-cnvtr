@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
 
     let ConfigComposite {
         bot_config,
-        router_config,
+        router_config: _,
         client_config,
         repo_config,
         cron_config,
@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let bot = bot::BotImpl::builder()
-        .verification_token(&router_config.verification_token)
+        .verification_token(&bot_config.verification_token)
         .name(&bot_config.name)
         .id(&bot_config.id)
         .user_id(&bot_config.user_id)

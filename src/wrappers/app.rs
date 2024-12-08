@@ -46,6 +46,7 @@ where
 #[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BotConfig {
+    pub verification_token: String,
     #[serde(rename = "bot_name", default = "BotConfig::default_bot_name")]
     pub name: String,
     #[serde(rename = "bot_id")]
