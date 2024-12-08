@@ -4,10 +4,10 @@ use uuid::Uuid;
 
 use domain::{Infra, Owner, OwnerKind, Repository, Result, TraqClient, User};
 
-use super::BotImpl;
+use super::BotImplInner;
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
 
-impl BotImpl {
+impl BotImplInner {
     pub(super) async fn handle_webhook_command<I>(&self, infra: &I, wh: Webhook) -> Result<()>
     where
         I: Infra,

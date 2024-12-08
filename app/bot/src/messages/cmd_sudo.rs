@@ -2,13 +2,13 @@ use anyhow::Context;
 
 use domain::{Infra, Repository, Result, TraqClient};
 
-use super::BotImpl;
+use super::BotImplInner;
 use crate::cli::sudo::{
     webhook::{Completed, Delete, ListAll},
     SudoCompleted,
 };
 
-impl BotImpl {
+impl BotImplInner {
     pub(super) async fn handle_sudo_command<I>(&self, infra: &I, sudo: SudoCompleted) -> Result<()>
     where
         I: Infra,

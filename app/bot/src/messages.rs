@@ -4,13 +4,13 @@ use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload
 use domain::{Infra, MessageId, Result, StampId, TraqClient};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
-use crate::BotImpl;
+use crate::BotImplInner;
 
 mod cmd_help;
 mod cmd_sudo;
 mod cmd_webhook;
 
-impl BotImpl {
+impl BotImplInner {
     fn parse_command(&self, cmd: &str) -> Result<Cli, clap::Error> {
         let cmd = cmd.trim().to_string();
         let cmd = (!cmd.starts_with('@'))

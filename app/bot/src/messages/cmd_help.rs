@@ -1,9 +1,9 @@
 use domain::{Infra, Result, TraqClient};
 
-use super::BotImpl;
+use super::BotImplInner;
 use crate::cli::help::CompleteHelp;
 
-impl BotImpl {
+impl BotImplInner {
     pub(super) async fn handle_help_command<I>(&self, infra: &I, help: CompleteHelp) -> Result<()>
     where
         I: Infra,

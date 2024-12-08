@@ -1,47 +1,78 @@
-use std::borrow::Cow;
+use std::sync::Arc;
 
-use traq_bot_http::Event;
+use http::Request;
+use traq_bot_http::RequestParser;
 
-use domain::{Infra, Result};
+use domain::Infra;
 use usecases::Bot;
 
+mod builder;
 pub(crate) mod cli;
+mod error;
 mod messages;
+mod state;
 mod system;
+
+pub use error::{Error, Result};
 
 static HELP_TEMPLATE: &str = include_str!("help.md");
 
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct BotImpl {
+    parser: RequestParser,
+    inner: BotImplInner,
+}
+
+#[must_use]
+#[expect(unused)]
+#[derive(Debug, Clone)]
+struct BotImplInner {
     pub name: String,
     pub id: String,
     pub user_id: String,
 }
 
-impl BotImpl {
-    pub fn new<'a>(
-        name: impl Into<Cow<'a, str>>,
-        id: impl Into<Cow<'a, str>>,
-        user_id: impl Into<Cow<'a, str>>,
-    ) -> Self {
-        let name = name.into().into_owned();
-        let id = id.into().into_owned();
-        let user_id = user_id.into().into_owned();
-        Self { name, id, user_id }
+impl<I: Infra> Bot<I> for BotImpl {
+    fn build_service<B>(
+        self,
+        infra: Arc<I>,
+    ) -> tower::util::BoxCloneService<http::Request<B>, http::Response<String>, domain::Error>
+    where
+        B: http_body::Body + Send + 'static,
+        B::Data: Send + 'static,
+        B::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
+    {
+        use tower::{service_fn, ServiceExt};
+
+        let Self { parser, inner } = self;
+        let state = State { infra, bot: inner };
+        let handler = parser
+            .into_handler()
+            .on_joined(service_fn(State::on_joined))
+            .on_left(service_fn(State::on_left))
+            .on_message_created(service_fn(State::on_message_created))
+            .on_direct_message_created(service_fn(State::on_direct_message_created))
+            .with_state(Arc::new(state))
+            .map_request(|r: Request<B>| r)
+            .map_err(Error::TraqBot)
+            .map_err(domain::Error::from);
+        handler.boxed_clone()
     }
 }
 
-impl<I: Infra> Bot<I> for BotImpl {
-    #[tracing::instrument(skip_all, fields(event_kind = %event.kind()))]
-    async fn handle_event(&self, infra: &I, event: Event) -> Result<()> {
-        use Event::{DirectMessageCreated, Joined, Left, MessageCreated};
-        match event {
-            Joined(payload) => self.on_joined(infra, payload).await,
-            Left(payload) => self.on_left(infra, payload).await,
-            MessageCreated(payload) => self.on_message_created(infra, payload).await,
-            DirectMessageCreated(payload) => self.on_direct_message_created(infra, payload).await,
-            _ => Ok(()),
-        }
-    }
+#[must_use]
+#[derive(Clone)]
+pub struct State<I> {
+    infra: Arc<I>,
+    bot: BotImplInner,
+}
+
+#[must_use]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+pub struct Builder {
+    verification_token: Option<String>,
+    name: Option<String>,
+    id: Option<String>,
+    user_id: Option<String>,
 }
