@@ -30,7 +30,7 @@ tokio.features = ["macros", "rt-multi-thread", "tracing", "signal", "time"]
 futures = "0.3"
 http = "1.1"
 tracing = "0.1"
-traq-bot-http = { version = "0.10.1", features = ["uuid", "tower"] }
+traq-bot-http = { version = "0.11.0", features = ["uuid", "tower"] }
 
 domain.path = "./domain"
 usecases.path = "./usecases"
