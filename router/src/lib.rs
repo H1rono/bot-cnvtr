@@ -84,10 +84,8 @@ where
     let state = AppStateImpl::new(Arc::clone(&infra), Arc::new(webhook_handler));
     let bot_service = bot.build_service::<axum::body::Body>(infra);
     let bot_service = post_service(bot_service).handle_error(|err| async move {
-        {
-            let err = &err as &dyn std::error::Error;
-            tracing::error!(err, "failed to handle bot event");
-        }
+        let err = &err as &dyn std::error::Error;
+        tracing::error!(err, "failed to handle bot event");
         http::StatusCode::INTERNAL_SERVER_ERROR
     });
     Router::new()
