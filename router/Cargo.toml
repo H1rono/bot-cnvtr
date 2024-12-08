@@ -17,8 +17,6 @@ axum.version = "0.7"
 axum.default-features = false
 axum.features = ["tokio", "http1", "matched-path", "tower-log", "tracing", "json"]
 
-traq-bot-http.workspace = true
-
 domain.workspace = true
 usecases.workspace = true
 

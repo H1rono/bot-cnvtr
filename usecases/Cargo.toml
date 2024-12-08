@@ -9,7 +9,6 @@ serde_json.workspace = true
 http.workspace = true
 http-body.workspace = true
 tower.workspace = true
-traq-bot-http.workspace = true
 
 domain.workspace = true
 

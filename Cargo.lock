@@ -305,17 +305,14 @@ dependencies = [
  "dotenvy",
  "envy",
  "http",
- "http-body",
  "repository",
  "router",
  "serde",
  "serde_json",
  "tokio",
- "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
- "traq-bot-http",
  "traq-client",
  "usecases",
  "wh-handler",
@@ -2029,7 +2026,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.5",
  "tracing",
- "traq-bot-http",
  "usecases",
 ]
 
@@ -3307,7 +3303,6 @@ dependencies = [
  "http-body",
  "serde_json",
  "tower",
- "traq-bot-http",
 ]
 
 [[package]]
