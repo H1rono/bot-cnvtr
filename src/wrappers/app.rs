@@ -2,7 +2,6 @@ use std::marker::PhantomData;
 
 use http::HeaderMap;
 use serde::{Deserialize, Serialize};
-use traq_bot_http::Event;
 
 use domain::{Infra, Result, Webhook};
 use usecases::{Bot, WebhookHandler};
@@ -14,16 +13,6 @@ pub struct BotWrapper<I: Infra, B: Bot<I>>(pub B, PhantomData<I>);
 impl<I: Infra, B: Bot<I>> BotWrapper<I, B> {
     pub fn new(bot: B) -> Self {
         Self(bot, PhantomData)
-    }
-}
-
-impl<I, B> Bot<I> for BotWrapper<I, B>
-where
-    I: Infra,
-    B: Bot<I>,
-{
-    async fn handle_event(&self, infra: &I, event: Event) -> Result<()> {
-        self.0.handle_event(infra, event).await
     }
 }
 

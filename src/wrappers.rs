@@ -1,12 +1,9 @@
 pub mod app;
 pub mod infra;
 
-use std::marker::PhantomData;
-
 use domain::{EventSubscriber, Infra, Repository, TraqClient};
-use usecases::{App, Bot, WebhookHandler};
 
-use app::{BotWrapper, WHandlerWrapper};
+// use app::{BotWrapper, WHandlerWrapper};
 use infra::{EventSubWrapper, RepoWrapper, TraqClientWrapper};
 
 #[must_use]
@@ -49,45 +46,5 @@ where
 
     fn event_subscriber(&self) -> &Self::ESub {
         &self.2
-    }
-}
-
-#[must_use]
-pub struct AppImpl<B, W, I = ()>(pub B, pub W, PhantomData<I>);
-
-impl<B, W, I> AppImpl<B, W, I> {
-    pub fn new(b: B, w: W) -> Self {
-        AppImpl(b, w, PhantomData)
-    }
-}
-
-impl<I, B, W> AppImpl<B, W, I>
-where
-    I: Infra,
-    B: Bot<I>,
-    W: WebhookHandler<I>,
-{
-    pub fn new_wrapped(b: B, w: W) -> AppImpl<BotWrapper<I, B>, WHandlerWrapper<I, W>> {
-        let b = BotWrapper::new(b);
-        let w = WHandlerWrapper::new(w);
-        AppImpl(b, w, PhantomData)
-    }
-}
-
-impl<I, B, W> App<I> for AppImpl<B, W>
-where
-    I: Infra,
-    B: Bot<I>,
-    W: WebhookHandler<I>,
-{
-    type Bot = B;
-    type WebhookHandler = W;
-
-    fn bot(&self) -> &Self::Bot {
-        &self.0
-    }
-
-    fn webhook_handler(&self) -> &Self::WebhookHandler {
-        &self.1
     }
 }

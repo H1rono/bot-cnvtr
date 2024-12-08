@@ -43,13 +43,17 @@ async fn main() -> anyhow::Result<()> {
         })
     };
 
-    let bot = bot::BotImpl::new(bot_config.name, bot_config.id, bot_config.user_id);
+    let bot = bot::BotImpl::builder()
+        .verification_token(&router_config.verification_token)
+        .name(&bot_config.name)
+        .id(&bot_config.id)
+        .user_id(&bot_config.user_id)
+        .build()?;
     let wh = wh_handler::WebhookHandlerImpl::new();
-    let app = wrappers::AppImpl::new_wrapped(bot, wh);
-    let app = Arc::new(app);
+    let app = (bot, wh);
 
-    let router = router::make_router(&router_config.verification_token, infra, app)
-        .layer(tower_http::trace::TraceLayer::new_for_http());
+    let router =
+        router::make_router(infra, app).layer(tower_http::trace::TraceLayer::new_for_http());
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8080));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     tracing::info!("listening on {addr} ...");
