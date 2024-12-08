@@ -8,7 +8,7 @@ use http::{request::Parts, HeaderMap, StatusCode};
 use tracing::{debug, instrument, warn};
 
 use domain::{Infra, Repository, Webhook, WebhookId};
-use usecases::{App, WebhookHandler, WebhookKind};
+use usecases::{WebhookHandler, WebhookKind};
 
 use crate::{
     error::{Error, Result},
@@ -81,8 +81,7 @@ where
 {
     debug!("POST github webhook");
     let infra = st.infra();
-    st.app()
-        .webhook_handler()
+    st.webhook_handler()
         .handle(WebhookKind::GitHub, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;
@@ -102,8 +101,7 @@ where
 {
     debug!("POST gitea webhook");
     let infra = st.infra();
-    st.app()
-        .webhook_handler()
+    st.webhook_handler()
         .handle(WebhookKind::Gitea, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;
@@ -123,8 +121,7 @@ where
 {
     debug!("POST clickup webhook");
     let infra = st.infra();
-    st.app()
-        .webhook_handler()
+    st.webhook_handler()
         .handle(WebhookKind::Clickup, infra, webhook, headers, &payload)
         .await
         .inspect_err(|e| warn!("{e}"))?;

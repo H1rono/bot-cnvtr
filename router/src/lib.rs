@@ -1,100 +1,110 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, post_service},
     Router,
 };
-use traq_bot_http::RequestParser;
 
 use domain::Infra;
-use usecases::App;
+use usecases::{App, Bot, WebhookHandler};
 
-mod bot;
 mod error;
 mod webhook;
 
 trait AppState: Clone + Send + Sync + 'static {
     type Infra: Infra;
-    type App: App<Self::Infra>;
+    type WebhookHandler: WebhookHandler<Self::Infra>;
 
     fn infra(&self) -> &Self::Infra;
 
-    fn app(&self) -> &Self::App;
-
-    fn parser(&self) -> &RequestParser;
+    fn webhook_handler(&self) -> &Self::WebhookHandler;
 }
 
 #[must_use]
-struct AppStateImpl<I, A>
+struct AppStateImpl<I, WH>
 where
     I: Infra,
-    A: App<I>,
+    WH: WebhookHandler<I>,
 {
     pub infra: Arc<I>,
-    pub app: Arc<A>,
-    pub parser: RequestParser,
+    pub webhook_handler: Arc<WH>,
 }
 
-impl<I, A> AppState for AppStateImpl<I, A>
+impl<I, WH> AppState for AppStateImpl<I, WH>
 where
     I: Infra,
-    A: App<I>,
+    WH: WebhookHandler<I>,
 {
     type Infra = I;
-    type App = A;
+    type WebhookHandler = WH;
 
     fn infra(&self) -> &Self::Infra {
         &self.infra
     }
 
-    fn app(&self) -> &Self::App {
-        &self.app
-    }
-
-    fn parser(&self) -> &RequestParser {
-        &self.parser
+    fn webhook_handler(&self) -> &Self::WebhookHandler {
+        &self.webhook_handler
     }
 }
 
-impl<I, A> Clone for AppStateImpl<I, A>
+impl<I, WH> Clone for AppStateImpl<I, WH>
 where
     I: Infra,
-    A: App<I>,
+    WH: WebhookHandler<I>,
 {
     fn clone(&self) -> Self {
         Self {
             infra: self.infra.clone(),
-            app: self.app.clone(),
-            parser: self.parser.clone(),
+            webhook_handler: self.webhook_handler.clone(),
         }
     }
 }
 
-impl<I, A> AppStateImpl<I, A>
+impl<I, WH> AppStateImpl<I, WH>
 where
     I: Infra,
-    A: App<I>,
+    WH: WebhookHandler<I>,
 {
-    pub fn new(infra: Arc<I>, app: Arc<A>, parser: RequestParser) -> Self {
-        Self { infra, app, parser }
+    pub fn new(infra: Arc<I>, webhook_handler: Arc<WH>) -> Self {
+        Self {
+            infra,
+            webhook_handler,
+        }
     }
 }
 
-pub fn make_router<I, A>(verification_token: &str, infra: Arc<I>, app: Arc<A>) -> Router
+pub fn make_router<I, A>(infra: Arc<I>, app: A) -> Router
 where
     I: Infra,
     A: App<I>,
 {
     use webhook::{get_wh, wh_clickup, wh_gitea, wh_github};
 
-    let parser = RequestParser::new(verification_token);
-    let state = AppStateImpl::new(infra, app, parser);
+    let (bot, webhook_handler) = app.split();
+    let state = AppStateImpl::new(Arc::clone(&infra), Arc::new(webhook_handler));
+    let bot_service = bot.build_service::<axum::body::Body>(infra);
+    let bot_service = post_service(bot_service).handle_error(|err| async move {
+        {
+            let err = &err as &dyn std::error::Error;
+            tracing::error!(err, "failed to handle bot event");
+        }
+        http::StatusCode::INTERNAL_SERVER_ERROR
+    });
     Router::new()
-        .route("/bot", post(bot::event::<AppStateImpl<I, A>>))
-        .route("/wh/:id", get(get_wh::<AppStateImpl<I, A>>))
-        .route("/wh/:id/github", post(wh_github::<AppStateImpl<I, A>>))
-        .route("/wh/:id/gitea", post(wh_gitea::<AppStateImpl<I, A>>))
-        .route("/wh/:id/clickup", post(wh_clickup::<AppStateImpl<I, A>>))
+        .route("/bot", bot_service)
+        .route("/wh/:id", get(get_wh::<AppStateImpl<I, A::WebhookHandler>>))
+        .route(
+            "/wh/:id/github",
+            post(wh_github::<AppStateImpl<I, A::WebhookHandler>>),
+        )
+        .route(
+            "/wh/:id/gitea",
+            post(wh_gitea::<AppStateImpl<I, A::WebhookHandler>>),
+        )
+        .route(
+            "/wh/:id/clickup",
+            post(wh_clickup::<AppStateImpl<I, A::WebhookHandler>>),
+        )
         .with_state(state)
 }
 
