@@ -1,3 +1,5 @@
+name: cnvtr
+
 services:
   db:
     image: mariadb:lts
