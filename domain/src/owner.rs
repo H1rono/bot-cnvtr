@@ -78,7 +78,7 @@ impl<'a> IterUsers<'a> {
     }
 }
 
-impl<'a> fmt::Debug for IterUsers<'a> {
+impl fmt::Debug for IterUsers<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("IterUsers").field(self.inner).finish()
     }
@@ -92,16 +92,16 @@ impl<'a> Iterator for IterUsers<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for IterUsers<'a> {
+impl ExactSizeIterator for IterUsers<'_> {
     fn len(&self) -> usize {
         self.rng.len()
     }
 }
 
-impl<'a> DoubleEndedIterator for IterUsers<'a> {
+impl DoubleEndedIterator for IterUsers<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.rng.next_back().and_then(|i| self.get(i))
     }
 }
 
-impl<'a> FusedIterator for IterUsers<'a> {}
+impl FusedIterator for IterUsers<'_> {}
