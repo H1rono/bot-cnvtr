@@ -90,17 +90,20 @@ where
     });
     Router::new()
         .route("/bot", bot_service)
-        .route("/wh/:id", get(get_wh::<AppStateImpl<I, A::WebhookHandler>>))
         .route(
-            "/wh/:id/github",
+            "/wh/{id}",
+            get(get_wh::<AppStateImpl<I, A::WebhookHandler>>),
+        )
+        .route(
+            "/wh/{id}/github",
             post(wh_github::<AppStateImpl<I, A::WebhookHandler>>),
         )
         .route(
-            "/wh/:id/gitea",
+            "/wh/{id}/gitea",
             post(wh_gitea::<AppStateImpl<I, A::WebhookHandler>>),
         )
         .route(
-            "/wh/:id/clickup",
+            "/wh/{id}/clickup",
             post(wh_clickup::<AppStateImpl<I, A::WebhookHandler>>),
         )
         .with_state(state)

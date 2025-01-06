@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use http::Request;
+use tower::util::BoxCloneSyncService;
 use traq_bot_http::RequestParser;
 
 use domain::Infra;
@@ -37,7 +38,7 @@ impl<I: Infra> Bot<I> for BotImpl {
     fn build_service<B>(
         self,
         infra: Arc<I>,
-    ) -> tower::util::BoxCloneService<http::Request<B>, http::Response<String>, domain::Error>
+    ) -> BoxCloneSyncService<http::Request<B>, http::Response<String>, domain::Error>
     where
         B: http_body::Body + Send + 'static,
         B::Data: Send + 'static,
@@ -57,7 +58,7 @@ impl<I: Infra> Bot<I> for BotImpl {
             .map_request(|r: Request<B>| r)
             .map_err(Error::TraqBot)
             .map_err(domain::Error::from);
-        handler.boxed_clone()
+        BoxCloneSyncService::new(handler)
     }
 }
 

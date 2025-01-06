@@ -13,7 +13,7 @@ serde_json.workspace = true
 tracing.workspace = true
 async-trait = "0.1"
 http.workspace = true
-axum.version = "0.7"
+axum.version = "0.8"
 axum.default-features = false
 axum.features = ["tokio", "http1", "matched-path", "tower-log", "tracing", "json"]
 

@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use axum::{
     extract::{FromRequestParts, Path, State},
     response::IntoResponse,
@@ -37,7 +36,6 @@ impl IntoResponse for WhRejection {
     }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for Wh
 where
     S: AppState,

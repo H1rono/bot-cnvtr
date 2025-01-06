@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use http::{Request, Response};
 use http_body::Body;
-use tower::util::BoxCloneService;
+use tower::util::BoxCloneSyncService;
 
 use domain::Infra;
 
@@ -11,7 +11,7 @@ pub trait Bot<I: Infra> {
     fn build_service<B>(
         self,
         infra: Arc<I>,
-    ) -> BoxCloneService<Request<B>, Response<String>, domain::Error>
+    ) -> BoxCloneSyncService<Request<B>, Response<String>, domain::Error>
     where
         B: Body + Send + 'static,
         B::Data: Send + 'static,
