@@ -27,6 +27,12 @@ pub enum WhRejection {
     Logic(#[from] Error),
 }
 
+impl From<domain::Failure> for WhRejection {
+    fn from(value: domain::Failure) -> Self {
+        Error::from(value).into()
+    }
+}
+
 impl IntoResponse for WhRejection {
     fn into_response(self) -> axum::response::Response {
         match self {
@@ -44,14 +50,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let Path(id) = Path::<WebhookId>::from_request_parts(parts, state).await?;
-        let webhook = state
-            .infra()
-            .repo()
-            .find_webhook(&id)
-            .await
-            .map_err(domain::Error::from)
-            .map_err(Error::from)?
-            .ok_or(Error::from(domain::Error::NotFound))?;
+        let webhook = state.infra().repo().find_webhook(&id).await?;
         Ok(Wh(webhook))
     }
 }

@@ -1,22 +1,69 @@
-use axum::{http::StatusCode, response::IntoResponse};
-use thiserror::Error as ThisError;
+use std::fmt;
+
+use axum::response::IntoResponse;
+
+use domain::Failure;
 
 #[must_use]
-#[derive(Debug, ThisError)]
-#[error(transparent)]
-pub struct Error(#[from] pub domain::Error);
+pub struct Error(pub Failure);
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl From<Failure> for Error {
+    fn from(value: Failure) -> Self {
+        Self(value)
+    }
+}
+
+impl From<anyhow::Error> for Error {
+    fn from(value: anyhow::Error) -> Self {
+        Failure::from(value).into()
+    }
+}
 
 impl IntoResponse for Error {
     #[tracing::instrument(skip_all, target = "router::error::Error::into_response")]
     fn into_response(self) -> axum::response::Response {
-        use domain::Error as DE;
+        use http::StatusCode;
+
+        use domain::error::RejectKind;
+        use Failure::Reject;
+
         match self.0 {
-            DE::BadRequest => StatusCode::BAD_REQUEST.into_response(),
-            DE::NotFound => StatusCode::NOT_FOUND.into_response(),
-            DE::NotImplemented => StatusCode::NOT_IMPLEMENTED.into_response(),
-            DE::Unauthorized => StatusCode::UNAUTHORIZED.into_response(),
-            DE::Unexpected(e) => {
-                tracing::error!("Unexpected error while routing: {}", e);
+            Reject(r) if r.kind() == RejectKind::BadRequest => {
+                let message = r.into_message();
+                (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            Reject(r) if r.kind() == RejectKind::NotFound => {
+                let message = r.into_message();
+                (StatusCode::NOT_FOUND, message).into_response()
+            }
+            Reject(r) if r.kind() == RejectKind::NotImplemented => {
+                let message = r.into_message();
+                (StatusCode::NOT_IMPLEMENTED, message).into_response()
+            }
+            Reject(r) if r.kind() == RejectKind::Unauthorized => {
+                let message = r.into_message();
+                (StatusCode::UNAUTHORIZED, message).into_response()
+            }
+            Reject(r) => {
+                let message = r.to_string();
+                (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            Failure::Error(e) => {
+                tracing::error!("{e:?}");
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
         }
