@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use domain::{
-    ChannelId, Event, EventSubscriber, GroupId, MessageId, Repository, StampId, TraqClient, UserId,
-    WebhookId,
+    ChannelId, Event, EventSubscriber, Failure, GroupId, MessageId, Repository, StampId,
+    TraqClient, UserId, WebhookId,
 };
 use repository::opt;
 
@@ -11,7 +11,7 @@ use repository::opt;
 pub struct EventSubWrapper<S: EventSubscriber + Clone>(pub S);
 
 impl<S: EventSubscriber + Clone> EventSubscriber for EventSubWrapper<S> {
-    async fn send(&self, event: Event) -> Result<(), domain::Error> {
+    async fn send(&self, event: Event) -> Result<(), Failure> {
         self.0.send(event).await
     }
 }
@@ -20,40 +20,40 @@ impl<S: EventSubscriber + Clone> EventSubscriber for EventSubWrapper<S> {
 pub struct RepoWrapper<R: Repository>(pub R);
 
 impl<R: Repository> Repository for RepoWrapper<R> {
-    async fn add_webhook(&self, webhook: &domain::Webhook) -> Result<(), domain::Error> {
+    async fn add_webhook(&self, webhook: &domain::Webhook) -> Result<(), Failure> {
         self.0.add_webhook(webhook).await
     }
 
-    async fn remove_webhook(&self, webhook: &domain::Webhook) -> Result<(), domain::Error> {
+    async fn remove_webhook(&self, webhook: &domain::Webhook) -> Result<(), Failure> {
         self.0.remove_webhook(webhook).await
     }
 
-    async fn list_webhooks(&self) -> Result<Vec<domain::Webhook>, domain::Error> {
+    async fn list_webhooks(&self) -> Result<Vec<domain::Webhook>, Failure> {
         self.0.list_webhooks().await
     }
 
-    async fn find_webhook(&self, id: &WebhookId) -> Result<Option<domain::Webhook>, domain::Error> {
+    async fn find_webhook(&self, id: &WebhookId) -> Result<domain::Webhook, Failure> {
         self.0.find_webhook(id).await
     }
 
     async fn filter_webhook_by_owner(
         &self,
         owner: &domain::Owner,
-    ) -> Result<Vec<domain::Webhook>, domain::Error> {
+    ) -> Result<Vec<domain::Webhook>, Failure> {
         self.0.filter_webhook_by_owner(owner).await
     }
 
     async fn filter_webhook_by_channel(
         &self,
         channel_id: &ChannelId,
-    ) -> Result<Vec<domain::Webhook>, domain::Error> {
+    ) -> Result<Vec<domain::Webhook>, Failure> {
         self.0.filter_webhook_by_channel(channel_id).await
     }
 
     async fn filter_webhook_by_user(
         &self,
         user: &domain::User,
-    ) -> Result<Vec<domain::Webhook>, domain::Error> {
+    ) -> Result<Vec<domain::Webhook>, Failure> {
         self.0.filter_webhook_by_user(user).await
     }
 }
@@ -70,7 +70,7 @@ where
         channel_id: &ChannelId,
         content: &str,
         embed: bool,
-    ) -> Result<(), domain::Error> {
+    ) -> Result<(), Failure> {
         self.0.send_message(channel_id, content, embed).await
     }
 
@@ -79,7 +79,7 @@ where
         channel_id: &ChannelId,
         lang: &str,
         code: &str,
-    ) -> Result<(), domain::Error> {
+    ) -> Result<(), Failure> {
         self.0.send_code(channel_id, lang, code).await
     }
 
@@ -88,28 +88,23 @@ where
         user_id: &UserId,
         content: &str,
         embed: bool,
-    ) -> Result<(), domain::Error> {
+    ) -> Result<(), Failure> {
         self.0.send_direct_message(user_id, content, embed).await
     }
 
-    async fn send_code_dm(
-        &self,
-        user_id: &UserId,
-        lang: &str,
-        code: &str,
-    ) -> Result<(), domain::Error> {
+    async fn send_code_dm(&self, user_id: &UserId, lang: &str, code: &str) -> Result<(), Failure> {
         self.0.send_code_dm(user_id, lang, code).await
     }
 
-    async fn get_group(&self, group_id: &GroupId) -> Result<domain::Group, domain::Error> {
+    async fn get_group(&self, group_id: &GroupId) -> Result<domain::Group, Failure> {
         self.0.get_group(group_id).await
     }
 
-    async fn get_user(&self, user_id: &UserId) -> Result<domain::User, domain::Error> {
+    async fn get_user(&self, user_id: &UserId) -> Result<domain::User, Failure> {
         self.0.get_user(user_id).await
     }
 
-    async fn get_channel_path(&self, channel_id: &ChannelId) -> Result<String, domain::Error> {
+    async fn get_channel_path(&self, channel_id: &ChannelId) -> Result<String, Failure> {
         self.0.get_channel_path(channel_id).await
     }
 
@@ -118,7 +113,7 @@ where
         message_id: &MessageId,
         stamp_id: &StampId,
         count: i32,
-    ) -> Result<(), domain::Error> {
+    ) -> Result<(), Failure> {
         self.0.add_message_stamp(message_id, stamp_id, count).await
     }
 }

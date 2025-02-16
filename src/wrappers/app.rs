@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use http::HeaderMap;
 use serde::{Deserialize, Serialize};
 
-use domain::{Infra, Result, Webhook};
+use domain::{Failure, Infra, Webhook};
 use usecases::{Bot, WebhookHandler};
 
 #[must_use]
@@ -38,7 +38,7 @@ where
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<()> {
+    ) -> Result<(), Failure> {
         self.0.handle(kind, infra, webhook, headers, payload).await
     }
 }
