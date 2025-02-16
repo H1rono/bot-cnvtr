@@ -1,15 +1,20 @@
 use anyhow::Context;
 
-use domain::{Infra, Repository, Result, TraqClient};
+use domain::{Failure, Infra, Repository, TraqClient};
 
 use super::BotImplInner;
 use crate::cli::sudo::{
     webhook::{Completed, Delete, ListAll},
     SudoCompleted,
 };
+use crate::error::Error;
 
 impl BotImplInner {
-    pub(super) async fn handle_sudo_command<I>(&self, infra: &I, sudo: SudoCompleted) -> Result<()>
+    pub(super) async fn handle_sudo_command<I>(
+        &self,
+        infra: &I,
+        sudo: SudoCompleted,
+    ) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -22,7 +27,7 @@ impl BotImplInner {
         }
     }
 
-    async fn handle_sudo_wh_list_all<I>(&self, infra: &I, list_all: ListAll) -> Result<()>
+    async fn handle_sudo_wh_list_all<I>(&self, infra: &I, list_all: ListAll) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -44,7 +49,7 @@ impl BotImplInner {
         Ok(())
     }
 
-    async fn handle_sudo_wh_delete<I>(&self, infra: &I, delete: Delete) -> Result<()>
+    async fn handle_sudo_wh_delete<I>(&self, infra: &I, delete: Delete) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -58,12 +63,17 @@ impl BotImplInner {
                 .await?;
             return Ok(());
         }
-        let Some(webhook) = repo.find_webhook(&delete.id).await? else {
-            let message = format!("エラー: webhook {id} は存在しません", id = delete.id);
-            client
-                .send_message(&delete.talking_channel_id, &message, false)
-                .await?;
-            return Ok(());
+        let webhook = match repo.find_webhook(&delete.id).await {
+            Ok(w) => w,
+            Err(Failure::Reject(r)) => {
+                tracing::warn!(reject = %r);
+                let message = format!("エラー: {r}");
+                client
+                    .send_message(&delete.talking_channel_id, &message, false)
+                    .await?;
+                return Ok(());
+            }
+            Err(Failure::Error(e)) => return Err(e.into()),
         };
         let own_users = webhook.owner.iter_users();
         repo.remove_webhook(&webhook).await?;

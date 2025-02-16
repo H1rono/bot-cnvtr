@@ -1,9 +1,10 @@
 use clap::Parser;
 use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload};
 
-use domain::{Infra, MessageId, Result, StampId, TraqClient};
+use domain::{Infra, MessageId, StampId, TraqClient};
 
 use crate::cli::{Cli, CompletedCmds, Incomplete};
+use crate::error::Error;
 use crate::BotImplInner;
 
 mod cmd_help;
@@ -26,7 +27,7 @@ impl BotImplInner {
         infra: &I,
         message_id: &MessageId,
         cmd: CompletedCmds,
-    ) -> Result<()>
+    ) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -59,7 +60,7 @@ impl BotImplInner {
         &self,
         infra: &I,
         payload: MessageCreatedPayload,
-    ) -> Result<()>
+    ) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -90,7 +91,7 @@ impl BotImplInner {
         &self,
         infra: &I,
         payload: DirectMessageCreatedPayload,
-    ) -> Result<()>
+    ) -> Result<(), Error>
     where
         I: Infra,
     {

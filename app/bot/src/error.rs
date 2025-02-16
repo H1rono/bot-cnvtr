@@ -1,17 +1,29 @@
-#[derive(Debug, thiserror::Error)]
-#[error(transparent)]
-pub enum Error {
-    TraqBot(#[from] traq_bot_http::Error),
-    Domain(#[from] domain::Error),
-}
+use std::{error, fmt};
 
-impl From<Error> for domain::Error {
-    fn from(value: Error) -> Self {
-        match value {
-            Error::TraqBot(e) => domain::Error::Unexpected(e.into()),
-            Error::Domain(e) => e,
-        }
+pub struct Error(pub domain::Failure);
+
+impl From<anyhow::Error> for Error {
+    fn from(value: anyhow::Error) -> Self {
+        domain::Failure::from(value).into()
     }
 }
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+impl From<domain::Failure> for Error {
+    fn from(value: domain::Failure) -> Self {
+        Error(value)
+    }
+}
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl error::Error for Error {}

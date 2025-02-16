@@ -14,8 +14,6 @@ mod messages;
 mod state;
 mod system;
 
-pub use error::{Error, Result};
-
 static HELP_TEMPLATE: &str = include_str!("help.md");
 
 #[must_use]
@@ -38,7 +36,7 @@ impl<I: Infra> Bot<I> for BotImpl {
     fn build_service<B>(
         self,
         infra: Arc<I>,
-    ) -> BoxCloneSyncService<http::Request<B>, http::Response<String>, domain::Error>
+    ) -> BoxCloneSyncService<http::Request<B>, http::Response<String>, domain::Failure>
     where
         B: http_body::Body + Send + 'static,
         B::Data: Send + 'static,
@@ -56,8 +54,7 @@ impl<I: Infra> Bot<I> for BotImpl {
             .on_direct_message_created(service_fn(State::on_direct_message_created))
             .with_state(Arc::new(state))
             .map_request(|r: Request<B>| r)
-            .map_err(Error::TraqBot)
-            .map_err(domain::Error::from);
+            .map_err(|e| anyhow::Error::new(e).into());
         BoxCloneSyncService::new(handler)
     }
 }

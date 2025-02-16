@@ -1,10 +1,15 @@
-use domain::{Infra, Result, TraqClient};
+use domain::{Infra, TraqClient};
 
 use super::BotImplInner;
 use crate::cli::help::CompleteHelp;
+use crate::error::Error;
 
 impl BotImplInner {
-    pub(super) async fn handle_help_command<I>(&self, infra: &I, help: CompleteHelp) -> Result<()>
+    pub(super) async fn handle_help_command<I>(
+        &self,
+        infra: &I,
+        help: CompleteHelp,
+    ) -> Result<(), Error>
     where
         I: Infra,
     {

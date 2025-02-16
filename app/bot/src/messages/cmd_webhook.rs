@@ -2,13 +2,18 @@ use futures::TryFutureExt;
 use indoc::formatdoc;
 use uuid::Uuid;
 
-use domain::{Infra, Owner, OwnerKind, Repository, Result, TraqClient, User};
+use domain::{Failure, Infra, Owner, OwnerKind, Repository, TraqClient, User};
 
 use super::BotImplInner;
 use crate::cli::webhook::complete::{Webhook, WebhookCreate, WebhookDelete, WebhookList};
+use crate::error::Error;
 
 impl BotImplInner {
-    pub(super) async fn handle_webhook_command<I>(&self, infra: &I, wh: Webhook) -> Result<()>
+    pub(super) async fn handle_webhook_command<I>(
+        &self,
+        infra: &I,
+        wh: Webhook,
+    ) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -20,7 +25,7 @@ impl BotImplInner {
         }
     }
 
-    async fn handle_webhook_create<I>(&self, infra: &I, create: WebhookCreate) -> Result<()>
+    async fn handle_webhook_create<I>(&self, infra: &I, create: WebhookCreate) -> Result<(), Error>
     where
         I: Infra,
     {
@@ -104,22 +109,23 @@ impl BotImplInner {
         Ok(())
     }
 
-    async fn handle_webhook_delete<I>(&self, infra: &I, delete: WebhookDelete) -> Result<()>
+    async fn handle_webhook_delete<I>(&self, infra: &I, delete: WebhookDelete) -> Result<(), Error>
     where
         I: Infra,
     {
         let repo = infra.repo();
         let client = infra.traq_client();
 
-        let Some(webhook) = repo.find_webhook(&delete.webhook_id).await? else {
-            let message = format!(
-                "エラー: webhook {id} は存在しません",
-                id = delete.webhook_id
-            );
-            client
-                .send_message(&delete.talking_channel_id, &message, true)
-                .await?;
-            return Ok(());
+        let webhook = match repo.find_webhook(&delete.webhook_id).await {
+            Ok(w) => w,
+            Err(Failure::Reject(r)) => {
+                let message = format!("エラー: {r}");
+                client
+                    .send_message(&delete.talking_channel_id, &message, true)
+                    .await?;
+                return Ok(());
+            }
+            Err(Failure::Error(e)) => return Err(e.into()),
         };
         let own_users_contain_self = webhook.owner.iter_users().any(|u| u.id == delete.user.id);
         if !own_users_contain_self {
@@ -140,7 +146,7 @@ impl BotImplInner {
         Ok(())
     }
 
-    async fn handle_webhook_list<I>(&self, infra: &I, list: WebhookList) -> Result<()>
+    async fn handle_webhook_list<I>(&self, infra: &I, list: WebhookList) -> Result<(), Error>
     where
         I: Infra,
     {
