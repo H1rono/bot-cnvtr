@@ -2,7 +2,7 @@ use std::future::Future;
 
 use http::HeaderMap;
 
-use domain::{Infra, Result, Webhook};
+use domain::{Failure, Infra, Webhook};
 
 #[must_use]
 #[derive(Debug, Clone, Copy)]
@@ -21,5 +21,5 @@ pub trait WebhookHandler<I: Infra>: Send + Sync + 'static {
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> impl Future<Output = Result<()>> + Send;
+    ) -> impl Future<Output = Result<(), Failure>> + Send;
 }

@@ -11,7 +11,7 @@ pub trait Bot<I: Infra> {
     fn build_service<B>(
         self,
         infra: Arc<I>,
-    ) -> BoxCloneSyncService<Request<B>, Response<String>, domain::Error>
+    ) -> BoxCloneSyncService<Request<B>, Response<String>, domain::Failure>
     where
         B: Body + Send + 'static,
         B::Data: Send + 'static,
