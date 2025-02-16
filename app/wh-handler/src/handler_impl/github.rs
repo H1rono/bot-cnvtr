@@ -7,7 +7,7 @@ use itertools::Itertools;
 use paste::paste;
 use serde_json::Value;
 
-use domain::{Error, Event, EventSubscriber, Infra, Webhook};
+use domain::{Event, EventSubscriber, Failure, Infra, Webhook};
 
 use super::utils::extract_header_value;
 use crate::WebhookHandlerImpl;
@@ -19,7 +19,7 @@ impl WebhookHandlerImpl {
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<(), Error>
+    ) -> Result<(), Failure>
     where
         I: Infra,
     {
@@ -39,7 +39,7 @@ impl WebhookHandlerImpl {
 }
 
 #[tracing::instrument(target = "wh_handler::github::handle", skip_all)]
-fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
+fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Failure> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),*) => {
             match $t {
@@ -50,8 +50,12 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     }
 
     use serde_json::from_str;
-    let event_type = extract_header_value(&headers, "X-GitHub-Event")
-        .and_then(|v| from_utf8(v).map_err(|_| Error::BadRequest))?;
+    let event_type = extract_header_value(&headers, "X-GitHub-Event").and_then(|v| {
+        from_utf8(v).map_err(|e| {
+            let message = format!("Received invalid X-GitHub-Event: {e}");
+            Failure::reject_bad_request(message)
+        })
+    })?;
     tracing::info!("X-GitHub-Event: {event_type}");
     let message = match_event!(
         event_type => payload;

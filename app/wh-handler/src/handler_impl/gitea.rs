@@ -5,7 +5,7 @@ use indoc::formatdoc;
 use serde_json::Value;
 use teahook as th;
 
-use domain::{Error, Event, EventSubscriber, Infra, Webhook};
+use domain::{Event, EventSubscriber, Failure, Infra, Webhook};
 
 use super::utils::{extract_header_value, OptionExt};
 use crate::WebhookHandlerImpl;
@@ -17,7 +17,7 @@ impl WebhookHandlerImpl {
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<(), Error>
+    ) -> Result<(), Failure>
     where
         I: Infra,
     {
@@ -37,7 +37,7 @@ impl WebhookHandlerImpl {
 }
 
 #[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
-fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
+fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Failure> {
     macro_rules! match_event {
         ($t:expr => $p:expr; $($i:ident),* ; default = [ $($di:ident),* ]) => {{
             let local_event_type = $t;
@@ -51,8 +51,8 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
                     default($t, from_str($p).map_err(anyhow::Error::from)?)
                 }
                 ut => {
-                    tracing::warn!("unexpected event: `X-Gitea-Event: {ut}`");
-                    return Err(Error::BadRequest);
+                    let message = format!("unexpected event: `X-Gitea-Event: {ut}`");
+                    return Err(Failure::reject_bad_request(message));
                 }
             }}
         };
@@ -61,8 +61,12 @@ fn handle(headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
     use serde_json::from_str;
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/services/webhook/deliver.go#L124-L138
     // https://github.com/traPtitech/gitea/blob/8abe54a9d4db1fdce7c517dc500a51e77d1f2c16/modules/webhook/type.go#L11-L33
-    let event_type = extract_header_value(&headers, "X-Gitea-Event")
-        .and_then(|v| from_utf8(v).map_err(|_| Error::BadRequest))?;
+    let event_type = extract_header_value(&headers, "X-Gitea-Event").and_then(|v| {
+        from_utf8(v).map_err(|e| {
+            let message = format!("Received invalid X-Gitea-Event: {e}");
+            Failure::reject_bad_request(message)
+        })
+    })?;
     let message = match_event!(
         event_type => payload;
         create, delete, fork, push, issues, pull_request;
@@ -91,7 +95,7 @@ macro_rules! unwrap_opt_boxed {
 }
 
 /// `X-Gitea-Event: create`
-fn create(payload: th::CreatePayload) -> Result<String, Error> {
+fn create(payload: th::CreatePayload) -> Result<String, Failure> {
     let th::CreatePayload {
         r#ref,
         ref_type,
@@ -109,7 +113,7 @@ fn create(payload: th::CreatePayload) -> Result<String, Error> {
 }
 
 /// `X-Gitea-Event: delete`
-fn delete(payload: th::DeletePayload) -> Result<String, Error> {
+fn delete(payload: th::DeletePayload) -> Result<String, Failure> {
     let th::DeletePayload {
         r#ref,
         ref_type,
@@ -127,7 +131,7 @@ fn delete(payload: th::DeletePayload) -> Result<String, Error> {
 }
 
 /// `X-Gitea-Event: fork`
-fn fork(payload: th::ForkPayload) -> Result<String, Error> {
+fn fork(payload: th::ForkPayload) -> Result<String, Failure> {
     let th::ForkPayload {
         forkee,
         repo,
@@ -144,7 +148,7 @@ fn fork(payload: th::ForkPayload) -> Result<String, Error> {
 }
 
 /// `X-Gitea-Event: push`
-fn push(payload: th::PushPayload) -> Result<String, Error> {
+fn push(payload: th::PushPayload) -> Result<String, Failure> {
     let th::PushPayload {
         r#ref,
         commits,
@@ -168,7 +172,7 @@ fn push(payload: th::PushPayload) -> Result<String, Error> {
             let message = message.lines().next().unwrap().trim_end();
             Ok(format!("[`{id}`]({url}) {message}"))
         })
-        .collect::<Result<Vec<_>, Error>>()?
+        .collect::<Result<Vec<_>, Failure>>()?
         .join("\n");
     Ok(formatdoc! {
         r#"
@@ -181,7 +185,7 @@ fn push(payload: th::PushPayload) -> Result<String, Error> {
 }
 
 /// `X-Gitea-Event: issues`
-fn issues(payload: th::IssuePayload) -> Result<String, Error> {
+fn issues(payload: th::IssuePayload) -> Result<String, Failure> {
     let th::IssuePayload {
         action,
         index,
@@ -202,7 +206,7 @@ fn issues(payload: th::IssuePayload) -> Result<String, Error> {
 }
 
 // `X-Gitea-Event: pull_request`
-fn pull_request(payload: th::PullRequestPayload) -> Result<String, Error> {
+fn pull_request(payload: th::PullRequestPayload) -> Result<String, Failure> {
     let th::PullRequestPayload {
         action,
         pull_request,

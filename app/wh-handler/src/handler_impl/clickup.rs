@@ -2,7 +2,7 @@ use http::HeaderMap;
 use indoc::formatdoc;
 use serde_json::Value;
 
-use domain::{Error, Event, EventSubscriber, Infra, Webhook};
+use domain::{Event, EventSubscriber, Failure, Infra, Webhook};
 
 use super::utils::ValueExt;
 use crate::WebhookHandlerImpl;
@@ -14,7 +14,7 @@ impl WebhookHandlerImpl {
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<(), Error>
+    ) -> Result<(), Failure>
     where
         I: Infra,
     {
@@ -34,7 +34,7 @@ impl WebhookHandlerImpl {
 }
 
 #[tracing::instrument(target = "wh_handler::gitea::handle", skip_all)]
-fn handle(_headers: HeaderMap, payload: &str) -> Result<Option<String>, Error> {
+fn handle(_headers: HeaderMap, payload: &str) -> Result<Option<String>, Failure> {
     let payload: Value = serde_json::from_str(payload).map_err(anyhow::Error::from)?;
     let event = payload.get_or_err("event")?.as_str_or_err()?;
     tracing::info!("clickup event: {}", event);

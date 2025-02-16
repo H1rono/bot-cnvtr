@@ -1,6 +1,6 @@
 use http::HeaderMap;
 
-use domain::{Infra, Result, Webhook};
+use domain::{Failure, Infra, Webhook};
 use usecases::{WebhookHandler, WebhookKind};
 
 use crate::WebhookHandlerImpl;
@@ -33,7 +33,7 @@ where
         webhook: Webhook,
         headers: HeaderMap,
         payload: &str,
-    ) -> Result<()> {
+    ) -> Result<(), Failure> {
         match kind {
             WebhookKind::Clickup => {
                 self.handle_clickup(infra, webhook, headers, payload)
