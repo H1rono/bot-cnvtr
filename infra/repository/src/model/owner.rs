@@ -2,15 +2,15 @@ use std::fmt::Display;
 use std::iter;
 use std::str::FromStr;
 
+use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
 use uuid::Uuid;
 
-use domain::{OwnerId, OwnerKind};
+use domain::{Failure, OwnerId, OwnerKind};
 
-use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_OWNERS: &str = "owners_v2";
@@ -108,18 +108,19 @@ impl<'r> FromRow<'r, MySqlRow> for Owner {
 
 #[allow(dead_code)]
 impl RepositoryImpl {
-    pub(crate) async fn read_owners(&self) -> Result<Vec<Owner>> {
+    pub(crate) async fn read_owners(&self) -> Result<Vec<Owner>, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_OWNERS}`
         "};
-        sqlx::query_as(&query)
+        let res = sqlx::query_as(&query)
             .fetch_all(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read owners from DB")?;
+        Ok(res)
     }
 
-    pub(crate) async fn find_owner(&self, id: &OwnerId) -> Result<Option<Owner>> {
+    pub(crate) async fn find_owner(&self, id: &OwnerId) -> Result<Owner, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_OWNERS}`
@@ -130,10 +131,11 @@ impl RepositoryImpl {
             .bind(id.0)
             .fetch_optional(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read an owner from DB")?
+            .ok_or_else(|| Failure::reject_not_found("No owner found"))
     }
 
-    pub(crate) async fn create_owner(&self, o: Owner) -> Result<()> {
+    pub(crate) async fn create_owner(&self, o: Owner) -> Result<(), Failure> {
         let query = formatdoc! {r"
             INSERT INTO `{TABLE_OWNERS}` (`id`, `name`, `kind`)
             VALUES (?, ?, ?)
@@ -143,11 +145,12 @@ impl RepositoryImpl {
             .bind(o.name)
             .bind(OwnerKindCol::from(o.kind))
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to crate an owner to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn create_ignore_owners(&self, os: &[Owner]) -> Result<()> {
+    pub(crate) async fn create_ignore_owners(&self, os: &[Owner]) -> Result<(), Failure> {
         if os.is_empty() {
             return Ok(());
         }
@@ -162,11 +165,14 @@ impl RepositoryImpl {
                 .bind(&o.name)
                 .bind(OwnerKindCol::from(o.kind))
         });
-        query.execute(&self.0).await?;
+        query
+            .execute(&self.0)
+            .await
+            .context("Failed to create owners to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn update_owner(&self, id: &OwnerId, o: Owner) -> Result<()> {
+    pub(crate) async fn update_owner(&self, id: &OwnerId, o: Owner) -> Result<(), Failure> {
         let query = formatdoc! {r"
             UPDATE `{TABLE_OWNERS}`
             SET `id` = ?, `name` = ?, `kind` = ?
@@ -178,16 +184,21 @@ impl RepositoryImpl {
             .bind(OwnerKindCol::from(o.kind))
             .bind(id.0)
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to update an owner in DB")?;
         Ok(())
     }
 
-    pub(crate) async fn delete_owner(&self, id: &OwnerId) -> Result<()> {
+    pub(crate) async fn delete_owner(&self, id: &OwnerId) -> Result<(), Failure> {
         let query = formatdoc! {r"
             DELETE FROM `{TABLE_OWNERS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
+        sqlx::query(&query)
+            .bind(id.0)
+            .execute(&self.0)
+            .await
+            .context("Failed to delete an owner from DB")?;
         Ok(())
     }
 }

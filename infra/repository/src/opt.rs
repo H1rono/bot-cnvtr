@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::mysql::{MySqlConnectOptions, MySqlPool};
 
-use crate::error::Result;
 use crate::RepositoryImpl;
 
 #[must_use]
@@ -15,7 +14,7 @@ pub struct Opt {
 }
 
 impl Opt {
-    pub async fn connect(self) -> Result<RepositoryImpl> {
+    pub async fn connect(self) -> anyhow::Result<RepositoryImpl> {
         let Opt {
             hostname,
             user,

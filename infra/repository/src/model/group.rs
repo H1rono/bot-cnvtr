@@ -1,13 +1,14 @@
 use std::iter;
 
-use domain::{GroupId, UserId};
+use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use domain::{Failure, GroupId, UserId};
+
 use crate::RepositoryImpl;
 
 const TABLE_GROUPS: &str = "groups_v2";
@@ -56,18 +57,19 @@ impl<'r> FromRow<'r, MySqlRow> for Group {
 
 #[allow(dead_code)]
 impl RepositoryImpl {
-    pub(crate) async fn read_groups(&self) -> Result<Vec<Group>> {
+    pub(crate) async fn read_groups(&self) -> Result<Vec<Group>, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_GROUPS}`
         "};
-        sqlx::query_as(&query)
+        let res = sqlx::query_as(&query)
             .fetch_all(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read groups from DB")?;
+        Ok(res)
     }
 
-    pub(crate) async fn find_group(&self, id: &GroupId) -> Result<Option<Group>> {
+    pub(crate) async fn find_group(&self, id: &GroupId) -> Result<Group, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_GROUPS}`
@@ -78,10 +80,11 @@ impl RepositoryImpl {
             .bind(id.0)
             .fetch_optional(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read a group from DB")?
+            .ok_or_else(|| Failure::reject_not_found("No group found"))
     }
 
-    pub(crate) async fn create_group(&self, g: Group) -> Result<()> {
+    pub(crate) async fn create_group(&self, g: Group) -> Result<(), Failure> {
         let query = formatdoc! {r"
             INSERT INTO `{TABLE_GROUPS}` (`id`, `name`)
             VALUES (?, ?)
@@ -90,11 +93,12 @@ impl RepositoryImpl {
             .bind(g.id.0)
             .bind(g.name)
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to create a group to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn create_ignore_groups(&self, gs: &[Group]) -> Result<()> {
+    pub(crate) async fn create_ignore_groups(&self, gs: &[Group]) -> Result<(), Failure> {
         if gs.is_empty() {
             return Ok(());
         }
@@ -107,11 +111,14 @@ impl RepositoryImpl {
         let query = gs
             .iter()
             .fold(sqlx::query(&query), |q, g| q.bind(g.id.0).bind(&g.name));
-        query.execute(&self.0).await?;
+        query
+            .execute(&self.0)
+            .await
+            .context("Failed to create groups to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn update_group(&self, id: &UserId, g: Group) -> Result<()> {
+    pub(crate) async fn update_group(&self, id: &UserId, g: Group) -> Result<(), Failure> {
         let query = formatdoc! {r"
             UPDATE `{TABLE_GROUPS}`
             SET `id` = ?, `name` = ?
@@ -122,16 +129,21 @@ impl RepositoryImpl {
             .bind(g.name)
             .bind(id.0)
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to update a group in DB")?;
         Ok(())
     }
 
-    pub(crate) async fn delete_group(&self, id: &GroupId) -> Result<()> {
+    pub(crate) async fn delete_group(&self, id: &GroupId) -> Result<(), Failure> {
         let query = formatdoc! {r"
             DELETE FROM `{TABLE_GROUPS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
+        sqlx::query(&query)
+            .bind(id.0)
+            .execute(&self.0)
+            .await
+            .context("Failed to delete a group from DB")?;
         Ok(())
     }
 }

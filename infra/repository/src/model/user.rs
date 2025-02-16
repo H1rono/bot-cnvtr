@@ -1,14 +1,14 @@
 use std::iter;
 
+use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{mysql::MySqlRow, FromRow};
 use uuid::Uuid;
 
-use domain::UserId;
+use domain::{Failure, UserId};
 
-use crate::error::{Error, Result};
 use crate::RepositoryImpl;
 
 const TABLE_USERS: &str = "users_v2";
@@ -39,25 +39,26 @@ impl From<UserRow> for User {
 }
 
 impl<'r> FromRow<'r, MySqlRow> for User {
-    fn from_row(row: &'r MySqlRow) -> std::result::Result<Self, sqlx::Error> {
+    fn from_row(row: &'r MySqlRow) -> sqlx::Result<Self> {
         UserRow::from_row(row).map(Self::from)
     }
 }
 
 #[allow(dead_code)]
 impl RepositoryImpl {
-    pub(crate) async fn read_users(&self) -> Result<Vec<User>> {
+    pub(crate) async fn read_users(&self) -> Result<Vec<User>, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_USERS}`
         "};
-        sqlx::query_as(&query)
+        let res = sqlx::query_as(&query)
             .fetch_all(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read users from DB")?;
+        Ok(res)
     }
 
-    pub(crate) async fn find_user(&self, id: &UserId) -> Result<Option<User>> {
+    pub(crate) async fn find_user(&self, id: &UserId) -> Result<User, Failure> {
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_USERS}`
@@ -68,10 +69,11 @@ impl RepositoryImpl {
             .bind(id.0)
             .fetch_optional(&self.0)
             .await
-            .map_err(Error::from)
+            .context("Failed to read an user from DB")?
+            .ok_or_else(|| Failure::reject_not_found("No user found"))
     }
 
-    pub(crate) async fn create_user(&self, u: User) -> Result<()> {
+    pub(crate) async fn create_user(&self, u: User) -> Result<(), Failure> {
         let query = formatdoc! {r"
             INSERT INTO `{TABLE_USERS}` (`id`, `name`)
             VALUES (?, ?)
@@ -80,11 +82,12 @@ impl RepositoryImpl {
             .bind(u.id.0)
             .bind(u.name)
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to create an user to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn create_ignore_users(&self, us: &[User]) -> Result<()> {
+    pub(crate) async fn create_ignore_users(&self, us: &[User]) -> Result<(), Failure> {
         if us.is_empty() {
             return Ok(());
         }
@@ -97,11 +100,14 @@ impl RepositoryImpl {
         let query = us
             .iter()
             .fold(sqlx::query(&query), |q, u| q.bind(u.id.0).bind(&u.name));
-        query.execute(&self.0).await?;
+        query
+            .execute(&self.0)
+            .await
+            .context("Failed to create users to DB")?;
         Ok(())
     }
 
-    pub(crate) async fn update_user(&self, id: &UserId, u: User) -> Result<()> {
+    pub(crate) async fn update_user(&self, id: &UserId, u: User) -> Result<(), Failure> {
         let query = formatdoc! {r"
             UPDATE `{TABLE_USERS}`
             SET `id` = ?, `name` = ?
@@ -112,16 +118,21 @@ impl RepositoryImpl {
             .bind(u.name)
             .bind(id.0)
             .execute(&self.0)
-            .await?;
+            .await
+            .context("Failed to update an user in DB")?;
         Ok(())
     }
 
-    pub(crate) async fn delete_user(&self, id: &UserId) -> Result<()> {
+    pub(crate) async fn delete_user(&self, id: &UserId) -> Result<(), Failure> {
         let query = formatdoc! {r"
             DELETE FROM `{TABLE_USERS}`
             WHERE `id` = ?
         "};
-        sqlx::query(&query).bind(id.0).execute(&self.0).await?;
+        sqlx::query(&query)
+            .bind(id.0)
+            .execute(&self.0)
+            .await
+            .context("Failed to delete an user from DB")?;
         Ok(())
     }
 }

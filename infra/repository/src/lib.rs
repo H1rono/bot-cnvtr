@@ -2,11 +2,10 @@ use sqlx::migrate::Migrator;
 use sqlx::MySqlPool;
 
 use domain::{
-    ChannelId, Error as DomainError, Group, GroupId, Owner, OwnerId, OwnerKind, Repository, User,
-    Webhook, WebhookId,
+    ChannelId, Failure, Group, GroupId, Owner, OwnerId, OwnerKind, Repository, User, Webhook,
+    WebhookId,
 };
 
-pub mod error;
 pub(crate) mod model;
 pub mod opt;
 
@@ -30,13 +29,13 @@ impl RepositoryImpl {
         Ok(())
     }
 
-    async fn collect_group_members(&self, gid: &GroupId) -> error::Result<Vec<User>> {
+    async fn collect_group_members(&self, gid: &GroupId) -> Result<Vec<User>, Failure> {
         use futures::TryFutureExt;
 
         let group_members = self.filter_group_members_by_gid(gid).await?;
         let members = group_members.iter().map(|gm| {
             self.find_user(&gm.user_id).map_ok(|u| {
-                let crate::model::User { id, name } = u.unwrap();
+                let crate::model::User { id, name } = u;
                 User {
                     id,
                     name: name.into(),
@@ -47,11 +46,11 @@ impl RepositoryImpl {
         Ok(members)
     }
 
-    async fn complete_webhook(&self, w: &crate::model::Webhook) -> error::Result<Webhook> {
-        let o = self.find_owner(&w.owner_id).await?.unwrap();
+    async fn complete_webhook(&self, w: &crate::model::Webhook) -> Result<Webhook, Failure> {
+        let o = self.find_owner(&w.owner_id).await?;
         let owner = if o.kind == OwnerKind::Group {
             let gid = o.id.0.into();
-            let g = self.find_group(&gid).await?.unwrap();
+            let g = self.find_group(&gid).await?;
             let members = self.collect_group_members(&gid).await?;
             let group = Group {
                 id: g.id,
@@ -61,7 +60,7 @@ impl RepositoryImpl {
             Owner::Group(group)
         } else {
             let uid = o.id.0.into();
-            let u = self.find_user(&uid).await?.unwrap();
+            let u = self.find_user(&uid).await?;
             let user = User {
                 id: u.id,
                 name: u.name.into(),
@@ -75,7 +74,10 @@ impl RepositoryImpl {
         })
     }
 
-    async fn complete_webhooks(&self, ws: &[crate::model::Webhook]) -> error::Result<Vec<Webhook>> {
+    async fn complete_webhooks(
+        &self,
+        ws: &[crate::model::Webhook],
+    ) -> Result<Vec<Webhook>, Failure> {
         let it = ws.iter().map(|w| self.complete_webhook(w));
         let webhooks = futures::future::try_join_all(it).await?;
         Ok(webhooks)
@@ -83,7 +85,7 @@ impl RepositoryImpl {
 }
 
 impl Repository for RepositoryImpl {
-    async fn add_webhook(&self, webhook: &Webhook) -> Result<(), DomainError> {
+    async fn add_webhook(&self, webhook: &Webhook) -> Result<(), Failure> {
         let w = crate::model::Webhook {
             id: webhook.id,
             channel_id: webhook.channel_id,
@@ -137,41 +139,36 @@ impl Repository for RepositoryImpl {
         Ok(())
     }
 
-    async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), DomainError> {
-        let webhook_id = webhook.id;
-        Ok(self.delete_webhook(&webhook_id).await?)
+    async fn remove_webhook(&self, webhook: &Webhook) -> Result<(), Failure> {
+        self.delete_webhook(&webhook.id).await
     }
 
-    async fn list_webhooks(&self) -> Result<Vec<Webhook>, DomainError> {
+    async fn list_webhooks(&self) -> Result<Vec<Webhook>, Failure> {
         let ws = self.read_webhooks().await?;
         let webhooks = self.complete_webhooks(&ws).await?;
         Ok(webhooks)
     }
 
-    async fn find_webhook(&self, id: &WebhookId) -> Result<Option<Webhook>, DomainError> {
+    async fn find_webhook(&self, id: &WebhookId) -> Result<Webhook, Failure> {
         let w = self.find_webhook(id).await?;
-        if let Some(w) = w {
-            let webhook = self.complete_webhook(&w).await?;
-            Ok(Some(webhook))
-        } else {
-            Ok(None)
-        }
+        let webhook = self.complete_webhook(&w).await?;
+        Ok(webhook)
     }
 
-    async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, DomainError> {
+    async fn filter_webhook_by_owner(&self, owner: &Owner) -> Result<Vec<Webhook>, Failure> {
         let ws = self.filter_webhooks_by_oid(owner.id()).await?;
-        Ok(self.complete_webhooks(&ws).await?)
+        self.complete_webhooks(&ws).await
     }
 
     async fn filter_webhook_by_channel(
         &self,
         channel_id: &ChannelId,
-    ) -> Result<Vec<Webhook>, DomainError> {
+    ) -> Result<Vec<Webhook>, Failure> {
         let ws = self.filter_webhooks_by_cid(*channel_id).await?;
-        Ok(self.complete_webhooks(&ws).await?)
+        self.complete_webhooks(&ws).await
     }
 
-    async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, DomainError> {
+    async fn filter_webhook_by_user(&self, user: &User) -> Result<Vec<Webhook>, Failure> {
         let gms = self.filter_group_members_by_uid(&user.id).await?;
         let mut oids = gms
             .into_iter()
@@ -179,6 +176,6 @@ impl Repository for RepositoryImpl {
             .collect::<Vec<OwnerId>>();
         oids.push(user.id.0.into());
         let ws = self.filter_webhooks_by_oids(&oids).await?;
-        Ok(self.complete_webhooks(&ws).await?)
+        self.complete_webhooks(&ws).await
     }
 }
