@@ -1,4 +1,3 @@
-use std::error::Error as StdError;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -37,7 +36,7 @@ async fn send_events(infra: &impl Infra, events: &[Event]) {
             .send_message(event.channel_id(), &event.body(), false)
             .await;
         if let Err(e) = res {
-            tracing::error!(error = (&e as &dyn StdError));
+            tracing::error!(error = ?e);
         }
     }
 }
