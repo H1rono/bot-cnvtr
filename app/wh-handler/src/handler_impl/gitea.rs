@@ -7,7 +7,7 @@ use teahook as th;
 
 use domain::{Event, EventSubscriber, Failure, Infra, Webhook};
 
-use super::utils::{extract_header_value, OptionExt};
+use super::utils::{OptionExt, extract_header_value};
 use crate::WebhookHandlerImpl;
 
 impl WebhookHandlerImpl {

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use tracing_subscriber::EnvFilter;
 
-use lib::{wrappers, ConfigComposite};
+use lib::{ConfigComposite, wrappers};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

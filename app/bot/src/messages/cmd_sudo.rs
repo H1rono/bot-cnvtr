@@ -4,8 +4,8 @@ use domain::{Failure, Infra, Repository, TraqClient};
 
 use super::BotImplInner;
 use crate::cli::sudo::{
-    webhook::{Completed, Delete, ListAll},
     SudoCompleted,
+    webhook::{Completed, Delete, ListAll},
 };
 use crate::error::Error;
 

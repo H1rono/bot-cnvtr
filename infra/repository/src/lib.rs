@@ -1,5 +1,5 @@
-use sqlx::migrate::Migrator;
 use sqlx::MySqlPool;
+use sqlx::migrate::Migrator;
 
 use domain::{
     ChannelId, Failure, Group, GroupId, Owner, OwnerId, OwnerKind, Repository, User, Webhook,

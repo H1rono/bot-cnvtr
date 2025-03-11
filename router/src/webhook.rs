@@ -1,17 +1,17 @@
 use axum::{
+    Json,
     extract::{FromRequestParts, Path, State},
     response::IntoResponse,
-    Json,
 };
-use http::{request::Parts, HeaderMap, StatusCode};
+use http::{HeaderMap, StatusCode, request::Parts};
 use tracing::{debug, instrument, warn};
 
 use domain::{Infra, Repository, Webhook, WebhookId};
 use usecases::{WebhookHandler, WebhookKind};
 
 use crate::{
-    error::{Error, Result},
     AppState,
+    error::{Error, Result},
 };
 
 #[must_use]

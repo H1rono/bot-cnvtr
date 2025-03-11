@@ -42,7 +42,7 @@ impl<I: Infra> Bot<I> for BotImpl {
         B::Data: Send + 'static,
         B::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
     {
-        use tower::{service_fn, ServiceExt};
+        use tower::{ServiceExt, service_fn};
 
         let Self { parser, inner } = self;
         let state = State { infra, bot: inner };

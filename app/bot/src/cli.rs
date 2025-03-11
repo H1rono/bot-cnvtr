@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload, types::Message};
 
 pub mod help;
 pub mod sudo;

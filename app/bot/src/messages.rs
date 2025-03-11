@@ -3,9 +3,9 @@ use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload
 
 use domain::{Infra, MessageId, StampId, TraqClient};
 
+use crate::BotImplInner;
 use crate::cli::{Cli, CompletedCmds, Incomplete};
 use crate::error::Error;
-use crate::BotImplInner;
 
 mod cmd_help;
 mod cmd_sudo;

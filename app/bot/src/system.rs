@@ -2,7 +2,7 @@ use traq_bot_http::payloads::{JoinedPayload, LeftPayload};
 
 use domain::Infra;
 
-use crate::{error::Error, BotImplInner};
+use crate::{BotImplInner, error::Error};
 
 impl BotImplInner {
     #[allow(clippy::unused_async)]

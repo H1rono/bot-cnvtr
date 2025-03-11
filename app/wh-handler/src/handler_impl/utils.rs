@@ -1,5 +1,5 @@
 use http::HeaderMap;
-use serde_json::{value::Index, Value};
+use serde_json::{Value, value::Index};
 
 use domain::Failure;
 

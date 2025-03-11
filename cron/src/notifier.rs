@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::interval;
-use tokio_stream::{wrappers::UnboundedReceiverStream, Stream, StreamExt};
+use tokio_stream::{Stream, StreamExt, wrappers::UnboundedReceiverStream};
 
 use domain::{Event, Infra, TraqClient};
 

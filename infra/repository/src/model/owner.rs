@@ -6,7 +6,7 @@ use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlRow, FromRow};
+use sqlx::{FromRow, mysql::MySqlRow};
 use uuid::Uuid;
 
 use domain::{Failure, OwnerId, OwnerKind};

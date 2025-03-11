@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post, post_service},
     Router,
+    routing::{get, post, post_service},
 };
 
 use domain::Infra;

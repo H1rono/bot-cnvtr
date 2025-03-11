@@ -72,10 +72,10 @@ pub struct Webhook {
 pub trait Repository: Send + Sync + 'static {
     fn add_webhook(&self, webhook: &Webhook) -> impl Future<Output = Result<(), Failure>> + Send;
     fn remove_webhook(&self, webhook: &Webhook)
-        -> impl Future<Output = Result<(), Failure>> + Send;
+    -> impl Future<Output = Result<(), Failure>> + Send;
     fn list_webhooks(&self) -> impl Future<Output = Result<Vec<Webhook>, Failure>> + Send;
     fn find_webhook(&self, id: &WebhookId)
-        -> impl Future<Output = Result<Webhook, Failure>> + Send;
+    -> impl Future<Output = Result<Webhook, Failure>> + Send;
     fn filter_webhook_by_owner(
         &self,
         owner: &Owner,

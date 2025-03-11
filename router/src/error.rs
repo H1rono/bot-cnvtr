@@ -38,8 +38,8 @@ impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         use http::StatusCode;
 
-        use domain::error::RejectKind;
         use Failure::Reject;
+        use domain::error::RejectKind;
 
         match self.0 {
             Reject(r) if r.kind() == RejectKind::BadRequest => {

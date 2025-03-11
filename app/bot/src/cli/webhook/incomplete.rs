@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use domain::OwnerKind;
 use serde::{Deserialize, Serialize};
-use traq_bot_http::payloads::{types::Message, DirectMessageCreatedPayload, MessageCreatedPayload};
+use traq_bot_http::payloads::{DirectMessageCreatedPayload, MessageCreatedPayload, types::Message};
 use uuid::Uuid;
 
 use domain::User;
