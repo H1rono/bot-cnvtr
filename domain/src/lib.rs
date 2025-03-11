@@ -7,8 +7,6 @@ pub mod owner;
 mod user;
 mod webhook;
 
-use std::future::Future;
-
 use serde::{Deserialize, Serialize};
 
 pub use error::Failure;

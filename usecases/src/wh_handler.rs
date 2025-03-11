@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use http::HeaderMap;
 
 use domain::{Failure, Infra, Webhook};
