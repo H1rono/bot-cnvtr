@@ -107,12 +107,11 @@ pub trait TraqClient: Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), Failure>> + Send {
         async move {
             let message = indoc::formatdoc! {
-                r#"
-                    ```{}
-                    {}
+                r"
+                    ```{lang}
+                    {code}
                     ```
-                "#,
-                lang, code
+                "
             };
             self.send_message(channel_id, &message, false).await
         }
@@ -133,12 +132,11 @@ pub trait TraqClient: Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), Failure>> + Send {
         async move {
             let message = indoc::formatdoc! {
-                r#"
-                    ```{}
-                    {}
+                r"
+                    ```{lang}
+                    {code}
                     ```
-                "#,
-                lang, code
+                "
             };
             self.send_direct_message(user_id, &message, false).await
         }

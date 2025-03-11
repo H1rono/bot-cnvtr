@@ -86,7 +86,7 @@ impl BotImplInner {
         };
         let channel_path = client.get_channel_path(&webhook.channel_id).await?;
         let message = formatdoc! {
-            r##"
+            r"
                 ### {message_title}
 
                 Webhook ID: {id}
@@ -98,7 +98,7 @@ impl BotImplInner {
                 - ClickUp: https://cnvtr.trap.show/wh/{id}/clickup
 
                 Webhookを削除する場合は `@{bot_name} webhook delete {id}` と投稿してください
-            "##,
+            ",
             bot_name = &self.name,
             id = webhook.id,
         };
@@ -163,10 +163,10 @@ impl BotImplInner {
             .into_iter()
             .map(|(w, c)| {
                 formatdoc! {
-                    r#"
+                    r"
                         Webhook ID: {id}
                         投稿先チャンネル: {c}
-                    "#,
+                    ",
                     id = w.id
                 }
             })
