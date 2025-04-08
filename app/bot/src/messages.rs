@@ -14,10 +14,12 @@ mod cmd_webhook;
 impl BotImplInner {
     fn parse_command(&self, cmd: &str) -> Result<Cli, clap::Error> {
         let cmd = cmd.trim().to_string();
-        let cmd = (!cmd.starts_with('@'))
-            .then(|| format!("@{name} {cmd}", name = &self.name))
-            .unwrap_or(cmd)
-            .replace('#', r"\#");
+        let cmd = if cmd.starts_with('@') {
+            cmd
+        } else {
+            format!("@{name} {cmd}", name = &self.name)
+        };
+        let cmd = cmd.replace('#', r"\#");
         let args = shlex::split(&cmd).unwrap_or_default();
         Cli::try_parse_from(args)
     }

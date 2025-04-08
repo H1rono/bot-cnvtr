@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use std::iter;
 use std::str::FromStr;
 
 use anyhow::Context;
@@ -154,7 +153,7 @@ impl RepositoryImpl {
         if os.is_empty() {
             return Ok(());
         }
-        let values_arg = iter::repeat("(?, ?, ?)").take(os.len()).join(", ");
+        let values_arg = std::iter::repeat_n("(?, ?, ?)", os.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
             INTO `{TABLE_OWNERS}` (`id`, `name`, `kind`)

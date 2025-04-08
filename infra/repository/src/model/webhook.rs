@@ -1,5 +1,3 @@
-use std::iter;
-
 use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
@@ -120,7 +118,7 @@ impl RepositoryImpl {
         if cids.is_empty() {
             return Ok(vec![]);
         }
-        let ids_arg = iter::repeat('?').take(cids.len()).join(", ");
+        let ids_arg = std::iter::repeat_n('?', cids.len()).join(", ");
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_WEBHOOKS}`
@@ -143,7 +141,7 @@ impl RepositoryImpl {
         if oids.is_empty() {
             return Ok(vec![]);
         }
-        let ids_arg = iter::repeat('?').take(oids.len()).join(", ");
+        let ids_arg = std::iter::repeat_n('?', oids.len()).join(", ");
         let query = formatdoc! {r"
             SELECT *
             FROM `{TABLE_WEBHOOKS}`
@@ -177,7 +175,7 @@ impl RepositoryImpl {
         if ws.is_empty() {
             return Ok(());
         }
-        let values_arg = iter::repeat("(?, ?, ?)").take(ws.len()).join(", ");
+        let values_arg = std::iter::repeat_n("(?, ?, ?)", ws.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
             INTO `{TABLE_WEBHOOKS}` (`id`, `channel_id`, `owner_id`)

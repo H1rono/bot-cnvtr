@@ -1,5 +1,3 @@
-use std::iter;
-
 use anyhow::Context;
 use indoc::formatdoc;
 use itertools::Itertools;
@@ -102,7 +100,7 @@ impl RepositoryImpl {
         if gs.is_empty() {
             return Ok(());
         }
-        let values_arg = iter::repeat("(?, ?)").take(gs.len()).join(", ");
+        let values_arg = std::iter::repeat_n("(?, ?)", gs.len()).join(", ");
         let query = formatdoc! {r"
             INSERT IGNORE
             INTO `{TABLE_GROUPS}` (`id`, `name`)
