@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use traq_bot_http::payloads::types::Message;
 
-use super::{Completed, Incomplete};
+use super::Incomplete;
 
 pub mod webhook;
 
@@ -31,16 +31,4 @@ impl<'a> Incomplete<&'a Message> for Sudo {
 #[derive(Debug, Clone)]
 pub enum SudoCompleted {
     Webhook(webhook::Completed),
-}
-
-impl Completed for SudoCompleted {
-    type Incomplete = Sudo;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        match self {
-            Self::Webhook(wh) => Sudo::Webhook {
-                wh: wh.incomplete(),
-            },
-        }
-    }
 }

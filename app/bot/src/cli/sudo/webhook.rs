@@ -44,17 +44,6 @@ pub enum Completed {
     Delete(Delete),
 }
 
-impl crate::cli::Completed for Completed {
-    type Incomplete = Incomplete;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        match self {
-            Self::ListAll(_) => Incomplete::ListAll,
-            Self::Delete(Delete { id, .. }) => Incomplete::Delete { id: (*id).into() },
-        }
-    }
-}
-
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct ListAll {

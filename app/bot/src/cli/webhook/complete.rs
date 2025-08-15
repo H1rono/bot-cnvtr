@@ -2,28 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use domain::{ChannelId, OwnerId, OwnerKind, User, WebhookId};
 
-use super::incomplete;
-use crate::cli::Completed;
-
 #[must_use]
 #[derive(Debug, Clone)]
 pub enum Webhook {
     Create(WebhookCreate),
     List(WebhookList),
     Delete(WebhookDelete),
-}
-
-impl Completed for Webhook {
-    type Incomplete = incomplete::Webhook;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        type Target = incomplete::Webhook;
-        match self {
-            Self::Create(create) => Target::Create(create.incomplete()),
-            Self::Delete(delete) => Target::Delete(delete.incomplete()),
-            Self::List(list) => Target::List(list.incomplete()),
-        }
-    }
 }
 
 #[must_use]
@@ -40,29 +24,10 @@ pub struct WebhookCreate {
     pub owner_kind: OwnerKind,
 }
 
-impl Completed for WebhookCreate {
-    type Incomplete = incomplete::WebhookCreate;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        incomplete::WebhookCreate {
-            channel: self.channel_name.clone(),
-            owner: Some(self.owner_name.clone()),
-        }
-    }
-}
-
 #[must_use]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WebhookList {
     pub user: User,
-}
-
-impl Completed for WebhookList {
-    type Incomplete = incomplete::WebhookList;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        incomplete::WebhookList
-    }
 }
 
 #[must_use]
@@ -71,14 +36,4 @@ pub struct WebhookDelete {
     pub user: User,
     pub talking_channel_id: ChannelId,
     pub webhook_id: WebhookId,
-}
-
-impl Completed for WebhookDelete {
-    type Incomplete = incomplete::WebhookDelete;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        incomplete::WebhookDelete {
-            id: self.webhook_id.into(),
-        }
-    }
 }

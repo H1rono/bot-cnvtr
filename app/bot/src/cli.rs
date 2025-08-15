@@ -65,32 +65,10 @@ pub enum CompletedCmds {
     PrintHelp(help::CompleteHelp),
 }
 
-impl Completed for CompletedCmds {
-    type Incomplete = Commands;
-
-    fn incomplete(&self) -> Self::Incomplete {
-        match self {
-            Self::Webhook(wh) => Commands::Webhook {
-                wh: wh.incomplete(),
-            },
-            Self::Sudo(sudo) => Commands::Sudo {
-                sudo: sudo.incomplete(),
-            },
-            Self::PrintHelp(_) => Commands::PrintHelp,
-        }
-    }
-}
-
 pub trait Incomplete<Ctx> {
     type Completed;
 
     fn complete(&self, context: Ctx) -> Self::Completed;
-}
-
-pub trait Completed {
-    type Incomplete;
-
-    fn incomplete(&self) -> Self::Incomplete;
 }
 
 impl<'a, T> Incomplete<&'a MessageCreatedPayload> for T
