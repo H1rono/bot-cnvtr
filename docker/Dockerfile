@@ -53,13 +53,15 @@ RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
     rustup target add "$(cat /target)"
 RUN --mount=type=cache,target=/var/cache/rustup,sharing=locked \
     --mount=type=cache,target=/var/cache/cargo,sharing=locked \
+    --mount=type=cache,target=/artifact,sharing=locked \
     --mount=type=bind,source=.,target=. \
     cargo build --target "$(cat /target)" --release --locked \
     --config "env.CC_$(cat /target) = '$(cat /gcc-prefix)-gcc'" \
     --config "env.CXX_$(cat /target) = '$(cat /gcc-prefix)-g++'" \
     --config "target.$(cat /target).linker = '$(cat /gcc-prefix)-gcc'"
 
-RUN cp "/artifact/$(cat /target)/release/bot-cnvtr" /bot-cnvtr
+RUN --mount=type=cache,target=/artifact,sharing=locked \
+    cp "/artifact/$(cat /target)/release/bot-cnvtr" /bot-cnvtr
 
 FROM --platform=$TARGETPLATFORM gcr.io/distroless/cc-debian12:nonroot AS server-distroless
 
