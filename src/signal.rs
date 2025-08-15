@@ -4,16 +4,20 @@ use tokio::signal;
 #[tracing::instrument]
 pub async fn signal() {
     use signal::unix;
-    let mut terminate = unix::signal(unix::SignalKind::terminate())
-        .map_err(|e| {
-            tracing::error!("failed to create SIGTERM listener: {}", e);
-        })
-        .unwrap();
-    let mut interrupt = unix::signal(unix::SignalKind::interrupt())
-        .map_err(|e| {
-            tracing::error!("failed to create SIGINT listener: {}", e);
-        })
-        .unwrap();
+
+    fn inner() -> std::io::Result<(unix::Signal, unix::Signal)> {
+        let terminate = unix::signal(unix::SignalKind::terminate()).inspect_err(|e| {
+            tracing::error!(error = %e, "Failed to create SIGTERM listener");
+        })?;
+        let interrupt = unix::signal(unix::SignalKind::interrupt()).inspect_err(|e| {
+            tracing::error!(error = %e, "Failed to create SIGINT listener");
+        })?;
+        std::io::Result::Ok((terminate, interrupt))
+    }
+
+    let Ok((mut terminate, mut interrupt)) = inner() else {
+        return;
+    };
     tokio::select! {
         _ = terminate.recv() => {
             tracing::info!("received SIGTERM");
@@ -28,10 +32,7 @@ pub async fn signal() {
 #[cfg(windows)]
 #[tracing::instrument]
 pub async fn signal() {
-    signal::ctrl_c()
-        .await
-        .map_err(|e| {
-            tracing::error!("failed to listen CTRL-C: {}", e);
-        })
-        .unwrap();
+    let _ = signal::ctrl_c().await.inspect_err(|e| {
+        tracing::error!(error = %e, "Failed to listen CTRL-C");
+    });
 }
